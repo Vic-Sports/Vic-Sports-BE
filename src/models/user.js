@@ -137,7 +137,7 @@ const userSchema = new mongoose.Schema(
         message: "{VALUE} is not a valid role"
       },
       required: [true, "Role is required"],
-      default: "USER"
+      default: "customer"
     },
     verificationToken: {
       type: String,
