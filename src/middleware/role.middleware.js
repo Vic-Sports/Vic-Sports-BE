@@ -13,7 +13,7 @@ export const ROLES = {
 const ROLE_HIERARCHY = {
   [ROLES.GUEST]: 0,
   [ROLES.CUSTOMER]: 1,
-  [ROLES.SHOP]: 2,
+  [ROLES.OWNER]: 2,
   [ROLES.ADMIN]: 3,
 };
 

@@ -1,10 +1,3 @@
-/**
- * @fileoverview File Upload Middleware
- * @created 2025-06-04
- * @file uploadMiddleware.js
- * @description This file contains middleware functions for handling file uploads in the Kicks Shoes application.
- */
-
 import multer from "multer";
 import { ErrorResponse } from "../utils/errorResponse.js";
 import { storage } from "../config/cloudinary.js";
