@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
-import TokenBlacklist from '../models/TokenBlacklist.js';
+import TokenBlacklist from '../models/tokenBlacklist.js';
 import { ErrorResponse } from '../utils/errorResponse.js';
 import logger from '../utils/logger.js';
 
