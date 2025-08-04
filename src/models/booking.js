@@ -1,25 +1,17 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const bookingSchema = new mongoose.Schema(
+const bookingSchema = new Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true
-    },
-    subField: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SubField",
-      required: true
-    },
-    date: {
-      type: Date,
-      required: true
-    },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    subField: { type: Schema.Types.ObjectId, ref: "SubField", required: true },
+
+    date: { type: Date, required: true },
     timeSlot: {
-      from: String, // "18:00"
-      to: String // "20:00"
+      from: { type: String, required: true },
+      to: { type: String, required: true }
     },
+
     status: {
       type: String,
       enum: [
@@ -33,122 +25,103 @@ const bookingSchema = new mongoose.Schema(
       ],
       default: "pending"
     },
-    totalPrice: {
-      type: Number,
-      required: [true, "Total price is required"],
-      min: [0, "Price cannot be negative"]
-    },
+
     paymentMethod: {
       type: String,
       enum: ["vnpay", "cash"],
-      required: [true, "Payment method is required"]
+      required: true
     },
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed", "refunded", "refund_pending"],
       default: "pending"
     },
-    isRated: {
-      type: Boolean,
-      default: false
-    },
-    tax: {
-      type: Number,
-      default: 0,
-      min: [0, "Tax cannot be negative"]
-    },
-    discount: {
-      type: Number,
-      default: 0,
-      min: [0, "Discount cannot be negative"]
-    },
-    discountCode: {
-      type: String,
-      trim: true,
-      uppercase: true
-    },
-    subtotal: {
-      type: Number,
-      required: true,
-      min: [0, "Subtotal cannot be negative"]
-    },
-    // VNPay transaction fields
-    transactionId: {
-      type: String,
-      trim: true
-    },
-    paymentDate: {
-      type: Date
-    },
-    vnpResponseCode: {
-      type: String,
-      trim: true
-    },
-    vnpTxnRef: {
-      type: String,
-      trim: true
-    },
-    vnpAmount: {
-      type: Number,
-      min: [0, "Amount cannot be negative"]
-    },
-    vnpBankCode: {
-      type: String,
-      trim: true
-    },
-    vnpPayDate: {
-      type: String,
-      trim: true
-    },
-    // VNPay transaction number for refunds
-    vnpTransactionNo: {
-      type: String,
-      trim: true
-    },
-    // Refund-related fields
-    refundedAt: {
-      type: Date
-    },
-    refundReason: {
-      type: String,
-      trim: true,
-      maxlength: [500, "Refund reason cannot exceed 500 characters"]
-    },
-    refundAmount: {
-      type: Number,
-      min: [0, "Refund amount cannot be negative"]
-    },
-    refundTransactionNo: {
-      type: String,
-      trim: true
-    },
-    refundResponseCode: {
-      type: String,
-      trim: true
-    },
-    // Refund pending and error tracking
-    refundError: {
-      type: String,
-      trim: true,
-      maxlength: [1000, "Refund error cannot exceed 1000 characters"]
-    },
-    refundAttemptedAt: {
-      type: Date
-    },
-    // Cancellation fields
-    cancelledAt: {
-      type: Date
-    },
-    cancellationReason: {
-      type: String,
-      trim: true,
-      maxlength: [500, "Cancellation reason cannot exceed 500 characters"]
-    }
+
+    subtotal: { type: Number, required: true, min: 0 },
+    tax: { type: Number, default: 0, min: 0 },
+    discount: { type: Number, default: 0, min: 0 },
+    totalPrice: { type: Number, required: true, min: 0 },
+
+    discountCode: { type: String, trim: true, uppercase: true },
+    isRated: { type: Boolean, default: false },
+
+    // VNPay fields
+    transactionId: { type: String, trim: true },
+    paymentDate: { type: Date },
+    vnpTxnRef: { type: String, trim: true },
+    vnpResponseCode: { type: String, trim: true },
+    vnpBankCode: { type: String, trim: true },
+    vnpAmount: { type: Number, min: 0 },
+    vnpPayDate: { type: String, trim: true },
+    vnpTransactionNo: { type: String, trim: true },
+
+    // Refund
+    refundedAt: { type: Date },
+    refundReason: { type: String, trim: true, maxlength: 500 },
+    refundAmount: { type: Number, min: 0 },
+    refundTransactionNo: { type: String, trim: true },
+    refundResponseCode: { type: String, trim: true },
+    refundError: { type: String, trim: true, maxlength: 1000 },
+    refundAttemptedAt: { type: Date },
+
+    // Cancellation
+    cancelledAt: { type: Date },
+    cancellationReason: { type: String, trim: true, maxlength: 500 }
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
 );
 
-bookingSchema.index({ user: 1, createdAt: -1 });
-bookingSchema.index({ subField: 1, date: 1, "timeSlot.from": 1 });
+// Indexes
+bookingSchema.index({ status: 1 });
+bookingSchema.index({ paymentStatus: 1 });
+bookingSchema.index({ createdAt: 1 });
+
+// Virtuals
+bookingSchema.virtual("formattedTotalPrice").get(function () {
+  return this.totalPrice?.toFixed(2) || "0.00";
+});
+
+bookingSchema.virtual("formattedTax").get(function () {
+  return this.tax?.toFixed(2) || "0.00";
+});
+
+bookingSchema.virtual("formattedDiscount").get(function () {
+  return this.discount?.toFixed(2) || "0.00";
+});
+
+bookingSchema.virtual("formattedSubtotal").get(function () {
+  return this.subtotal?.toFixed(2) || "0.00";
+});
+
+bookingSchema.virtual("bookingSummary").get(function () {
+  return {
+    subtotal: this.formattedSubtotal,
+    tax: this.formattedTax,
+    discount: this.formattedDiscount,
+    total: this.formattedTotalPrice
+  };
+});
+
+// Validation hook
+bookingSchema.pre("save", function (next) {
+  if (!this.timeSlot?.from || !this.timeSlot?.to) {
+    return next(new Error("Time slot is required"));
+  }
+
+  const expectedTotal = (this.subtotal + this.tax - this.discount).toFixed(2);
+  const actualTotal = this.totalPrice.toFixed(2);
+
+  if (expectedTotal !== actualTotal) {
+    return next(
+      new Error("Total price mismatch. Check subtotal, tax, and discount.")
+    );
+  }
+
+  next();
+});
 
 module.exports = mongoose.model("Booking", bookingSchema);
