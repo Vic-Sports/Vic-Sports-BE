@@ -13,7 +13,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "kicks-shoes/avatars",
+    folder: "vic-sports/avatars",
     allowed_formats: ["jpg", "jpeg", "png", "gif"],
     transformation: [{ width: 500, height: 500, crop: "limit" }],
     format: "jpg",

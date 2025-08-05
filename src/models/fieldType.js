@@ -1,33 +1,25 @@
 const mongoose = require("mongoose");
 
-const subFieldSchema = new mongoose.Schema(
+const fieldTypeSchema = new mongoose.Schema(
   {
-    // --- Quan hệ với Complex và FieldType ---
-    complex: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Complex",
-      required: [true, "Complex is required"]
-    },
-    fieldType: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "FieldType",
-      required: [true, "Field type is required"]
-    },
-
     // --- Thông tin cơ bản ---
     name: {
       type: String,
-      required: [true, "Sub field name is required"],
+      required: [true, "Field type name is required"],
       trim: true,
-      maxlength: [50, "Sub field name cannot exceed 50 characters"]
+      maxlength: [50, "Field type name cannot exceed 50 characters"]
     },
-    code: {
+    sportType: {
       type: String,
-      required: [true, "Sub field code is required"],
-      unique: true,
-      trim: true,
-      uppercase: true,
-      match: [/^[A-Z0-9]+$/, "Code must contain only uppercase letters and numbers"]
+      required: [true, "Sport type is required"],
+      enum: {
+        values: [
+          "football", "tennis", "badminton", "basketball", 
+          "volleyball", "table-tennis", "squash", "golf",
+          "swimming", "gym", "yoga", "martial-arts"
+        ],
+        message: "{VALUE} is not a valid sport type"
+      }
     },
     description: {
       type: String,
@@ -82,28 +74,20 @@ const subFieldSchema = new mongoose.Schema(
           message: "{VALUE} is not a valid roof type"
         },
         default: "none"
-      },
-      equipment: {
-        type: [String],
-        default: []
       }
     },
 
-    // --- Hình ảnh và media ---
-    images: {
-      type: [String],
-      default: []
-    },
-    coverImage: {
-      type: String
-    },
-
-    // --- Giá cả ---
+    // --- Giá cả và đặt sân ---
     pricing: {
       basePrice: {
         type: Number,
         required: [true, "Base price is required"],
         min: [0, "Base price cannot be negative"]
+      },
+      currency: {
+        type: String,
+        enum: ["VND", "USD"],
+        default: "VND"
       },
       pricePerHour: {
         type: Number,
@@ -150,32 +134,42 @@ const subFieldSchema = new mongoose.Schema(
           match: [/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"]
         }
       },
-      maintenanceSchedule: {
-        type: [String], // ["Monday 06:00-08:00", "Wednesday 14:00-16:00"]
-        default: []
+      bookingDuration: {
+        type: Number,
+        min: [30, "Minimum booking duration is 30 minutes"],
+        max: [480, "Maximum booking duration is 8 hours"],
+        default: 60 // minutes
+      },
+      advanceBookingDays: {
+        type: Number,
+        min: [0, "Advance booking days cannot be negative"],
+        max: [365, "Advance booking days cannot exceed 1 year"],
+        default: 7
       }
     },
 
-    // --- Trạng thái và đánh giá ---
+    // --- Quy tắc và điều kiện ---
+    rules: {
+      type: [String],
+      default: []
+    },
+    requirements: {
+      type: [String],
+      default: []
+    },
+    restrictions: {
+      type: [String],
+      default: []
+    },
+
+    // --- Trạng thái ---
     status: {
       type: String,
       enum: {
-        values: ["active", "inactive", "maintenance", "reserved"],
+        values: ["active", "inactive", "maintenance"],
         message: "{VALUE} is not a valid status"
       },
       default: "active"
-    },
-    rating: {
-      average: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 5
-      },
-      count: {
-        type: Number,
-        default: 0
-      }
     },
 
     // --- Thống kê ---
@@ -188,30 +182,16 @@ const subFieldSchema = new mongoose.Schema(
         type: Number,
         default: 0
       },
-      totalHours: {
-        type: Number,
-        default: 0
-      },
-      utilizationRate: {
+      averageRating: {
         type: Number,
         default: 0,
         min: 0,
-        max: 100
+        max: 5
+      },
+      reviewCount: {
+        type: Number,
+        default: 0
       }
-    },
-
-    // --- Thông tin bổ sung ---
-    notes: {
-      type: String,
-      trim: true
-    },
-    specialFeatures: {
-      type: [String],
-      default: []
-    },
-    restrictions: {
-      type: [String],
-      default: []
     }
   },
   {
@@ -222,29 +202,20 @@ const subFieldSchema = new mongoose.Schema(
 );
 
 // Indexes
-subFieldSchema.index({ complex: 1 });
-subFieldSchema.index({ fieldType: 1 });
-subFieldSchema.index({ status: 1 });
-subFieldSchema.index({ code: 1 });
-subFieldSchema.index({ "pricing.pricePerHour": 1 });
-
-// Compound index for complex and status
-subFieldSchema.index({ complex: 1, status: 1 });
-
-// Virtual for full name
-subFieldSchema.virtual("fullName").get(function () {
-  return `${this.name} (${this.code})`;
-});
+fieldTypeSchema.index({ sportType: 1 });
+fieldTypeSchema.index({ status: 1 });
+fieldTypeSchema.index({ "specifications.surface": 1 });
+fieldTypeSchema.index({ "pricing.pricePerHour": 1 });
 
 // Virtual for formatted size
-subFieldSchema.virtual("formattedSize").get(function () {
+fieldTypeSchema.virtual("formattedSize").get(function () {
   const size = this.specifications.size;
   if (!size) return null;
   return `${size.length} x ${size.width} ${size.unit}`;
 });
 
 // Virtual for current price based on time
-subFieldSchema.virtual("currentPrice").get(function () {
+fieldTypeSchema.virtual("currentPrice").get(function () {
   const now = new Date();
   const hour = now.getHours();
   const day = now.getDay();
@@ -267,34 +238,14 @@ subFieldSchema.virtual("currentPrice").get(function () {
 });
 
 // Virtual for availability status
-subFieldSchema.virtual("isAvailable").get(function () {
-  if (this.status !== "active") return false;
-  
+fieldTypeSchema.virtual("isAvailable").get(function () {
   const now = new Date();
   const time = now.toTimeString().slice(0, 5);
   return time >= this.operatingHours.openTime && time <= this.operatingHours.closeTime;
 });
 
-// Virtual for maintenance status
-subFieldSchema.virtual("isUnderMaintenance").get(function () {
-  if (this.status === "maintenance") return true;
-  
-  const now = new Date();
-  const day = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-  const time = now.toTimeString().slice(0, 5);
-  
-  return this.operatingHours.maintenanceSchedule.some(schedule => {
-    const [scheduleDay, scheduleTime] = schedule.split(' ');
-    if (scheduleDay.toLowerCase() === day) {
-      const [start, end] = scheduleTime.split('-');
-      return time >= start && time <= end;
-    }
-    return false;
-  });
-});
-
 // Pre-save middleware to validate pricing
-subFieldSchema.pre("save", function (next) {
+fieldTypeSchema.pre("save", function (next) {
   // Ensure base price is set if not provided
   if (!this.pricing.basePrice) {
     this.pricing.basePrice = this.pricing.pricePerHour;
@@ -311,7 +262,7 @@ subFieldSchema.pre("save", function (next) {
 });
 
 // Method to calculate price for specific duration
-subFieldSchema.methods.calculatePrice = function (duration, date = new Date()) {
+fieldTypeSchema.methods.calculatePrice = function (duration, date = new Date()) {
   const day = date.getDay();
   const hour = date.getHours();
   const time = `${hour.toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -336,51 +287,6 @@ subFieldSchema.methods.calculatePrice = function (duration, date = new Date()) {
   return Math.ceil(duration / 60) * basePrice; // duration in minutes
 };
 
-// Method to update rating
-subFieldSchema.methods.updateRating = async function () {
-  const Review = mongoose.model("Review");
-  const stats = await Review.aggregate([
-    { $match: { subField: this._id } },
-    {
-      $group: {
-        _id: null,
-        average: { $avg: "$rating" },
-        count: { $sum: 1 }
-      }
-    }
-  ]);
+const FieldType = mongoose.model("FieldType", fieldTypeSchema);
 
-  if (stats.length > 0) {
-    this.rating.average = Math.round(stats[0].average * 10) / 10;
-    this.rating.count = stats[0].count;
-  } else {
-    this.rating.average = 0;
-    this.rating.count = 0;
-  }
-
-  await this.save();
-};
-
-// Method to update utilization rate
-subFieldSchema.methods.updateUtilizationRate = async function () {
-  const Booking = mongoose.model("Booking");
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
-  const totalBookings = await Booking.countDocuments({
-    subField: this._id,
-    date: { $gte: startOfMonth, $lte: endOfMonth },
-    status: { $in: ["confirmed", "completed"] }
-  });
-  
-  const totalHours = totalBookings * 1; // Assuming 1 hour per booking
-  const totalAvailableHours = 24 * 30; // 30 days * 24 hours
-  this.stats.utilizationRate = Math.round((totalHours / totalAvailableHours) * 100);
-  
-  await this.save();
-};
-
-const SubField = mongoose.model("SubField", subFieldSchema);
-
-export default SubField;
+export default FieldType; 
