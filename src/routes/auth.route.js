@@ -24,7 +24,7 @@ router.post('/resend-verification', resendVerification);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.post('/refresh-token', refreshToken);
-router.get('/me', protect, getAccount);
+router.get('/account', protect, getAccount);
 router.put('/update-profile', protect, upload.single('avatar'), updateProfile);
 router.put('/change-password', protect, changePassword);
 router.post('/logout', protect, logout);

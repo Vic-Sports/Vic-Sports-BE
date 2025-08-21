@@ -435,10 +435,10 @@ messageSchema.statics.getChatMessages = async function (chatId, options = {}) {
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limit)
-    .populate("sender", "fullName username avatar")
+    .populate("sender", "fullName avatar")
     .populate("replyTo", "content sender")
-    .populate("readBy.user", "fullName username avatar")
-    .populate("reactions.user", "fullName username avatar");
+    .populate("readBy.user", "fullName avatar")
+    .populate("reactions.user", "fullName avatar");
 };
 
 // Static method to search messages
@@ -459,7 +459,7 @@ messageSchema.statics.searchMessages = async function (chatId, searchTerm, optio
     .sort({ createdAt: -1 })
     .skip(offset)
     .limit(limit)
-    .populate("sender", "fullName username avatar");
+    .populate("sender", "fullName avatar");
 };
 
 const Message = mongoose.model("Message", messageSchema);

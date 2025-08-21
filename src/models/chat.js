@@ -402,8 +402,8 @@ chatSchema.statics.getUserChats = async function (userId, options = {}) {
     .sort({ "lastMessage.sentAt": -1, updatedAt: -1 })
     .skip(offset)
     .limit(limit)
-    .populate("participants.user", "fullName username avatar")
-    .populate("lastMessage.sender", "fullName username avatar");
+    .populate("participants.user", "fullName avatar")
+    .populate("lastMessage.sender", "fullName avatar");
 };
 
 const Chat = mongoose.model("Chat", chatSchema);

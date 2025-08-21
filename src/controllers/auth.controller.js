@@ -12,13 +12,13 @@ const otpStore = new Map();
 // ==================== Register ==================== //
 export const register = async (req, res, next) => {
   try {
-    const { fullName, username, email, password, phone, address } = req.body;
+    const { fullName, email, password, phone } = req.body;
 
     // Check required fields
-    if (!fullName || !username || !email || !password || !phone || !address) {
+    if (!fullName || !email || !password || !phone) {
       return next(
         new ErrorResponse(
-          'Please provide full name, username, email, password, phone and address',
+          'Please provide full name, email, password, phone',
           400
         )
       );
@@ -36,11 +36,9 @@ export const register = async (req, res, next) => {
     // Create user
     const user = await User.create({
       fullName,
-      username,
       email,
       password,
       phone,
-      address,
       role: 'customer',
       isVerified: false,
       verificationToken,
@@ -75,12 +73,12 @@ export const register = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
+      message: "User registered successfully",
+      statusCode: 201,
       data: {
         user,
-        tokens: {
-          accessToken,
-          refreshToken,
-        },
+        access_token: accessToken,
+        refresh_token: refreshToken,
       },
     });
   } catch (error) {
@@ -154,10 +152,8 @@ export const login = async (req, res, next) => {
       success: true,
       data: {
         user,
-        tokens: {
-          accessToken,
-          refreshToken,
-        },
+        access_token: accessToken,
+        refresh_token: refreshToken,
       },
     });
   } catch (error) {
@@ -182,7 +178,9 @@ export const getAccount = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: user,
+      data: {
+        user: user,
+      },
     });
   } catch (error) {
     logger.error('Error in getMe controller', {
@@ -196,12 +194,11 @@ export const getAccount = async (req, res, next) => {
 // ==================== Update Profile ==================== //
 export const updateProfile = async (req, res, next) => {
   try {
-    const { fullName, username, email, phone, address, dateOfBirth, gender, aboutMe } = req.body;
+    const { fullName, email, phone, address, dateOfBirth, gender, aboutMe } = req.body;
 
     // Build update object
     const updateFields = {};
     if (fullName) updateFields.fullName = fullName;
-    if (username) updateFields.username = username;
     if (email) updateFields.email = email;
     if (phone) updateFields.phone = phone;
     if (address) updateFields.address = address;
@@ -306,7 +303,7 @@ export const forgotPassword = async (req, res, next) => {
       email: user.email,
       templateType: 'PASSWORD_RESET',
       templateData: {
-        name: user.username,
+        name: user.fullName,
         resetLink: `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`,
       },
     });
@@ -468,7 +465,7 @@ export const resendVerification = async (req, res, next) => {
       email: user.email,
       templateType: 'VERIFICATION',
       templateData: {
-        name: user.username,
+        name: user.fullName,
         verificationLink: `${
           process.env.FRONTEND_URL || 'http://localhost:5000'
         }/verify-email?token=${verificationToken}`,
@@ -512,7 +509,7 @@ export const refreshToken = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      token,
+      access_token: token,
     });
   } catch (err) {
     return next(new ErrorResponse('Invalid refresh token', 401));

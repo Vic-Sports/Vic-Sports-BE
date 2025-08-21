@@ -12,7 +12,6 @@ export class UserService {
         filter.$or = [
           { fullName: { $regex: keyword, $options: 'i' } },
           { email: { $regex: keyword, $options: 'i' } },
-          { username: { $regex: keyword, $options: 'i' } },
         ];
       }
 

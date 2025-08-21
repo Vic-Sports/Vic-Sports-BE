@@ -343,7 +343,7 @@ reviewSchema.statics.getTopReviews = async function (filters = {}, limit = 10) {
   return await this.find({ ...filters, status: "approved" })
     .sort({ helpful: -1, rating: -1, createdAt: -1 })
     .limit(limit)
-    .populate('user', 'fullName username avatar')
+    .populate('user', 'fullName avatar')
     .populate('complex', 'name')
     .populate('subField', 'name code');
 };

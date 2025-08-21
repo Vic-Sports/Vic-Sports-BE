@@ -78,7 +78,7 @@ export const deleteUser = async (req, res) => {
 // Get user profile
 export const getUserProfile = async (req, res, next) => {
   try {
-    const user = await User.findOne({ username: req.params.username })
+    const user = await User.findById(req.params.id)
       .select('-password -verificationToken -verificationTokenExpires')
       .populate('role', 'name');
 
@@ -89,7 +89,7 @@ export const getUserProfile = async (req, res, next) => {
     // If user is not verified, only show limited information
     if (!user.isVerified) {
       return res.json({
-        username: user.username,
+        fullName: user.fullName,
         avatar: user.avatar,
         role: user.role,
       });
