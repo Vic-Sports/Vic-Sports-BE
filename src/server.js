@@ -2,6 +2,12 @@ import dotenv from 'dotenv';
 import express from 'express';
 import connectDB from './config/database.js';
 import logger from './utils/logger.js';
+import { corsMiddleware } from './config/cors.config.js';
+import { errorHandler } from './middlewares/error.middleware.js';
+import authRoutes from './routes/auth.route.js';
+import morgan from 'morgan';
+import helmet from 'helmet';
+import compression from 'compression';
 
 // Load environment variables
 dotenv.config();
@@ -12,12 +18,28 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(corsMiddleware);
+app.use(morgan('dev'));
+app.use(helmet());
+app.use(compression());
 
-const PORT = process.env.PORT;
+// Default route
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Vic Sports API' });
+});
 
-app.listen(PORT, () => {
+// Routes
+app.use('/api/v1/auth', authRoutes);
+
+// Error handler
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0'; // Cho phép lắng nghe mọi địa chỉ mạng
+
+app.listen(PORT, HOST, () => {
   logger.info(`Server is running on port ${PORT}`);
 });
 

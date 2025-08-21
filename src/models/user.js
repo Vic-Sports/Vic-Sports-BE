@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const mongoose_delete = require("mongoose-delete");
+import mongoose from "mongoose";
+import mongoose_delete from "mongoose-delete";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
