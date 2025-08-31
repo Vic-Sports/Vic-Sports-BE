@@ -109,26 +109,4 @@ export const emailTemplates = {
       </div>
     `,
   },
-
-  OTP: {
-    subject: 'Your OTP Code - Vic Sports',
-    getContent: ({ name, otp }) => `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2c3e50; margin: 0;">Verify Your Identity</h1>
-      </div>
-      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-        <p style="color: #34495e; margin: 0;">Hi ${name},</p>
-        <p style="color: #34495e; margin: 15px 0 0 0;">Your One-Time Password (OTP) for verifying your Vic Sports account is:</p>
-        <p style="font-size: 28px; font-weight: bold; color: #e74c3c; text-align: center; margin: 20px 0;">${otp}</p>
-        <p style="color: #34495e;">Please enter this code in the app to complete your verification.</p>
-      </div>
-      <div style="text-align: center; color: #7f8c8d; font-size: 14px;">
-        <p style="margin: 0;">If you didn’t request this code, you can safely ignore this email.</p>
-        <p style="margin: 10px 0 0 0;">This OTP will expire in 5 minutes.</p>
-        <p style="margin: 10px 0 0 0;">Best regards,<br>Vic Sports Team</p>
-      </div>
-    </div>
-  `,
-  },
 };
