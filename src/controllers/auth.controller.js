@@ -6,8 +6,7 @@ import jwt from 'jsonwebtoken';
 import { sendTemplatedEmail } from '../utils/sendEmail.js';
 import logger from '../utils/logger.js';
 import { generateToken } from '../utils/jwt.js';
-
-const otpStore = new Map();
+import { validateEmail, validatePhone, validatePassword } from '../utils/validation.js';
 
 // ==================== Register ==================== //
 export const register = async (req, res, next) => {
@@ -30,32 +29,56 @@ export const register = async (req, res, next) => {
       return next(new ErrorResponse('User already exists', 400));
     }
 
+    // Check if phone exists
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists) {
+      return next(new ErrorResponse('Phone number already exists', 400));
+    }
+
     // Generate verification token
     const verificationToken = generateToken({ email }, process.env.JWT_VERIFY_EXPIRES_IN || '1h');
 
-    // Create user
-    const user = await User.create({
-      fullName,
-      email,
-      password,
-      phone,
-      role: 'customer',
-      isVerified: false,
-      verificationToken,
-      verificationTokenExpires: new Date(Date.now() + 3600000), // 1 hour
-    });
+    // Send verification email first
+    try {
+      await sendTemplatedEmail({
+        email: email,
+        templateType: 'VERIFICATION',
+        templateData: {
+          name: fullName,
+          verificationLink: `${
+            process.env.FRONTEND_URL || 'http://localhost:5000'
+          }/verify-email?token=${verificationToken}`,
+        },
+      });
+    } catch (emailError) {
+      logger.error('Failed to send verification email', {
+        error: emailError.message,
+        email: email,
+      });
+      return next(new ErrorResponse('Failed to send verification email. Please try again later.', 500));
+    }
 
-    // Send verification email
-    await sendTemplatedEmail({
-      email: user.email,
-      templateType: 'VERIFICATION',
-      templateData: {
-        name: user.fullName,
-        verificationLink: `${
-          process.env.FRONTEND_URL || 'http://localhost:5000'
-        }/verify-email?token=${verificationToken}`,
-      },
-    });
+    // Create user only after email is sent successfully
+    let user;
+    try {
+      user = await User.create({
+        fullName,
+        email,
+        password,
+        phone,
+        role: 'customer',
+        isVerified: false,
+        verificationToken,
+        verificationTokenExpires: new Date(Date.now() + 3600000), // 1 hour
+      });
+    } catch (error) {
+      if (error.code === 11000) {
+        // Duplicate key error
+        const field = Object.keys(error.keyPattern)[0];
+        return next(new ErrorResponse(`${field} already exists`, 400));
+      }
+      throw error;
+    }
 
     // Generate tokens
     const accessToken = generateToken({ id: user._id }, process.env.JWT_EXPIRES_IN || '1d');
