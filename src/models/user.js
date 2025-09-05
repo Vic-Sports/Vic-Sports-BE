@@ -38,7 +38,8 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: "https://res.cloudinary.com/demo/image/upload/v1/samples/people/boy-snow-hoodie.jpg"
+      default:
+        "https://res.cloudinary.com/demo/image/upload/v1/samples/people/boy-snow-hoodie.jpg"
     },
     dateOfBirth: {
       type: Date
@@ -51,7 +52,7 @@ const userSchema = new mongoose.Schema(
       }
     },
     address: {
-      province: {
+      city: {
         type: String,
         trim: true
       },
@@ -66,6 +67,10 @@ const userSchema = new mongoose.Schema(
       street: {
         type: String,
         trim: true
+      },
+      coordinates: {
+        lat: Number,
+        lng: Number
       }
     },
 
@@ -89,7 +94,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ["customer", "owner", "admin"],
+        values: ["customer", "owner", "admin", "coach"],
         message: "{VALUE} is not a valid role"
       },
       required: [true, "Role is required"],
@@ -132,67 +137,6 @@ const userSchema = new mongoose.Schema(
       default: 0
     },
 
-    // --- Thông tin sở thích ---
-    favoriteSports: {
-      type: [String],
-      enum: {
-        values: ["football", "tennis", "badminton", "basketball", "volleyball", "table-tennis"],
-        message: "{VALUE} is not a valid favorite sport!"
-      }
-    },
-    preferredDays: {
-      type: [String],
-      enum: {
-        values: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        message: "{VALUE} is not a valid preferred day!"
-      }
-    },
-    preferredTimeRange: {
-      from: String, // "18:00"
-      to: String    // "21:00"
-    },
-    bio: {
-      type: String,
-      trim: true,
-      maxlength: [500, "Bio cannot exceed 500 characters!"]
-    },
-    featuredImages: {
-      type: [String],
-      default: []
-    },
-
-    // --- Quan hệ xã hội ---
-    friends: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
-    }],
-    friendRequests: [{
-      from: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-      },
-      status: {
-        type: String,
-        enum: ["pending", "accepted", "rejected"],
-        default: "pending"
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
-    }],
-    blockedUsers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
-    }],
-
-    // --- Thông tin liên hệ khẩn cấp ---
-    emergencyContact: {
-      name: String,
-      phone: String,
-      relationship: String
-    },
-
     // --- Cài đặt thông báo ---
     notificationSettings: {
       email: {
@@ -206,7 +150,9 @@ const userSchema = new mongoose.Schema(
       sms: {
         type: Boolean,
         default: false
-      }
+      },
+      booking: { type: Boolean, default: true },
+      promotion: { type: Boolean, default: true }
     }
   },
   {
@@ -224,6 +170,7 @@ userSchema.index({ email: 1 });
 userSchema.index({ phone: 1 });
 userSchema.index({ "socialLogin.google.id": 1 });
 userSchema.index({ "socialLogin.facebook.id": 1 });
+userSchema.index({ 'address.city': 1, 'address.district': 1 });
 
 // Virtual for full user info
 userSchema.virtual("fullInfo").get(function () {
@@ -279,33 +226,19 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Method to add friend
-userSchema.methods.addFriend = async function (friendId) {
-  if (!this.friends.includes(friendId)) {
-    this.friends.push(friendId);
-    await this.save();
-  }
-};
-
-// Method to remove friend
-userSchema.methods.removeFriend = async function (friendId) {
-  this.friends = this.friends.filter(id => !id.equals(friendId));
-  await this.save();
-};
-
 // Method to block user
 userSchema.methods.blockUser = async function (userId) {
   if (!this.blockedUsers.includes(userId)) {
     this.blockedUsers.push(userId);
     // Remove from friends if exists
-    this.friends = this.friends.filter(id => !id.equals(userId));
+    this.friends = this.friends.filter((id) => !id.equals(userId));
     await this.save();
   }
 };
 
 // Method to unblock user
 userSchema.methods.unblockUser = async function (userId) {
-  this.blockedUsers = this.blockedUsers.filter(id => !id.equals(userId));
+  this.blockedUsers = this.blockedUsers.filter((id) => !id.equals(userId));
   await this.save();
 };
 
