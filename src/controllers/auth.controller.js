@@ -67,7 +67,7 @@ export const register = async (req, res, next) => {
         password,
         phone,
         role: 'customer',
-        isVerified: false,
+        isVerified: true,
         verificationToken,
         verificationTokenExpires: new Date(Date.now() + 3600000), // 1 hour
       });
@@ -95,8 +95,7 @@ export const register = async (req, res, next) => {
     logger.info('User registered successfully', { userId: user._id });
 
     res.status(201).json({
-      success: true,
-      message: "User registered successfully",
+      message: 'User registered successfully',
       statusCode: 201,
       data: {
         user,
@@ -172,7 +171,8 @@ export const login = async (req, res, next) => {
     logger.info('User logged in successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
+      message: 'Login successful',
+      statusCode: 200,
       data: {
         user,
         access_token: accessToken,
@@ -200,7 +200,8 @@ export const getAccount = async (req, res, next) => {
     logger.info('User profile retrieved successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
+      message: 'Get account successful',
+      statusCode: 200,
       data: {
         user: user,
       },
@@ -250,7 +251,8 @@ export const updateProfile = async (req, res, next) => {
     logger.info('User profile updated successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
+      message: 'Profile updated successfully',
+      statusCode: 200,
       data: user,
     });
   } catch (error) {
@@ -291,8 +293,9 @@ export const changePassword = async (req, res, next) => {
     logger.info('User password changed successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
       message: 'Password changed successfully',
+      statusCode: 200,
+      data: {},
     });
   } catch (error) {
     logger.error('Error in changePassword controller', {
@@ -334,8 +337,9 @@ export const forgotPassword = async (req, res, next) => {
     logger.info('Password reset email sent successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
       message: 'Password reset email sent',
+      statusCode: 200,
+      data: {},
     });
   } catch (error) {
     logger.error('Error in forgotPassword controller', {
@@ -372,8 +376,9 @@ export const resetPassword = async (req, res, next) => {
     logger.info('Password reset successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
       message: 'Password reset successfully',
+      statusCode: 200,
+      data: {},
     });
   } catch (error) {
     logger.error('Error in resetPassword controller', {
@@ -397,7 +402,8 @@ export const logout = asyncHandler(async (req, res, next) => {
   }
 
   res.status(200).json({
-    success: true,
+    message: 'Logged out successfully',
+    statusCode: 200,
     data: {},
   });
 });
@@ -498,8 +504,9 @@ export const resendVerification = async (req, res, next) => {
     logger.info('Verification email resent successfully', { userId: user._id });
 
     res.status(200).json({
-      success: true,
       message: 'Verification email sent successfully',
+      statusCode: 200,
+      data: {},
     });
   } catch (error) {
     logger.error('Error in resendVerification controller', {
