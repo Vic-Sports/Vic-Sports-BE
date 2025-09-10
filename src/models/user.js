@@ -112,32 +112,11 @@ const userSchema = new mongoose.Schema(
       }
     },
 
-    // --- Multi-Role System ---
-    roles: [{
-      type: {
-        type: String,
-        enum: ["customer", "owner", "admin", "coach"],
-        required: true
-      },
-      isActive: {
-        type: Boolean,
-        default: true
-      },
-      approvedAt: {
-        type: Date,
-        default: Date.now
-      },
-      approvedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      }
-    }],
-    
-    // Primary role for backward compatibility
-    primaryRole: {
+    // --- Role System (Simplified) ---
+    role: {
       type: String,
       enum: ["customer", "owner", "admin", "coach"],
-      required: [true, "Primary role is required"],
+      required: [true, "Role is required"],
       default: "customer"
     },
 
@@ -162,41 +141,23 @@ const userSchema = new mongoose.Schema(
       ref: 'User'
     },
 
-    // --- Loyalty Program ---
+    // --- Simple Loyalty Program ---
     rewardPoints: {
       type: Number,
       default: 0,
       min: [0, "Reward points cannot be negative!"]
     },
-    lifetimePoints: {
-      type: Number,
-      default: 0
-    },
-    pointsExpiry: [{
-      points: {
-        type: Number,
-        required: true
-      },
-      expiryDate: {
-        type: Date,
-        required: true
-      }
-    }],
     loyaltyTier: {
       type: String,
       enum: ['Bronze', 'Silver', 'Gold', 'Diamond'],
       default: 'Bronze'
     },
-    tierAchievedDate: {
-      type: Date,
-      default: Date.now
-    },
 
-    // --- Referral System ---
+    // --- Referral System (Basic) ---
     referralCode: {
       type: String,
       unique: true,
-      sparse: true // Allows null values while maintaining uniqueness
+      sparse: true
     },
     referredBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -206,12 +167,8 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    referralBonus: {
-      type: Number,
-      default: 0
-    },
 
-    // --- Birthday Program ---
+    // --- Birthday Program (Basic) ---
     birthdayVoucherClaimed: {
       type: Boolean,
       default: false
@@ -227,10 +184,6 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
-    totalSaved: {
-      type: Number,
-      default: 0 // From discounts
-    },
 
     // --- User Preferences ---
     favoriteVenues: [{
@@ -238,10 +191,6 @@ const userSchema = new mongoose.Schema(
       ref: 'Venue'
     }],
     favoriteSports: [String],
-    preferredBookingTime: {
-      start: String, // "18:00"
-      end: String    // "22:00"
-    },
 
     // --- Online Status & Communication ---
     isOnline: {
@@ -261,7 +210,7 @@ const userSchema = new mongoose.Schema(
       ref: 'User'
     }],
 
-    // --- Notification Settings ---
+    // --- Basic Notification Settings ---
     notificationSettings: {
       email: {
         type: Boolean,
@@ -271,10 +220,6 @@ const userSchema = new mongoose.Schema(
         type: Boolean,
         default: true
       },
-      sms: {
-        type: Boolean,
-        default: false
-      },
       booking: {
         type: Boolean,
         default: true
@@ -282,39 +227,6 @@ const userSchema = new mongoose.Schema(
       promotion: {
         type: Boolean,
         default: true
-      },
-      weather: {
-        type: Boolean,
-        default: true
-      },
-      tournament: {
-        type: Boolean,
-        default: true
-      },
-      chat: {
-        type: Boolean,
-        default: true
-      }
-    },
-
-    // --- Privacy Settings ---
-    privacySettings: {
-      profileVisibility: {
-        type: String,
-        enum: ['public', 'friends', 'private'],
-        default: 'public'
-      },
-      showOnlineStatus: {
-        type: Boolean,
-        default: true
-      },
-      allowFriendRequests: {
-        type: Boolean,
-        default: true
-      },
-      showBookingHistory: {
-        type: Boolean,
-        default: false
       }
     },
 
@@ -323,46 +235,6 @@ const userSchema = new mongoose.Schema(
       userAgent: String,
       ip: String,
       location: String
-    },
-    activeTokens: [{
-      token: String,
-      device: String,
-      createdAt: {
-        type: Date,
-        default: Date.now
-      },
-      expiresAt: Date
-    }],
-
-    // --- Verification & Documents ---
-    verificationLevel: {
-      type: String,
-      enum: ['unverified', 'email_verified', 'phone_verified', 'id_verified'],
-      default: 'unverified'
-    },
-    identityVerification: {
-      idNumber: {
-        type: String,
-        select: false
-      },
-      idType: {
-        type: String,
-        enum: ['cccd', 'passport', 'driving_license'],
-        select: false
-      },
-      frontImage: {
-        type: String,
-        select: false
-      },
-      backImage: {
-        type: String,
-        select: false
-      },
-      verifiedAt: Date,
-      verifiedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      }
     }
   },
   {
@@ -373,7 +245,6 @@ const userSchema = new mongoose.Schema(
         delete ret.password;
         delete ret.emailVerificationToken;
         delete ret.passwordResetToken;
-        delete ret.identityVerification.idNumber;
         return ret;
       }
     },
@@ -384,7 +255,7 @@ const userSchema = new mongoose.Schema(
 // --- INDEXES ---
 userSchema.index({ email: 1 });
 userSchema.index({ phone: 1 });
-userSchema.index({ primaryRole: 1 });
+userSchema.index({ role: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ isEmailVerified: 1 });
 userSchema.index({ referralCode: 1 });
@@ -397,25 +268,20 @@ userSchema.index({ createdAt: -1 });
 
 // --- VIRTUALS ---
 userSchema.virtual("fullInfo").get(function () {
-  return `${this.fullName} (${this.phone}) - ${this.primaryRole}`;
+  return `${this.fullName} (${this.phone}) - ${this.role}`;
 });
 
-// Enhanced rank calculation based on lifetimePoints
-userSchema.virtual("rank").get(function () {
-  const points = this.lifetimePoints || this.rewardPoints;
-  if (points >= 10000) return "Diamond";
-  if (points >= 5000) return "Gold";
-  if (points >= 1000) return "Silver";
+// Simple tier calculation based on totalSpent
+userSchema.virtual("calculatedTier").get(function () {
+  const spent = this.totalSpent || 0;
+  if (spent >= 10000000) return "Diamond"; // 10M VND
+  if (spent >= 5000000) return "Gold";     // 5M VND
+  if (spent >= 1000000) return "Silver";   // 1M VND
   return "Bronze";
 });
 
 userSchema.virtual("hasSocialLogin").get(function () {
   return !!(this.socialLogin?.google?.id || this.socialLogin?.facebook?.id);
-});
-
-// Check if user has specific role
-userSchema.virtual("activeRoles").get(function () {
-  return this.roles.filter(role => role.isActive).map(role => role.type);
 });
 
 // Get discount percentage based on tier
@@ -452,25 +318,6 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.methods.hasRole = function (role) {
-  return this.roles.some(r => r.type === role && r.isActive);
-};
-
-userSchema.methods.addRole = function (roleType, approvedBy) {
-  if (!this.hasRole(roleType)) {
-    this.roles.push({
-      type: roleType,
-      isActive: true,
-      approvedAt: new Date(),
-      approvedBy: approvedBy
-    });
-  }
-};
-
-userSchema.methods.removeRole = function (roleType) {
-  this.roles = this.roles.filter(role => role.type !== roleType);
-};
-
 userSchema.methods.blockUser = function (userId) {
   if (!this.blockedUsers.includes(userId)) {
     this.blockedUsers.push(userId);
@@ -494,11 +341,10 @@ userSchema.methods.removeFriend = function (userId) {
 
 userSchema.methods.updateTier = function () {
   const oldTier = this.loyaltyTier;
-  const newTier = this.rank; // Using virtual rank
+  const newTier = this.calculatedTier; // Using virtual tier
   
   if (oldTier !== newTier) {
     this.loyaltyTier = newTier;
-    this.tierAchievedDate = new Date();
     return { upgraded: true, oldTier, newTier };
   }
   return { upgraded: false };
@@ -506,7 +352,6 @@ userSchema.methods.updateTier = function () {
 
 userSchema.methods.addPoints = function (points, source = 'booking') {
   this.rewardPoints += points;
-  this.lifetimePoints += points;
   
   // Update tier if necessary
   const tierUpdate = this.updateTier();
@@ -514,7 +359,6 @@ userSchema.methods.addPoints = function (points, source = 'booking') {
   return {
     pointsAdded: points,
     totalPoints: this.rewardPoints,
-    lifetimePoints: this.lifetimePoints,
     ...tierUpdate
   };
 };
@@ -558,19 +402,6 @@ userSchema.pre("save", async function (next) {
       exists = await this.constructor.findOne({ referralCode: code });
     }
     this.referralCode = code;
-  }
-  
-  // Update primaryRole based on active roles
-  const activeRoles = this.roles.filter(role => role.isActive);
-  if (activeRoles.length > 0) {
-    // Priority: admin > owner > coach > customer
-    const priority = ['admin', 'owner', 'coach', 'customer'];
-    for (const role of priority) {
-      if (activeRoles.some(r => r.type === role)) {
-        this.primaryRole = role;
-        break;
-      }
-    }
   }
   
   next();

@@ -4,7 +4,7 @@ import connectDB from './config/database.js';
 import logger from './utils/logger.js';
 import { corsMiddleware } from './config/cors.config.js';
 import { errorHandler } from './middlewares/error.middleware.js';
-import authRoutes from './routes/auth.route.js';
+import apiRoutes from './routes/api.js';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1', apiRoutes);
 
 // Error handler
 app.use(errorHandler);

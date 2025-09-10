@@ -1,547 +1,691 @@
-import User from '../models/user.js';
-import TokenBlacklist from '../models/tokenBlacklist.js';
-import { asyncHandler } from '../middlewares/async.middleware.js';
-import { ErrorResponse } from '../utils/errorResponse.js';
-import jwt from 'jsonwebtoken';
-import { sendTemplatedEmail } from '../utils/sendEmail.js';
-import logger from '../utils/logger.js';
-import { generateToken } from '../utils/jwt.js';
-import { validateEmail, validatePhone, validatePassword } from '../utils/validation.js';
+import User from "../models/user.js";
+import TokenBlacklist from "../models/tokenBlacklist.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { sendEmail } from "../utils/sendEmail.js";
 
-// ==================== Register ==================== //
-export const register = async (req, res, next) => {
+// Generate JWT Token
+const generateToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || "7d",
+  });
+};
+
+// Generate Refresh Token
+const generateRefreshToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRE || "30d",
+  });
+};
+
+// @desc    Register user
+// @route   POST /api/auth/register
+// @access Public
+export const register = async (req, res) => {
   try {
-    const { fullName, email, password, phone } = req.body;
+    const { fullName, email, password, phone, role = "customer" } = req.body;
 
-    // Check required fields
-    if (!fullName || !email || !password || !phone) {
-      return next(
-        new ErrorResponse(
-          'Please provide full name, email, password, phone',
-          400
-        )
-      );
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists with this email",
+      });
     }
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return next(new ErrorResponse('User already exists', 400));
+    // Check if phone already exists
+    if (phone) {
+      const existingPhone = await User.findOne({ phone });
+      if (existingPhone) {
+        return res.status(400).json({
+          success: false,
+          message: "User already exists with this phone number",
+        });
+      }
     }
 
-    // Check if phone exists
-    const phoneExists = await User.findOne({ phone });
-    if (phoneExists) {
-      return next(new ErrorResponse('Phone number already exists', 400));
-    }
+    // Create user
+    const user = await User.create({
+      fullName,
+      email,
+      password,
+      phone,
+      role,
+    });
 
-    // Generate verification token
-    const verificationToken = generateToken({ email }, process.env.JWT_VERIFY_EXPIRES_IN || '1h');
+    // Generate email verification token
+    const verificationToken = user.generateEmailVerificationToken();
+    await user.save({ validateBeforeSave: false });
 
-    // Send verification email first
+    // Send verification email
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+    
     try {
-      await sendTemplatedEmail({
-        email: email,
-        templateType: 'VERIFICATION',
-        templateData: {
-          name: fullName,
-          verificationLink: `${
-            process.env.FRONTEND_URL || 'http://localhost:5000'
-          }/verify-email?token=${verificationToken}`,
+      await sendEmail({
+        email: user.email,
+        subject: "Email Verification - VIC Sports",
+        message: `Please click the link to verify your email: ${verificationUrl}`,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully. Please check your email for verification.",
+        data: {
+          user: {
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            isEmailVerified: user.isEmailVerified,
+          },
         },
       });
-    } catch (emailError) {
-      logger.error('Failed to send verification email', {
-        error: emailError.message,
-        email: email,
-      });
-      return next(new ErrorResponse('Failed to send verification email. Please try again later.', 500));
-    }
-
-    // Create user only after email is sent successfully
-    let user;
-    try {
-      user = await User.create({
-        fullName,
-        email,
-        password,
-        phone,
-        role: 'customer',
-        isVerified: true,
-        verificationToken,
-        verificationTokenExpires: new Date(Date.now() + 3600000), // 1 hour
-      });
     } catch (error) {
-      if (error.code === 11000) {
-        // Duplicate key error
-        const field = Object.keys(error.keyPattern)[0];
-        return next(new ErrorResponse(`${field} already exists`, 400));
-      }
-      throw error;
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        success: false,
+        message: "Email could not be sent",
+      });
     }
-
-    // Generate tokens
-    const accessToken = generateToken({ id: user._id }, process.env.JWT_EXPIRES_IN || '1d');
-    const refreshToken = generateToken(
-      { id: user._id },
-      process.env.JWT_REFRESH_EXPIRES_IN || '7d'
-    );
-
-    // Remove sensitive data from response
-    user.password = undefined;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-
-    logger.info('User registered successfully', { userId: user._id });
-
-    res.status(201).json({
-      message: 'User registered successfully',
-      statusCode: 201,
-      data: {
-        user,
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      },
-    });
   } catch (error) {
-    logger.error('Error in register controller', {
-      error: error.message,
-      stack: error.stack,
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
-    next(error);
   }
 };
 
-// ==================== Login ==================== // 
-export const login = async (req, res, next) => {
+// @desc    Login user
+// @route   POST /api/auth/login
+// @access Public
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return next(new ErrorResponse('Please provide email and password', 400));
+    // Check if user exists and password is provided
+    const user = await User.findOne({ email }).select("+password");
+    if (!user || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
 
-    const user = await User.findOne({ email }).select('+password');
-
-    if (!user) {
-      return next(
-        new ErrorResponse(
-          'Email not found. Please check your email or register a new account.',
-          401
-        )
-      );
+    // Check if password matches
+    const isPasswordMatched = await user.matchPassword(password);
+    if (!isPasswordMatched) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email or password",
+      });
     }
 
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return next(
-        new ErrorResponse(
-          "Incorrect password. Please try again or use 'Forgot Password' if you don't remember.",
-          401
-        )
-      );
+    // Check if user is active
+    if (user.status !== "ACTIVE") {
+      return res.status(400).json({
+        success: false,
+        message: "Account is not active. Please contact support.",
+      });
     }
 
-    if (!user.isVerified) {
-      return next(
-        new ErrorResponse(
-          'Please verify your email before logging in. Check your inbox for the verification link.',
-          401
-        )
-      );
-    }
+    // Generate tokens
+    const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
-    if (!user.status) {
-      return next(
-        new ErrorResponse(
-          'Your account has been deactivated. Please contact support for assistance.',
-          401
-        )
-      );
-    }
-
-    const accessToken = generateToken({ id: user._id }, process.env.JWT_EXPIRES_IN || '1d');
-    const refreshToken = generateToken(
-      { id: user._id },
-      process.env.JWT_REFRESH_EXPIRES_IN || '7d'
-    );
-
-    user.password = undefined;
-
-    logger.info('User logged in successfully', { userId: user._id });
-
-    res.status(200).json({
-      message: 'Login successful',
-      statusCode: 200,
-      data: {
-        user,
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      },
-    });
-  } catch (error) {
-    logger.error('Error in login controller', {
-      error: error.message,
-      stack: error.stack,
-    });
-    next(error);
-  }
-};
-
-// ==================== Account ==================== //
-export const getAccount = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return next(new ErrorResponse('User not found', 404));
-    }
-
-    logger.info('User profile retrieved successfully', { userId: user._id });
-
-    res.status(200).json({
-      message: 'Get account successful',
-      statusCode: 200,
-      data: {
-        user: user,
-      },
-    });
-  } catch (error) {
-    logger.error('Error in getMe controller', {
-      error: error.message,
-      stack: error.stack,
-    });
-    next(error);
-  }
-};
-
-// ==================== Update Profile ==================== //
-export const updateProfile = async (req, res, next) => {
-  try {
-    const { fullName, email, phone, address, dateOfBirth, gender, aboutMe } = req.body;
-
-    // Build update object
-    const updateFields = {};
-    if (fullName) updateFields.fullName = fullName;
-    if (email) updateFields.email = email;
-    if (phone) updateFields.phone = phone;
-    if (address) updateFields.address = address;
-    if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
-    if (gender) updateFields.gender = gender;
-    if (aboutMe) updateFields.aboutMe = aboutMe;
-
-    // Handle avatar file if present
-    if (req.file) {
-      updateFields.avatar = req.file.path;
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: updateFields },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    if (!user) {
-      return next(new ErrorResponse('User not found', 404));
-    }
-
-    logger.info('User profile updated successfully', { userId: user._id });
-
-    res.status(200).json({
-      message: 'Profile updated successfully',
-      statusCode: 200,
-      data: user,
-    });
-  } catch (error) {
-    logger.error('Error in updateProfile controller', {
-      error: error.message,
-      stack: error.stack,
-    });
-    next(error);
-  }
-};
-
-// ==================== Change Paswowrd ==================== //
-export const changePassword = async (req, res, next) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    logger.info('Change password request', req.body);
-
-    if (!currentPassword || !newPassword) {
-      return next(new ErrorResponse('Please provide current password and new password', 400));
-    }
-
-    const user = await User.findById(req.user.id).select('+password');
-
-    if (!user) {
-      return next(new ErrorResponse('User not found', 404));
-    }
-
-    // Check current password
-    const isMatch = await user.matchPassword(currentPassword);
-    if (!isMatch) {
-      return next(new ErrorResponse('Current password is incorrect', 401));
-    }
-
-    // Update password
-    user.password = newPassword;
+    // Update user online status
+    user.isOnline = true;
+    user.lastSeen = new Date();
+    user.lastLoginDevice = {
+      userAgent: req.get("User-Agent"),
+      ip: req.ip,
+      location: req.get("X-Forwarded-For") || req.connection.remoteAddress,
+    };
     await user.save();
 
-    logger.info('User password changed successfully', { userId: user._id });
+    // Set cookie options
+    const options = {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    };
 
-    res.status(200).json({
-      message: 'Password changed successfully',
-      statusCode: 200,
-      data: {},
-    });
+    res.status(200)
+      .cookie("token", token, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        success: true,
+        message: "Login successful",
+        data: {
+          user: {
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            isEmailVerified: user.isEmailVerified,
+            loyaltyTier: user.loyaltyTier,
+            rewardPoints: user.rewardPoints,
+          },
+          token,
+          refreshToken,
+        },
+      });
   } catch (error) {
-    logger.error('Error in changePassword controller', {
-      error: error.message,
-      stack: error.stack,
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
-    next(error);
   }
 };
 
-// ==================== Forgot Password ==================== //
-export const forgotPassword = async (req, res, next) => {
+// @desc    Social Login (Google/Facebook)
+// @route   POST /api/auth/social-login
+// @access Public
+export const socialLogin = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { provider, socialId, email, name, picture } = req.body;
 
-    if (!email) {
-      return next(new ErrorResponse('Please provide an email', 400));
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return next(new ErrorResponse('User not found', 404));
-    }
-
-    // Generate reset token
-    const resetToken = generateToken({ id: user._id }, process.env.JWT_RESET_EXPIRES_IN || '1h');
-
-    // Send reset email
-    await sendTemplatedEmail({
-      email: user.email,
-      templateType: 'PASSWORD_RESET',
-      templateData: {
-        name: user.fullName,
-        resetLink: `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`,
-      },
-    });
-
-    logger.info('Password reset email sent successfully', { userId: user._id });
-
-    res.status(200).json({
-      message: 'Password reset email sent',
-      statusCode: 200,
-      data: {},
-    });
-  } catch (error) {
-    logger.error('Error in forgotPassword controller', {
-      error: error.message,
-      stack: error.stack,
-    });
-    next(error);
-  }
-};
-
-// ==================== Reset Password ==================== //
-export const resetPassword = async (req, res, next) => {
-  try {
-    const { token, newPassword } = req.body;
-
-    if (!token || !newPassword) {
-      return next(new ErrorResponse('Please provide token and new password', 400));
-    }
-
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    console.log(user);
-    console.log(newPassword);
-
-    if (!user) {
-      return next(new ErrorResponse('User not found', 404));
-    }
-
-    // Update password
-    user.password = newPassword;
-    await user.save();
-
-    logger.info('Password reset successfully', { userId: user._id });
-
-    res.status(200).json({
-      message: 'Password reset successfully',
-      statusCode: 200,
-      data: {},
-    });
-  } catch (error) {
-    logger.error('Error in resetPassword controller', {
-      error: error.message,
-      stack: error.stack,
-    });
-    next(error);
-  }
-};
-
-// ==================== Logout ==================== //
-export const logout = asyncHandler(async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (token) {
-    // Add token to blacklist
-    await TokenBlacklist.create({
-      token,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-    });
-  }
-
-  res.status(200).json({
-    message: 'Logged out successfully',
-    statusCode: 200,
-    data: {},
-  });
-});
-
-// ==================== Verify Email ==================== //
-export const verifyEmail = async (req, res, next) => {
-  try {
-    // Get token from query params
-    const token = req.query.token;
-
-    if (!token) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/email-verification-failed?error=Verification token is required`
-      );
-    }
-
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Check if user exists with social login
     const user = await User.findOne({
-      email: decoded.email,
-      verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() },
+      [`socialLogin.${provider}.id`]: socialId,
     });
 
-    if (!user) {
-      return res.redirect(
-        `${process.env.FRONTEND_URL}/email-verification-failed?error=Invalid or expired verification token`
-      );
+    if (user) {
+      // User exists, generate tokens
+      const token = generateToken(user._id);
+      const refreshToken = generateRefreshToken(user._id);
+
+      // Update user online status
+      user.isOnline = true;
+      user.lastSeen = new Date();
+      await user.save();
+
+      const options = {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      };
+
+      return res.status(200)
+        .cookie("token", token, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json({
+          success: true,
+          message: "Social login successful",
+          data: {
+            user: {
+              id: user._id,
+              fullName: user.fullName,
+              email: user.email,
+              role: user.role,
+              avatar: user.avatar,
+              isEmailVerified: user.isEmailVerified,
+            },
+            token,
+            refreshToken,
+          },
+        });
     }
 
-    // Update user
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-    await user.save();
+    // Check if user exists with email
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      // Link social account to existing user
+      existingUser.socialLogin[provider] = {
+        id: socialId,
+        email,
+        name,
+        picture,
+      };
+      existingUser.isEmailVerified = true; // Social login implies email verification
+      existingUser.isOnline = true;
+      existingUser.lastSeen = new Date();
+      await existingUser.save();
 
-    logger.info('Email verified successfully', { userId: user._id });
+      const token = generateToken(existingUser._id);
+      const refreshToken = generateRefreshToken(existingUser._id);
 
-    // Redirect to success page
-    return res.redirect(
-      `${process.env.FRONTEND_URL}/email-verified?email=${encodeURIComponent(user.email)}`
-    );
-  } catch (error) {
-    logger.error('Error in verifyEmail controller', {
-      error: error.message,
-      stack: error.stack,
-    });
-    return res.redirect(
-      `${
-        process.env.FRONTEND_URL
-      }/email-verification-failed?error=${encodeURIComponent(error.message)}`
-    );
-  }
-};
+      const options = {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      };
 
-// ==================== Resend Verification ==================== //
-export const resendVerification = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return next(new ErrorResponse('Email is required', 400));
+      return res.status(200)
+        .cookie("token", token, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json({
+          success: true,
+          message: "Social account linked successfully",
+          data: {
+            user: {
+              id: existingUser._id,
+              fullName: existingUser.fullName,
+              email: existingUser.email,
+              role: existingUser.role,
+              avatar: existingUser.avatar,
+              isEmailVerified: existingUser.isEmailVerified,
+            },
+            token,
+            refreshToken,
+          },
+        });
     }
 
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return next(new ErrorResponse('User not found', 404));
-    }
-
-    if (user.isVerified) {
-      return next(new ErrorResponse('Email is already verified', 400));
-    }
-
-    // Generate new verification token
-    const verificationToken = generateToken(
-      { email: user.email },
-      process.env.JWT_VERIFY_EXPIRES_IN || '1h'
-    );
-
-    // Update user
-    user.verificationToken = verificationToken;
-    user.verificationTokenExpires = new Date(Date.now() + 3600000); // 1 hour
-    await user.save();
-
-    // Send verification email
-    await sendTemplatedEmail({
-      email: user.email,
-      templateType: 'VERIFICATION',
-      templateData: {
-        name: user.fullName,
-        verificationLink: `${
-          process.env.FRONTEND_URL || 'http://localhost:5000'
-        }/verify-email?token=${verificationToken}`,
+    // Create new user
+    const newUser = await User.create({
+      fullName: name,
+      email,
+      avatar: picture,
+      socialLogin: {
+        [provider]: {
+          id: socialId,
+          email,
+          name,
+          picture,
+        },
       },
+      isEmailVerified: true,
+      status: "ACTIVE",
     });
 
-    logger.info('Verification email resent successfully', { userId: user._id });
+    const token = generateToken(newUser._id);
+    const refreshToken = generateRefreshToken(newUser._id);
 
-    res.status(200).json({
-      message: 'Verification email sent successfully',
-      statusCode: 200,
-      data: {},
-    });
+    const options = {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    };
+
+    res.status(201)
+      .cookie("token", token, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        success: true,
+        message: "Account created successfully",
+        data: {
+          user: {
+            id: newUser._id,
+            fullName: newUser.fullName,
+            email: newUser.email,
+            role: newUser.role,
+            avatar: newUser.avatar,
+            isEmailVerified: newUser.isEmailVerified,
+          },
+          token,
+          refreshToken,
+        },
+      });
   } catch (error) {
-    logger.error('Error in resendVerification controller', {
-      error: error.message,
-      stack: error.stack,
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
-    next(error);
   }
 };
 
-// ==================== Refresh Token ==================== //
-export const refreshToken = asyncHandler(async (req, res, next) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) {
-    return next(new ErrorResponse('Refresh token is required', 400));
-  }
-
+// @desc    Email Verification
+// @route   GET /api/auth/verify-email/:token
+// @access Public
+export const verifyEmail = async (req, res) => {
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
+    const { token } = req.params;
+
+    // Hash the token
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find user with this token
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationExpires: { $gt: Date.now() },
+    });
 
     if (!user) {
-      return next(new ErrorResponse('User not found', 404));
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification token",
+      });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRE,
-    });
+    // Verify user
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    user.status = "ACTIVE";
+    await user.save();
 
     res.status(200).json({
       success: true,
-      access_token: token,
+      message: "Email verified successfully",
     });
-  } catch (err) {
-    return next(new ErrorResponse('Invalid refresh token', 401));
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
-});
+};
+
+// @desc    Forgot Password
+// @route   POST /api/auth/forgot-password
+// @access Public
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Generate reset token
+    const resetToken = user.generatePasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Send reset email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Password Reset - VIC Sports",
+        message: `Please click the link to reset your password: ${resetUrl}`,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Password reset email sent",
+      });
+    } catch (error) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+
+      return res.status(500).json({
+        success: false,
+        message: "Email could not be sent",
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Reset Password
+// @route   PUT /api/auth/reset-password/:token
+// @access Public
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // Hash the token
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find user with this token
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    // Update password
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Change Password
+// @route   PUT /api/auth/change-password
+// @access Private
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check current password
+    const isCurrentPasswordMatched = await user.matchPassword(currentPassword);
+    if (!isCurrentPasswordMatched) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Logout (Single Device)
+// @route   POST /api/auth/logout
+// @access Private
+export const logout = async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    const userId = req.user.id;
+
+    if (token) {
+      // Add token to blacklist
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      await TokenBlacklist.create({
+        token,
+        userId: decoded.userId,
+        tokenType: "ACCESS_TOKEN",
+        reason: "LOGOUT",
+        expiresAt: new Date(decoded.exp * 1000),
+      });
+    }
+
+    // Update user online status
+    const user = await User.findById(userId);
+    if (user) {
+      user.isOnline = false;
+      await user.save();
+    }
+
+    res.status(200)
+      .clearCookie("token")
+      .clearCookie("refreshToken")
+      .json({
+        success: true,
+        message: "Logged out successfully",
+      });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Logout All Devices
+// @route   POST /api/auth/logout-all
+// @access Private
+export const logoutAll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Add all user tokens to blacklist (in real implementation, you'd track active tokens)
+    await TokenBlacklist.create({
+      token: "ALL_TOKENS",
+      userId,
+      tokenType: "ACCESS_TOKEN",
+      reason: "LOGOUT_ALL",
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    });
+
+    // Update user online status
+    const user = await User.findById(userId);
+    if (user) {
+      user.isOnline = false;
+      await user.save();
+    }
+
+    res.status(200)
+      .clearCookie("token")
+      .clearCookie("refreshToken")
+      .json({
+        success: true,
+        message: "Logged out from all devices successfully",
+      });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Refresh Token
+// @route   POST /api/auth/refresh-token
+// @access Public
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token is required",
+      });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid refresh token",
+      });
+    }
+
+    // Generate new tokens
+    const newToken = generateToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    const options = {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    };
+
+    res.status(200)
+      .cookie("token", newToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json({
+        success: true,
+        message: "Token refreshed successfully",
+        data: {
+          token: newToken,
+          refreshToken: newRefreshToken,
+        },
+      });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: "Invalid refresh token",
+    });
+  }
+};
+
+// @desc    Get Current User
+// @route   GET /api/auth/me
+// @access Private
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          avatar: user.avatar,
+          dateOfBirth: user.dateOfBirth,
+          gender: user.gender,
+          address: user.address,
+          isEmailVerified: user.isEmailVerified,
+          status: user.status,
+          loyaltyTier: user.loyaltyTier,
+          rewardPoints: user.rewardPoints,
+          totalBookings: user.totalBookings,
+          totalSpent: user.totalSpent,
+          referralCode: user.referralCode,
+          referralCount: user.referralCount,
+          isOnline: user.isOnline,
+          lastSeen: user.lastSeen,
+          favoriteVenues: user.favoriteVenues,
+          favoriteSports: user.favoriteSports,
+          notificationSettings: user.notificationSettings,
+          createdAt: user.createdAt,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

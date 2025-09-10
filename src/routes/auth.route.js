@@ -1,32 +1,35 @@
-import express from 'express';
+import express from "express";
 import {
   register,
   login,
-  getAccount,
-  updateProfile,
-  changePassword,
+  socialLogin,
+  verifyEmail,
   forgotPassword,
   resetPassword,
+  changePassword,
   logout,
-  verifyEmail,
-  resendVerification,
+  logoutAll,
   refreshToken,
-} from '../controllers/auth.controller.js';
-import { protect } from '../middlewares/auth.middleware.js';
-import upload from '../middlewares/upload.middleware.js';
+  getMe,
+} from "../controllers/auth.controller.js";
+import { protect } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/verify-email', verifyEmail);
-router.post('/resend-verification', resendVerification);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
-router.post('/refresh-token', refreshToken);
-router.get('/account', protect, getAccount);
-router.put('/update-profile', protect, upload.single('avatar'), updateProfile);
-router.put('/change-password', protect, changePassword);
-router.post('/logout', protect, logout);
+// Public routes
+router.post("/register", register);
+router.post("/login", login);
+router.post("/social-login", socialLogin);
+router.get("/verify-email/:token", verifyEmail);
+router.post("/forgot-password", forgotPassword);
+router.put("/reset-password/:token", resetPassword);
+router.post("/refresh-token", refreshToken);
+
+// Protected routes
+router.use(protect);
+router.get("/me", getMe);
+router.put("/change-password", changePassword);
+router.post("/logout", logout);
+router.post("/logout-all", logoutAll);
 
 export default router;
