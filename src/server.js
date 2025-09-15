@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-import authRoutes from "./routes/admin.route.js";
+import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import adminRoutes from "./routes/admin.route.js";
 import venueRoutes from "./routes/venue.route.js";
