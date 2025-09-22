@@ -41,17 +41,18 @@ import chatRoutes from "./routes/chat.route.js";
 import coachRoutes from "./routes/coach.route.js";
 import loyaltyRoutes from "./routes/loyalty.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
-router.use("/api/v1/auth", authRoutes);
-router.use("/api/v1/users", userRoutes);
-router.use("/api/v1/admin", adminRoutes);
-router.use("/api/v1/venues", venueRoutes);
-router.use("/api/v1/courts", courtRoutes);
-router.use("/api/v1/bookings", bookingRoutes);
-router.use("/api/v1/reviews", reviewRoutes);
-router.use("/api/v1/chats", chatRoutes);
-router.use("/api/v1/coaches", coachRoutes);
-router.use("/api/v1/loyalty", loyaltyRoutes);
-router.use("/api/v1/analytics", analyticsRoutes);
+
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/venues", venueRoutes);
+app.use("/api/v1/courts", courtRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/reviews", reviewRoutes);
+app.use("/api/v1/chats", chatRoutes);
+app.use("/api/v1/coaches", coachRoutes);
+app.use("/api/v1/loyalty", loyaltyRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
 
 // Error handler
 app.use(errorHandler);

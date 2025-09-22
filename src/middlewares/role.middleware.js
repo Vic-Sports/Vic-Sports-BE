@@ -54,7 +54,7 @@ export const checkRoleLevel = requiredLevel => {
 
 // Predefined role middleware functions
 export const requireCustomer = checkRoleLevel(ROLE_HIERARCHY[ROLES.CUSTOMER]);
-export const requireShop = checkRoleLevel(ROLE_HIERARCHY[ROLES.SHOP]);
+export const requireOwner = checkRoleLevel(ROLE_HIERARCHY[ROLES.OWNER]);
 export const requireAdmin = checkRoleLevel(ROLE_HIERARCHY[ROLES.ADMIN]);
 
 /**

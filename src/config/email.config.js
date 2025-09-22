@@ -5,8 +5,8 @@ export const emailConfig = {
   googleMailerRefreshToken: process.env.GOOGLE_MAILER_REFRESH_TOKEN,
 
   // Email Addresses
-  adminEmailAddress: process.env.ADMIN_EMAIL_ADDRESS || "admin@kicksshoes.com",
-  fromName: process.env.FROM_NAME || "Kicks Shoes",
+  adminEmailAddress: process.env.ADMIN_EMAIL_ADDRESS || "admin@vicsports.com",
+  fromName: process.env.FROM_NAME || "Vic Sports",
 
   // SMTP Configuration (Fallback)
   smtp: {
