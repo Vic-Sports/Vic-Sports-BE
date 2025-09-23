@@ -12,6 +12,7 @@ import {
   getVenuesByOwner,
   getAvailableCities,
   getDistrictsByCity,
+  searchVenues,
 } from "../controllers/venue.controller.js";
 import { protect, authorize } from "../middlewares/auth.middleware.js";
 
@@ -19,6 +20,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getAllVenues);
+router.post("/search", searchVenues);
 router.get("/:venueId", getVenueById);
 router.get("/search/location", searchVenuesByLocation);
 router.get("/cities", getAvailableCities);
