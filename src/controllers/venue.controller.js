@@ -1,6 +1,136 @@
 import Venue from "../models/venue.js";
 import Court from "../models/court.js";
 import Location from "../models/location.js";
+// import { seedSampleData } from "../utils/sampleVenueData.js";
+
+// Sport type mapping for bilingual support
+const sportTypeMapping = {
+  football: ["football", "bóng đá", "soccer"],
+  "bóng đá": ["football", "bóng đá", "soccer"],
+  basketball: ["basketball", "bóng rổ"],
+  "bóng rổ": ["basketball", "bóng rổ"],
+  badminton: ["badminton", "cầu lông"],
+  "cầu lông": ["badminton", "cầu lông"],
+  tennis: ["tennis"],
+  volleyball: ["volleyball", "bóng chuyền"],
+  "bóng chuyền": ["volleyball", "bóng chuyền"],
+  pingpong: ["pingpong", "bóng bàn", "table tennis"],
+  "bóng bàn": ["pingpong", "bóng bàn", "table tennis"],
+};
+
+// @desc    Search Venues with Advanced Filters
+// @route   POST /api/venues/search
+// @access Public
+export const searchVenues = async (req, res) => {
+  try {
+    const {
+      sportType,
+      location,
+      rating,
+      isVerified,
+      sortBy = "rating",
+      sortOrder = "desc",
+      page = 1,
+      limit = 10,
+    } = req.body;
+
+    let query = { isActive: true };
+
+    // Location filter - search in city, district, or ward
+    if (location) {
+      query.$or = [
+        { "address.city": new RegExp(location, "i") },
+        { "address.district": new RegExp(location, "i") },
+        { "address.ward": new RegExp(location, "i") },
+      ];
+    }
+
+    // Sport type filter - find venues with courts of specific sport type
+    if (sportType) {
+      // Get all possible sport type variations
+      const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+        sportType,
+      ];
+
+      // Create regex pattern for all variations
+      const sportRegexPattern = sportVariations
+        .map((sport) => sport.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|");
+
+      const courts = await Court.find({
+        sportType: new RegExp(sportRegexPattern, "i"),
+        isActive: true,
+      }).select("venueId");
+
+      const venueIds = courts.map((court) => court.venueId);
+
+      if (query._id) {
+        // If there's already an _id filter, intersect with sport type venues
+        query._id = { $in: venueIds };
+      } else {
+        query._id = { $in: venueIds };
+      }
+    }
+
+    // Rating filter
+    if (rating && !isNaN(rating)) {
+      query["ratings.average"] = { $gte: parseFloat(rating) };
+    }
+
+    // Verified filter
+    if (isVerified !== undefined) {
+      query.isVerified = isVerified;
+    }
+
+    // Sort options
+    let sortOption = {};
+    if (sortBy === "rating") {
+      sortOption["ratings.average"] = sortOrder === "desc" ? -1 : 1;
+    } else if (sortBy === "name") {
+      sortOption.name = sortOrder === "desc" ? -1 : 1;
+    } else if (sortBy === "createdAt") {
+      sortOption.createdAt = sortOrder === "desc" ? -1 : 1;
+    } else {
+      sortOption["ratings.average"] = -1; // Default sort by rating desc
+    }
+
+    // Execute query with pagination
+    const venues = await Venue.find(query)
+      .populate("ownerId", "fullName email phone")
+      .populate({
+        path: "courts",
+        select: "sportType",
+        match: { isActive: true },
+      })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit))
+      .sort(sortOption);
+
+    const total = await Venue.countDocuments(query);
+
+    const response = {
+      venues,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
+    };
+
+    res.status(200).json({
+      statusCode: 200,
+      message: "Venues fetched successfully",
+      data: response,
+    });
+  } catch (error) {
+    console.error("Search venues error:", error);
+    res.status(500).json({
+      statusCode: 500,
+      message: "Failed to search venues",
+      error: error.message,
+    });
+  }
+};
 
 // @desc    Create Venue
 // @route   POST /api/venues
@@ -19,7 +149,14 @@ export const createVenue = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!name || !address || !address.street || !address.ward || !address.district || !address.city) {
+    if (
+      !name ||
+      !address ||
+      !address.street ||
+      !address.ward ||
+      !address.district ||
+      !address.city
+    ) {
       return res.status(400).json({
         success: false,
         message: "Name and complete address are required",
@@ -79,8 +216,22 @@ export const getAllVenues = async (req, res) => {
 
     // Filter by sport type (through courts)
     if (sportType) {
-      const courts = await Court.find({ sportType, isActive: true }).select("venueId");
-      const venueIds = courts.map(court => court.venueId);
+      // Get all possible sport type variations
+      const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+        sportType,
+      ];
+
+      // Create regex pattern for all variations
+      const sportRegexPattern = sportVariations
+        .map((sport) => sport.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|");
+
+      const courts = await Court.find({
+        sportType: new RegExp(sportRegexPattern, "i"),
+        isActive: true,
+      }).select("venueId");
+
+      const venueIds = courts.map((court) => court.venueId);
       query._id = { $in: venueIds };
     }
 
@@ -102,6 +253,11 @@ export const getAllVenues = async (req, res) => {
 
     const venues = await Venue.find(query)
       .populate("ownerId", "fullName")
+      .populate({
+        path: "courts",
+        select: "sportType",
+        match: { isActive: true },
+      })
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -140,7 +296,7 @@ export const getVenueById = async (req, res) => {
       .populate("ownerId", "fullName email phone")
       .populate({
         path: "courts",
-        model: "Court",
+        select: "name sportType courtType capacity surface pricing",
         match: { isActive: true },
       });
 
@@ -191,7 +347,7 @@ export const updateVenue = async (req, res) => {
     }
 
     // Update venue
-    Object.keys(updateData).forEach(key => {
+    Object.keys(updateData).forEach((key) => {
       if (updateData[key] !== undefined) {
         venue[key] = updateData[key];
       }
@@ -432,8 +588,22 @@ export const searchVenuesByLocation = async (req, res) => {
 
     // Filter by sport type if provided
     if (sportType) {
-      const courts = await Court.find({ sportType, isActive: true }).select("venueId");
-      const venueIds = courts.map(court => court.venueId);
+      // Get all possible sport type variations
+      const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+        sportType,
+      ];
+
+      // Create regex pattern for all variations
+      const sportRegexPattern = sportVariations
+        .map((sport) => sport.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|");
+
+      const courts = await Court.find({
+        sportType: new RegExp(sportRegexPattern, "i"),
+        isActive: true,
+      }).select("venueId");
+
+      const venueIds = courts.map((court) => court.venueId);
       query._id = { $in: venueIds };
     }
 
@@ -524,6 +694,37 @@ export const getAvailableCities = async (req, res) => {
     });
   }
 };
+
+// @desc    Seed Sample Venue Data (Development Only)
+// @route   POST /api/venues/seed-sample-data
+// @access Public (Remove in production)
+// export const seedSampleVenueData = async (req, res) => {
+//   try {
+//     const result = await seedSampleData();
+
+//     if (result.success) {
+//       res.status(200).json({
+//         statusCode: 200,
+//         message: result.message,
+//         data: {
+//           success: true,
+//         },
+//       });
+//     } else {
+//       res.status(500).json({
+//         statusCode: 500,
+//         message: "Failed to seed sample data",
+//         error: result.error,
+//       });
+//     }
+//   } catch (error) {
+//     res.status(500).json({
+//       statusCode: 500,
+//       message: "Failed to seed sample data",
+//       error: error.message,
+//     });
+//   }
+// };
 
 // @desc    Get Districts by City
 // @route   GET /api/venues/districts/:city
