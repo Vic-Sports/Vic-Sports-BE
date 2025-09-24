@@ -136,7 +136,8 @@ export class VenueService {
         sortOrder = "desc",
       } = queryParams;
 
-      const query = { isActive: true, isVerified: true };
+      // Remove filters to get all venues from database
+      const query = {}; // Get all venues, not just active and verified ones
 
       // Filter by location
       if (city) query["address.city"] = city;
@@ -163,7 +164,12 @@ export class VenueService {
       }
 
       const sortOptions = {};
-      sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+      // Handle rating sort specifically
+      if (sortBy === 'rating' || sortBy === '-rating') {
+        sortOptions['ratings.average'] = sortBy === '-rating' ? -1 : 1;
+      } else {
+        sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+      }
 
       const venues = await Venue.find(query)
         .populate("ownerId", "fullName")
@@ -338,7 +344,7 @@ export class VenueService {
   static async getAvailableCities() {
     try {
       const cities = await Venue.aggregate([
-        { $match: { isActive: true, isVerified: true } },
+        { $match: {} }, // Get all venues from database, no filters
         {
           $group: {
             _id: "$address.city",
@@ -346,10 +352,14 @@ export class VenueService {
           },
         },
         { $sort: { venueCount: -1 } },
+        { $project: { _id: 0, city: "$_id", venueCount: 1 } },
       ]);
 
-      logger.info("Available cities retrieved successfully", { count: cities.length });
-      return cities;
+      // Extract just the city names as an array of strings
+      const cityNames = cities.map(city => city.city).filter(city => city); // Filter out null/undefined cities
+
+      logger.info("Available cities retrieved successfully", { count: cityNames.length });
+      return cityNames;
     } catch (error) {
       logger.error("Error retrieving available cities", { error: error.message });
       throw error;
@@ -359,7 +369,7 @@ export class VenueService {
   static async getDistrictsByCity(city) {
     try {
       const districts = await Venue.aggregate([
-        { $match: { isActive: true, isVerified: true, "address.city": city } },
+        { $match: { "address.city": city } }, // Only filter by city, no active/verified filters
         {
           $group: {
             _id: "$address.district",
@@ -367,10 +377,14 @@ export class VenueService {
           },
         },
         { $sort: { venueCount: -1 } },
+        { $project: { _id: 0, district: "$_id", venueCount: 1 } },
       ]);
 
-      logger.info("Districts retrieved by city successfully", { city, count: districts.length });
-      return districts;
+      // Extract just the district names as an array of strings
+      const districtNames = districts.map(district => district.district).filter(district => district); // Filter out null/undefined districts
+
+      logger.info("Districts retrieved by city successfully", { city, count: districtNames.length });
+      return districtNames;
     } catch (error) {
       logger.error("Error retrieving districts by city", { error: error.message });
       throw error;

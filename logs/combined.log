@@ -1,80 +1,134 @@
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:28:41"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:28:47"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:28:58"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:29:08"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:29:28"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:31:37"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:31:44"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:31:48"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:31:55"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:33:10"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:33:21"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:33:27"}
-{"level":"info","message":"Creating new venue","timestamp":"2025-09-24 09:35:02","user":{"id":"68d2047d981d91499a605371","role":"owner"},"venueData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A"}}
-{"level":"info","message":"Venue data prepared","timestamp":"2025-09-24 09:35:02","venueData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A","ownerId":"68d2047d981d91499a605371"}}
-{"level":"info","message":"Starting venue creation","timestamp":"2025-09-24 09:35:02","venueData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A","ownerId":"68d2047d981d91499a605371"}}
-{"hasAddress":true,"hasContactInfo":true,"level":"info","message":"Extracted venue data","name":"Sân bóng A","ownerId":"68d2047d981d91499a605371","timestamp":"2025-09-24 09:35:02"}
-{"address":"123 Lê Lợi","level":"info","message":"Creating venue object","name":"Sân bóng A","ownerId":"68d2047d981d91499a605371","timestamp":"2025-09-24 09:35:02"}
-{"level":"info","message":"Saving venue to database","timestamp":"2025-09-24 09:35:02"}
-{"code":16755,"error":"Can't extract geo keys: { _id: ObjectId('68d358d6e48c5ae43f7c93d1'), ownerId: ObjectId('68d2047d981d91499a605371'), name: \"Sân bóng A\", description: \"Sân cỏ nhân tạo 7 người\", address: { street: \"123 Lê Lợi\", ward: \"Phường 1\", district: \"Quận 1\", city: \"TP HCM\", coordinates: { lat: 10.7769, lng: 106.7009 } }, contactInfo: { phone: \"0912345678\", email: \"test@example.com\" }, images: [ \"https://example.com/image1.jpg\" ], amenities: [], operatingHours: [], parking: { available: false }, ratings: { average: 0, count: 0 }, totalBookings: 0, totalRevenue: 0, isActive: true, isVerified: false, createdAt: new Date(1758681302819), updatedAt: new Date(1758681302819), __v: 0 }  can't project geometry into spherical CRS: { lat: 10.7769, lng: 106.7009 }","level":"error","message":"Error creating venue","name":"MongoServerError","stack":"MongoServerError: Can't extract geo keys: { _id: ObjectId('68d358d6e48c5ae43f7c93d1'), ownerId: ObjectId('68d2047d981d91499a605371'), name: \"Sân bóng A\", description: \"Sân cỏ nhân tạo 7 người\", address: { street: \"123 Lê Lợi\", ward: \"Phường 1\", district: \"Quận 1\", city: \"TP HCM\", coordinates: { lat: 10.7769, lng: 106.7009 } }, contactInfo: { phone: \"0912345678\", email: \"test@example.com\" }, images: [ \"https://example.com/image1.jpg\" ], amenities: [], operatingHours: [], parking: { available: false }, ratings: { average: 0, count: 0 }, totalBookings: 0, totalRevenue: 0, isActive: true, isVerified: false, createdAt: new Date(1758681302819), updatedAt: new Date(1758681302819), __v: 0 }  can't project geometry into spherical CRS: { lat: 10.7769, lng: 106.7009 }\n    at C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\operations\\insert.js:53:33\n    at C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\connection_pool.js:308:25\n    at C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\sdam\\server.js:213:17\n    at handleOperationResult (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\sdam\\server.js:329:20)\n    at Connection.onMessage (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\connection.js:219:9)\n    at MessageStream.<anonymous> (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\connection.js:60:60)\n    at MessageStream.emit (node:events:518:28)\n    at processIncomingData (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\message_stream.js:132:20)\n    at MessageStream._write (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\message_stream.js:33:9)\n    at writeOrBuffer (node:internal/streams/writable:572:12)","timestamp":"2025-09-24 09:35:02"}
-{"code":16755,"error":"Can't extract geo keys: { _id: ObjectId('68d358d6e48c5ae43f7c93d1'), ownerId: ObjectId('68d2047d981d91499a605371'), name: \"Sân bóng A\", description: \"Sân cỏ nhân tạo 7 người\", address: { street: \"123 Lê Lợi\", ward: \"Phường 1\", district: \"Quận 1\", city: \"TP HCM\", coordinates: { lat: 10.7769, lng: 106.7009 } }, contactInfo: { phone: \"0912345678\", email: \"test@example.com\" }, images: [ \"https://example.com/image1.jpg\" ], amenities: [], operatingHours: [], parking: { available: false }, ratings: { average: 0, count: 0 }, totalBookings: 0, totalRevenue: 0, isActive: true, isVerified: false, createdAt: new Date(1758681302819), updatedAt: new Date(1758681302819), __v: 0 }  can't project geometry into spherical CRS: { lat: 10.7769, lng: 106.7009 }","level":"error","message":"Error creating venue","name":"MongoServerError","stack":"MongoServerError: Can't extract geo keys: { _id: ObjectId('68d358d6e48c5ae43f7c93d1'), ownerId: ObjectId('68d2047d981d91499a605371'), name: \"Sân bóng A\", description: \"Sân cỏ nhân tạo 7 người\", address: { street: \"123 Lê Lợi\", ward: \"Phường 1\", district: \"Quận 1\", city: \"TP HCM\", coordinates: { lat: 10.7769, lng: 106.7009 } }, contactInfo: { phone: \"0912345678\", email: \"test@example.com\" }, images: [ \"https://example.com/image1.jpg\" ], amenities: [], operatingHours: [], parking: { available: false }, ratings: { average: 0, count: 0 }, totalBookings: 0, totalRevenue: 0, isActive: true, isVerified: false, createdAt: new Date(1758681302819), updatedAt: new Date(1758681302819), __v: 0 }  can't project geometry into spherical CRS: { lat: 10.7769, lng: 106.7009 }\n    at C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\operations\\insert.js:53:33\n    at C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\connection_pool.js:308:25\n    at C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\sdam\\server.js:213:17\n    at handleOperationResult (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\sdam\\server.js:329:20)\n    at Connection.onMessage (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\connection.js:219:9)\n    at MessageStream.<anonymous> (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\connection.js:60:60)\n    at MessageStream.emit (node:events:518:28)\n    at processIncomingData (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\message_stream.js:132:20)\n    at MessageStream._write (C:\\Semester-7\\EXE101\\Vic-Sports-BE\\node_modules\\mongodb\\lib\\cmap\\message_stream.js:33:9)\n    at writeOrBuffer (node:internal/streams/writable:572:12)","timestamp":"2025-09-24 09:35:02"}
-{"body":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A"},"error":"Can't extract geo keys: { _id: ObjectId('68d358d6e48c5ae43f7c93d1'), ownerId: ObjectId('68d2047d981d91499a605371'), name: \"Sân bóng A\", description: \"Sân cỏ nhân tạo 7 người\", address: { street: \"123 Lê Lợi\", ward: \"Phường 1\", district: \"Quận 1\", city: \"TP HCM\", coordinates: { lat: 10.7769, lng: 106.7009 } }, contactInfo: { phone: \"0912345678\", email: \"test@example.com\" }, images: [ \"https://example.com/image1.jpg\" ], amenities: [], operatingHours: [], parking: { available: false }, ratings: { average: 0, count: 0 }, totalBookings: 0, totalRevenue: 0, isActive: true, isVerified: false, createdAt: new Date(1758681302819), updatedAt: new Date(1758681302819), __v: 0 }  can't project geometry into spherical CRS: { lat: 10.7769, lng: 106.7009 }","level":"error","message":"Error occurred:","method":"POST","params":{},"path":"/api/v1/venues","query":{},"stack":"Error: Can't extract geo keys: { _id: ObjectId('68d358d6e48c5ae43f7c93d1'), ownerId: ObjectId('68d2047d981d91499a605371'), name: \"Sân bóng A\", description: \"Sân cỏ nhân tạo 7 người\", address: { street: \"123 Lê Lợi\", ward: \"Phường 1\", district: \"Quận 1\", city: \"TP HCM\", coordinates: { lat: 10.7769, lng: 106.7009 } }, contactInfo: { phone: \"0912345678\", email: \"test@example.com\" }, images: [ \"https://example.com/image1.jpg\" ], amenities: [], operatingHours: [], parking: { available: false }, ratings: { average: 0, count: 0 }, totalBookings: 0, totalRevenue: 0, isActive: true, isVerified: false, createdAt: new Date(1758681302819), updatedAt: new Date(1758681302819), __v: 0 }  can't project geometry into spherical CRS: { lat: 10.7769, lng: 106.7009 }\n    at createVenue (file:///C:/Semester-7/EXE101/Vic-Sports-BE/src/controllers/venue.controller.js:137:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-09-24 09:35:02"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:35:29"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:35:34"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:35:47"}
-{"level":"info","message":"Creating new venue","timestamp":"2025-09-24 09:36:23","user":{"id":"68d2047d981d91499a605371","role":"owner"},"venueData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A"}}
-{"level":"info","message":"Venue data prepared","timestamp":"2025-09-24 09:36:23","venueData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A","ownerId":"68d2047d981d91499a605371"}}
-{"level":"info","message":"Starting venue creation","timestamp":"2025-09-24 09:36:23","venueData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng A","ownerId":"68d2047d981d91499a605371"}}
-{"hasAddress":true,"hasContactInfo":true,"level":"info","message":"Extracted venue data","name":"Sân bóng A","ownerId":"68d2047d981d91499a605371","timestamp":"2025-09-24 09:36:23"}
-{"address":"123 Lê Lợi","coordinates":[106.7009,10.7769],"level":"info","message":"Creating venue object","name":"Sân bóng A","ownerId":"68d2047d981d91499a605371","timestamp":"2025-09-24 09:36:23"}
-{"level":"info","message":"Saving venue to database","timestamp":"2025-09-24 09:36:23"}
-{"level":"info","message":"Venue created successfully","timestamp":"2025-09-24 09:36:23","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue created successfully","timestamp":"2025-09-24 09:36:23","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:36:56"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:37:25"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:37:35"}
-{"level":"info","message":"Updating venue","timestamp":"2025-09-24 09:38:44","updateData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"venueId":"68d359277f587225f17376be"}
-{"error":"Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.","level":"error","message":"Error retrieving venue by ID","timestamp":"2025-09-24 09:38:44"}
-{"error":"Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.","level":"error","message":"Error updating venue","timestamp":"2025-09-24 09:38:44"}
-{"body":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"error":"Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/venues/68d359277f587225f17376be","query":{},"stack":"Error: Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.\n    at updateVenue (file:///C:/Semester-7/EXE101/Vic-Sports-BE/src/controllers/venue.controller.js:222:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-09-24 09:38:44"}
-{"level":"info","message":"Updating venue","timestamp":"2025-09-24 09:39:18","updateData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"venueId":"68d359277f587225f17376be"}
-{"error":"Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.","level":"error","message":"Error retrieving venue by ID","timestamp":"2025-09-24 09:39:18"}
-{"error":"Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.","level":"error","message":"Error updating venue","timestamp":"2025-09-24 09:39:18"}
-{"body":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"error":"Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/venues/68d359277f587225f17376be","query":{},"stack":"Error: Cannot populate path `courts` because it is not in your schema. Set the `strictPopulate` option to false to override.\n    at updateVenue (file:///C:/Semester-7/EXE101/Vic-Sports-BE/src/controllers/venue.controller.js:222:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-09-24 09:39:18"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:39:46"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:39:55"}
-{"level":"info","message":"Updating venue","timestamp":"2025-09-24 09:40:19","updateData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue retrieved successfully","timestamp":"2025-09-24 09:40:19","venueId":"68d359277f587225f17376be"}
-{"error":"Venue validation failed: address.coordinates.coordinates: Coordinates are required","level":"error","message":"Error updating venue","timestamp":"2025-09-24 09:40:19"}
-{"error":"Venue validation failed: address.coordinates.coordinates: Coordinates are required","level":"error","message":"Error updating venue","timestamp":"2025-09-24 09:40:19"}
-{"body":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"error":"Venue validation failed: address.coordinates.coordinates: Coordinates are required","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/venues/68d359277f587225f17376be","query":{},"stack":"Error: Venue validation failed: address.coordinates.coordinates: Coordinates are required\n    at updateVenue (file:///C:/Semester-7/EXE101/Vic-Sports-BE/src/controllers/venue.controller.js:222:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-09-24 09:40:19"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:40:52"}
-{"level":"info","message":"Updating venue","timestamp":"2025-09-24 09:40:59","updateData":{"address":{"city":"TP HCM","coordinates":{"lat":10.7769,"lng":106.7009},"district":"Quận 1","street":"123 Lê Lợi","ward":"Phường 1"},"contactInfo":{"email":"test@example.com","phone":"0912345678"},"description":"Sân cỏ nhân tạo 7 người","images":["https://example.com/image1.jpg"],"name":"Sân bóng ABC"},"venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue retrieved successfully","timestamp":"2025-09-24 09:40:59","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue updated successfully","timestamp":"2025-09-24 09:40:59","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue updated successfully","timestamp":"2025-09-24 09:40:59","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:41:05"}
-{"level":"info","message":"Fetching all venues","query":{},"timestamp":"2025-09-24 09:41:52"}
-{"count":1,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 09:41:52"}
-{"count":1,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 09:41:52"}
-{"level":"info","message":"Fetching venue details","timestamp":"2025-09-24 09:42:01","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue retrieved successfully","timestamp":"2025-09-24 09:42:01","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue details fetched successfully","timestamp":"2025-09-24 09:42:01","venueId":"68d359277f587225f17376be"}
-{"lat":"10.7769","level":"info","lng":"106.7009","message":"Searching venues by location","radius":"10","timestamp":"2025-09-24 09:42:33"}
-{"count":0,"level":"info","message":"Venues searched by location successfully","timestamp":"2025-09-24 09:42:33"}
-{"count":0,"level":"info","message":"Venues searched by location successfully","timestamp":"2025-09-24 09:42:33"}
-{"level":"info","message":"Deleting venue","timestamp":"2025-09-24 09:43:18","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue retrieved successfully","timestamp":"2025-09-24 09:43:18","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue deleted successfully","timestamp":"2025-09-24 09:43:18","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Venue deleted successfully","timestamp":"2025-09-24 09:43:18","venueId":"68d359277f587225f17376be"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:44:38"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:44:45"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:45:53"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:46:24"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:47:22"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:47:23"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:47:26"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:48:00"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:48:27"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:48:38"}
-{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 09:54:51"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:51:12"}
+{"count":1,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:51:12"}
+{"count":1,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:51:12"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:51:12"}
+{"count":1,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:51:12"}
+{"count":1,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:51:12"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:56:09"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:56:19"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:56:28"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:56:38"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:56:52"}
+{"count":1,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:56:52"}
+{"count":1,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:56:52"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:56:52"}
+{"count":1,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:56:52"}
+{"count":1,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:56:52"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:57:10"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:57:29"}
+{"count":1,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:57:29"}
+{"count":1,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:57:29"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:57:29"}
+{"count":1,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:57:29"}
+{"count":1,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:57:29"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:57:33"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:57:42"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:57:50"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:57:50"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:57:50"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:57:50"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:57:50"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:57:50"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 15:58:09"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:10"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:10"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:10"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:10"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:10"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:10"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:47"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:48"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:48"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:50"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:50"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:50"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:50"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:51"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:51"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:56"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:56"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:56"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 15:59:56"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 15:59:56"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 15:59:56"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:00:05"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:00:05"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:00:05"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:00:05"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:00:05"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:00:05"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 16:00:40"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 16:00:51"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-24 16:01:08"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:32"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:32"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:33"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:33"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:49"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:02:49"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:49"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:49"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:50"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:50"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:50"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:50"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:50"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:51"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:51"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:52"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:02:52"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:02:52"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:02:52"}
+{"level":"info","message":"Fetching available cities","timestamp":"2025-09-24 16:02:52"}
+{"count":2,"level":"info","message":"Available cities retrieved successfully","timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Available cities fetched successfully","timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:53"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:53"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:53"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:53"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:54"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:54"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:54"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:55"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:55"}
+{"level":"info","message":"Fetching all venues","query":{"limit":"12","page":"1","sortBy":"rating","sortOrder":"desc"},"timestamp":"2025-09-24 16:02:55"}
+{"count":2,"level":"info","message":"Venues retrieved successfully","timestamp":"2025-09-24 16:02:55"}
+{"count":2,"level":"info","message":"Venues fetched successfully","timestamp":"2025-09-24 16:02:55"}

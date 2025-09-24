@@ -1,587 +1,315 @@
-import Court from "../models/court.js";
-import Venue from "../models/venue.js";
+import { query, validationResult } from "express-validator";
+import { CourtService } from "../services/court.service.js";
+import { ErrorResponse } from "../utils/errorResponse.js";
+import logger from "../utils/logger.js";
+
+// Validation rules for court queries
+export const courtQueryValidationRules = [
+  query('page').optional().isInt({ min: 1 }).withMessage('Invalid page number'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Invalid limit'),
+  query('venueId').optional().isMongoId().withMessage('Invalid venue ID'),
+  query('sportType').optional().isString().withMessage('Invalid sport type'),
+  query('search').optional().isString().withMessage('Invalid search term'),
+  query('sortBy').optional().isIn(['createdAt', 'name', 'ratings.average', 'totalBookings']).withMessage('Invalid sort field'),
+  query('sortOrder').optional().isIn(['asc', 'desc']).withMessage('Invalid sort order'),
+];
+
+export const validateRequest = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      errors: errors.array(),
+    });
+  }
+  next();
+};
 
 // @desc    Create Court
 // @route   POST /api/courts
 // @access Private (Owner)
-export const createCourt = async (req, res) => {
+export const createCourt = async (req, res, next) => {
+  console.log('=== CREATE COURT START ===');
+  console.log('Request body:', req.body);
+  console.log('Request user:', req.user);
   try {
-    const ownerId = req.user.id;
-    const {
-      venueId,
-      name,
-      sportType,
-      courtType,
-      capacity,
-      dimensions,
-      surface,
-      equipment,
-      pricing,
-      defaultAvailability,
-    } = req.body;
-
-    // Validate required fields
-    if (!venueId || !name || !sportType || !capacity) {
-      return res.status(400).json({
-        success: false,
-        message: "Venue ID, name, sport type, and capacity are required",
-      });
-    }
-
-    // Check if venue exists and user is the owner
-    const venue = await Venue.findById(venueId);
-    if (!venue) {
-      return res.status(404).json({
-        success: false,
-        message: "Venue not found",
-      });
-    }
-
-    if (!venue.ownerId.equals(ownerId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to add courts to this venue",
-      });
-    }
-
-    const court = await Court.create({
-      venueId,
-      name,
-      sportType,
-      courtType,
-      capacity,
-      dimensions,
-      surface,
-      equipment,
-      pricing,
-      defaultAvailability,
-    });
-
+    logger.info('Creating new court', { courtData: req.body, user: req.user ? { id: req.user.id, role: req.user.role } : null });
+    
+    const court = await CourtService.createCourt(req.body);
+    
     res.status(201).json({
       success: true,
       message: "Court created successfully",
-      data: {
-        court,
-      },
+      data: court,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    console.log('Error stack:', error.stack);
+    logger.error('Error creating court', { error: error.message, stack: error.stack, name: error.name, code: error.code });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get All Courts
 // @route   GET /api/courts
 // @access Public
-export const getAllCourts = async (req, res) => {
+export const getAllCourts = async (req, res, next) => {
+  console.log('=== GET ALL COURTS START ===');
+  console.log('Query params:', req.query);
   try {
-    const {
-      page = 1,
-      limit = 10,
-      venueId,
-      sportType,
-      minPrice,
-      maxPrice,
-      search,
-      sortBy = "createdAt",
-      sortOrder = "desc",
-    } = req.query;
-
-    const query = { isActive: true };
-
-    // Filter by venue
-    if (venueId) {
-      query.venueId = venueId;
-    }
-
-    // Filter by sport type
-    if (sportType) {
-      query.sportType = sportType;
-    }
-
-    // Search by name
-    if (search) {
-      query.name = { $regex: search, $options: "i" };
-    }
-
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
-
-    const courts = await Court.find(query)
-      .populate("venueId", "name address ratings")
-      .sort(sortOptions)
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Court.countDocuments(query);
-
+    logger.info('Getting all courts', { queryParams: req.query });
+    
+    const result = await CourtService.getAllCourts(req.query);
+    
     res.status(200).json({
       success: true,
-      data: {
-        courts,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalCourts: total,
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1,
-        },
-      },
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting all courts', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get Court by ID
 // @route   GET /api/courts/:courtId
 // @access Public
-export const getCourtById = async (req, res) => {
+export const getCourtById = async (req, res, next) => {
+  console.log('=== GET COURT BY ID START ===');
+  console.log('Court ID:', req.params.courtId);
   try {
-    const { courtId } = req.params;
-
-    const court = await Court.findById(courtId)
-      .populate("venueId", "name address contactInfo amenities");
-
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
+    logger.info('Getting court by ID', { courtId: req.params.courtId });
+    
+    const court = await CourtService.getCourtById(req.params.courtId);
+    
     res.status(200).json({
       success: true,
-      data: {
-        court,
-      },
+      data: { court },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting court by ID', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Update Court
 // @route   PUT /api/courts/:courtId
 // @access Private (Owner)
-export const updateCourt = async (req, res) => {
+export const updateCourt = async (req, res, next) => {
+  console.log('=== UPDATE COURT START ===');
+  console.log('Court ID:', req.params.courtId);
+  console.log('Update data:', req.body);
+  console.log('User:', req.user);
   try {
-    const { courtId } = req.params;
-    const ownerId = req.user.id;
-    const updateData = req.body;
-
-    const court = await Court.findById(courtId).populate("venueId");
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Check if user is the venue owner
-    if (!court.venueId.ownerId.equals(ownerId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to update this court",
-      });
-    }
-
-    // Update court
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] !== undefined) {
-        court[key] = updateData[key];
-      }
-    });
-
-    await court.save();
-
+    logger.info('Updating court', { courtId: req.params.courtId, updateData: req.body, user: req.user });
+    
+    const court = await CourtService.updateCourt(req.params.courtId, req.body, req.user.id);
+    
     res.status(200).json({
       success: true,
       message: "Court updated successfully",
-      data: {
-        court,
-      },
+      data: { court },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error updating court', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Delete Court
 // @route   DELETE /api/courts/:courtId
 // @access Private (Owner)
-export const deleteCourt = async (req, res) => {
+export const deleteCourt = async (req, res, next) => {
+  console.log('=== DELETE COURT START ===');
+  console.log('Court ID:', req.params.courtId);
+  console.log('User:', req.user);
   try {
-    const { courtId } = req.params;
-    const ownerId = req.user.id;
-
-    const court = await Court.findById(courtId).populate("venueId");
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Check if user is the venue owner
-    if (!court.venueId.ownerId.equals(ownerId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to delete this court",
-      });
-    }
-
-    court.isActive = false;
-    await court.save();
-
+    logger.info('Deleting court', { courtId: req.params.courtId, user: req.user });
+    
+    const result = await CourtService.deleteCourt(req.params.courtId, req.user.id);
+    
     res.status(200).json({
       success: true,
-      message: "Court deleted successfully",
+      message: result.message,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error deleting court', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get Courts by Venue
 // @route   GET /api/courts/venue/:venueId
 // @access Public
-export const getCourtsByVenue = async (req, res) => {
+export const getCourtsByVenue = async (req, res, next) => {
+  console.log('=== GET COURTS BY VENUE START ===');
+  console.log('Venue ID:', req.params.venueId);
   try {
-    const { venueId } = req.params;
-
-    const courts = await Court.find({ venueId, isActive: true })
-      .populate("venueId", "name address");
-
+    logger.info('Getting courts by venue', { venueId: req.params.venueId });
+    
+    const courts = await CourtService.getCourtsByVenue(req.params.venueId);
+    
     res.status(200).json({
       success: true,
-      data: {
-        courts,
-      },
+      data: { courts },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting courts by venue', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get Courts by Sport Type
 // @route   GET /api/courts/sport/:sportType
 // @access Public
-export const getCourtsBySport = async (req, res) => {
+export const getCourtsBySport = async (req, res, next) => {
+  console.log('=== GET COURTS BY SPORT START ===');
+  console.log('Sport type:', req.params.sportType);
+  console.log('Query params:', req.query);
   try {
-    const { sportType } = req.params;
-    const { page = 1, limit = 10, city, district } = req.query;
-
-    const query = { sportType, isActive: true };
-
-    // If location filters are provided, filter by venue location
-    if (city || district) {
-      const venueQuery = { isActive: true, isVerified: true };
-      if (city) venueQuery["address.city"] = city;
-      if (district) venueQuery["address.district"] = district;
-
-      const venues = await Venue.find(venueQuery).select("_id");
-      const venueIds = venues.map(venue => venue._id);
-      query.venueId = { $in: venueIds };
-    }
-
-    const courts = await Court.find(query)
-      .populate("venueId", "name address ratings")
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Court.countDocuments(query);
-
+    logger.info('Getting courts by sport', { sportType: req.params.sportType, queryParams: req.query });
+    
+    const result = await CourtService.getCourtsBySport(req.params.sportType, req.query);
+    
     res.status(200).json({
       success: true,
-      data: {
-        courts,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalCourts: total,
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1,
-        },
-      },
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting courts by sport', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Check Court Availability
 // @route   GET /api/courts/:courtId/availability
 // @access Public
-export const checkCourtAvailability = async (req, res) => {
+export const checkCourtAvailability = async (req, res, next) => {
+  console.log('=== CHECK COURT AVAILABILITY START ===');
+  console.log('Court ID:', req.params.courtId);
+  console.log('Query params:', req.query);
   try {
-    const { courtId } = req.params;
-    const { date, startTime, endTime } = req.query;
-
-    if (!date) {
-      return res.status(400).json({
-        success: false,
-        message: "Date is required",
-      });
-    }
-
-    const court = await Court.findById(courtId);
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Get day of week (0 = Sunday, 1 = Monday, etc.)
-    const requestedDate = new Date(date);
-    const dayOfWeek = requestedDate.getDay();
-
-    // Find default availability for this day
-    const dayAvailability = court.defaultAvailability.find(
-      day => day.dayOfWeek === dayOfWeek
-    );
-
-    if (!dayAvailability) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          available: false,
-          reason: "Court not available on this day",
-          timeSlots: [],
-        },
-      });
-    }
-
-    // Filter time slots based on requested time range
-    let availableSlots = dayAvailability.timeSlots.filter(slot => slot.isAvailable);
-
-    if (startTime && endTime) {
-      availableSlots = availableSlots.filter(slot => {
-        return slot.start >= startTime && slot.end <= endTime;
-      });
-    }
-
+    logger.info('Checking court availability', { courtId: req.params.courtId, queryParams: req.query });
+    
+    const result = await CourtService.checkCourtAvailability(req.params.courtId, req.query);
+    
     res.status(200).json({
       success: true,
-      data: {
-        available: availableSlots.length > 0,
-        timeSlots: availableSlots,
-        courtInfo: {
-          name: court.name,
-          sportType: court.sportType,
-          capacity: court.capacity,
-        },
-      },
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error checking court availability', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get Court Pricing
 // @route   GET /api/courts/:courtId/pricing
 // @access Public
-export const getCourtPricing = async (req, res) => {
+export const getCourtPricing = async (req, res, next) => {
+  console.log('=== GET COURT PRICING START ===');
+  console.log('Court ID:', req.params.courtId);
+  console.log('Query params:', req.query);
   try {
-    const { courtId } = req.params;
-    const { date, timeSlot } = req.query;
-
-    const court = await Court.findById(courtId);
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Determine day type
-    let dayType = "weekday";
-    if (date) {
-      const requestedDate = new Date(date);
-      const dayOfWeek = requestedDate.getDay();
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        dayType = "weekend";
-      }
-    }
-
-    // Find applicable pricing
-    const applicablePricing = court.pricing.filter(price => {
-      if (!price.isActive) return false;
-      if (price.dayType && price.dayType !== dayType) return false;
-      if (timeSlot && price.timeSlot) {
-        return timeSlot >= price.timeSlot.start && timeSlot <= price.timeSlot.end;
-      }
-      return true;
-    });
-
+    logger.info('Getting court pricing', { courtId: req.params.courtId, queryParams: req.query });
+    
+    const result = await CourtService.getCourtPricing(req.params.courtId, req.query);
+    
     res.status(200).json({
       success: true,
-      data: {
-        pricing: applicablePricing,
-        dayType,
-        courtInfo: {
-          name: court.name,
-          sportType: court.sportType,
-        },
-      },
+      data: result,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting court pricing', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Upload Court Images
 // @route   POST /api/courts/:courtId/images
 // @access Private (Owner)
-export const uploadCourtImages = async (req, res) => {
+export const uploadCourtImages = async (req, res, next) => {
+  console.log('=== UPLOAD COURT IMAGES START ===');
+  console.log('Court ID:', req.params.courtId);
+  console.log('Images:', req.body.images);
+  console.log('User:', req.user);
   try {
-    const { courtId } = req.params;
-    const ownerId = req.user.id;
-    const { images } = req.body;
-
-    if (!images || !Array.isArray(images)) {
-      return res.status(400).json({
-        success: false,
-        message: "Images array is required",
-      });
-    }
-
-    const court = await Court.findById(courtId).populate("venueId");
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Check if user is the venue owner
-    if (!court.venueId.ownerId.equals(ownerId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to update this court",
-      });
-    }
-
-    court.images = [...(court.images || []), ...images];
-    await court.save();
-
+    logger.info('Uploading court images', { courtId: req.params.courtId, images: req.body.images, user: req.user });
+    
+    const images = await CourtService.uploadCourtImages(req.params.courtId, req.body.images, req.user.id);
+    
     res.status(200).json({
       success: true,
       message: "Images uploaded successfully",
-      data: {
-        images: court.images,
-      },
+      data: { images },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error uploading court images', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get Available Sport Types
 // @route   GET /api/courts/sports
 // @access Public
-export const getAvailableSports = async (req, res) => {
+export const getAvailableSports = async (req, res, next) => {
+  console.log('=== GET AVAILABLE SPORTS START ===');
   try {
-    const sports = await Court.aggregate([
-      { $match: { isActive: true } },
-      {
-        $group: {
-          _id: "$sportType",
-          courtCount: { $sum: 1 },
-        },
-      },
-      { $sort: { courtCount: -1 } },
-    ]);
-
+    logger.info('Getting available sports');
+    
+    const sports = await CourtService.getAvailableSports();
+    
     res.status(200).json({
       success: true,
-      data: {
-        sports,
-      },
+      data: { sports },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting available sports', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };
 
 // @desc    Get Court Stats
 // @route   GET /api/courts/:courtId/stats
 // @access Private (Owner)
-export const getCourtStats = async (req, res) => {
+export const getCourtStats = async (req, res, next) => {
+  console.log('=== GET COURT STATS START ===');
+  console.log('Court ID:', req.params.courtId);
+  console.log('User:', req.user);
   try {
-    const { courtId } = req.params;
-    const ownerId = req.user.id;
-
-    const court = await Court.findById(courtId).populate("venueId");
-    if (!court) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Check if user is the venue owner
-    if (!court.venueId.ownerId.equals(ownerId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to view this court's stats",
-      });
-    }
-
-    // Get booking stats (placeholder - will be implemented with booking model)
-    const stats = {
-      totalBookings: court.totalBookings,
-      totalRevenue: court.totalRevenue,
-      averageRating: court.ratings.average,
-      totalReviews: court.ratings.count,
-      isActive: court.isActive,
-      createdAt: court.createdAt,
-    };
-
+    logger.info('Getting court stats', { courtId: req.params.courtId, user: req.user });
+    
+    const stats = await CourtService.getCourtStats(req.params.courtId, req.user.id);
+    
     res.status(200).json({
       success: true,
-      data: {
-        stats,
-      },
+      data: { stats },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.log('=== ERROR CAUGHT ===');
+    console.log('Error message:', error.message);
+    logger.error('Error getting court stats', { error: error.message, stack: error.stack });
+    next(new ErrorResponse(error.message, 500));
   }
 };

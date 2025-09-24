@@ -27,7 +27,7 @@ export const venueQueryValidationRules = [
     .withMessage('Search term must be between 1-100 characters'),
   query('sortBy')
     .optional()
-    .isIn(['name', '-name', 'createdAt', '-createdAt', 'ratings.average', '-ratings.average'])
+    .isIn(['name', '-name', 'createdAt', '-createdAt', 'ratings.average', '-ratings.average', 'rating', '-rating'])
     .withMessage('Invalid sort field'),
   query('sortOrder')
     .optional()
@@ -424,9 +424,7 @@ export const getAvailableCities = async (req, res, next) => {
     logger.info('Available cities fetched successfully', { count: cities.length });
     res.status(200).json({
       success: true,
-      data: {
-        cities,
-      },
+      data: cities, // Return cities array directly, not wrapped in object
     });
   } catch (error) {
     logger.error('Error fetching available cities', { error: error.message });
@@ -447,9 +445,7 @@ export const getDistrictsByCity = async (req, res, next) => {
     logger.info('Districts fetched by city successfully', { city, count: districts.length });
     res.status(200).json({
       success: true,
-      data: {
-        districts,
-      },
+      data: districts, // Return districts array directly, not wrapped in object
     });
   } catch (error) {
     logger.error('Error fetching districts by city', { error: error.message });
