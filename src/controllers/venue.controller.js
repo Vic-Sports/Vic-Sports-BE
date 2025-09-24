@@ -1,7 +1,6 @@
 import Venue from "../models/venue.js";
 import Court from "../models/court.js";
 import Location from "../models/location.js";
-// import { seedSampleData } from "../utils/sampleVenueData.js";
 
 // Sport type mapping for bilingual support
 const sportTypeMapping = {
@@ -303,20 +302,189 @@ export const getVenueById = async (req, res) => {
     if (!venue) {
       return res.status(404).json({
         success: false,
-        message: "Venue not found",
+        error: {
+          code: "VENUE_NOT_FOUND",
+          message: "Venue không tồn tại",
+        },
+      });
+    }
+
+    if (!venue.isActive) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: "VENUE_INACTIVE",
+          message: "Venue hiện tại không hoạt động",
+        },
       });
     }
 
     res.status(200).json({
       success: true,
+      data: venue,
+    });
+  } catch (error) {
+    console.error("Error getting venue:", error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Lỗi server",
+      },
+    });
+  }
+};
+
+// @desc    Get Venue Courts with Filters
+// @route   GET /api/venues/:venueId/courts
+// @access Public
+export const getVenueCourts = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const {
+      sportType,
+      courtType,
+      capacity,
+      sortBy = "rating",
+      sortOrder = "desc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    // Check if venue exists
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: "VENUE_NOT_FOUND",
+          message: "Venue không tồn tại",
+        },
+      });
+    }
+
+    if (!venue.isActive) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: "VENUE_INACTIVE",
+          message: "Venue hiện tại không hoạt động",
+        },
+      });
+    }
+
+    // Build filter
+    const filter = {
+      venueId: venueId,
+      isActive: true,
+    };
+
+    if (sportType) {
+      // Get all possible sport type variations
+      const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+        sportType,
+      ];
+      const sportRegexPattern = sportVariations
+        .map((sport) => sport.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|");
+      filter.sportType = new RegExp(sportRegexPattern, "i");
+    }
+    if (courtType) filter.courtType = courtType;
+    if (capacity) filter.capacity = { $gte: parseInt(capacity) };
+
+    // Build sort
+    const sortOptions = {};
+    switch (sortBy) {
+      case "rating":
+        sortOptions["ratings.average"] = sortOrder === "desc" ? -1 : 1;
+        break;
+      case "price":
+        sortOptions["pricing.0.pricePerHour"] = sortOrder === "desc" ? -1 : 1;
+        break;
+      case "name":
+        sortOptions.name = sortOrder === "desc" ? -1 : 1;
+        break;
+      case "capacity":
+        sortOptions.capacity = sortOrder === "desc" ? -1 : 1;
+        break;
+      default:
+        sortOptions["ratings.average"] = -1;
+    }
+
+    // Pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get all courts for this venue
+    const courts = await Court.find({
+      venueId: venueId,
+      isActive: true,
+    }).sort({ name: 1 });
+
+    // Group courts by sport type (as required by FE)
+    const groupedCourts = {};
+    courts.forEach((court) => {
+      if (!groupedCourts[court.sportType]) {
+        groupedCourts[court.sportType] = [];
+      }
+      groupedCourts[court.sportType].push(court);
+    });
+
+    // Create sport type groups with aggregated info for FE
+    const sportTypeGroups = Object.keys(groupedCourts).map((sportType) => {
+      const sportCourts = groupedCourts[sportType];
+
+      // Calculate min/max prices across all courts of this sport type
+      const allPrices = [];
+      sportCourts.forEach((court) => {
+        court.pricing.forEach((pricing) => {
+          if (pricing.isActive) {
+            allPrices.push(pricing.pricePerHour);
+          }
+        });
+      });
+
+      // Calculate average rating for this sport type
+      const totalRatings = sportCourts.reduce(
+        (sum, court) => sum + (court.ratings.average || 0),
+        0
+      );
+      const averageRating =
+        sportCourts.length > 0 ? totalRatings / sportCourts.length : 0;
+
+      return {
+        sportType,
+        courts: sportCourts,
+        sampleCourt: sportCourts[0], // Representative court for displaying
+        totalCourts: sportCourts.length,
+        minPrice: allPrices.length > 0 ? Math.min(...allPrices) : 0,
+        maxPrice: allPrices.length > 0 ? Math.max(...allPrices) : 0,
+        averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      };
+    });
+
+    res.status(200).json({
+      success: true,
       data: {
-        venue,
+        venue: {
+          _id: venue._id,
+          name: venue.name,
+          address: venue.address,
+          ratings: venue.ratings,
+        },
+        courts: courts, // All courts for compatibility
+        sportTypeGroups: sportTypeGroups, // Main data for FE logic
       },
     });
   } catch (error) {
+    console.error("Error getting venue courts:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Lỗi server",
+      },
     });
   }
 };
@@ -756,4 +924,542 @@ export const getDistrictsByCity = async (req, res) => {
       message: error.message,
     });
   }
+};
+
+// @desc    Get available courts count by sport type in venue
+// @route   GET /api/v1/venues/:venueId/courts/availability-count
+// @access  Public
+export const getVenueCourtAvailabilityCount = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const { date, startTime, endTime, sportType } = req.query;
+
+    // Validate required parameters
+    if (!date || !startTime || !endTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Date, startTime và endTime là bắt buộc",
+      });
+    }
+
+    // Check if venue exists
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy venue",
+      });
+    }
+
+    // Build query for courts in this venue
+    let courtQuery = {
+      venueId: venueId,
+      isActive: true,
+    };
+
+    // Add sport type filter if provided
+    if (sportType) {
+      // Get all possible sport type variations (support bilingual)
+      const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+        sportType,
+      ];
+      courtQuery.sportType = {
+        $in: sportVariations.map((sport) => new RegExp(sport, "i")),
+      };
+    }
+
+    // Get all courts in venue (filtered by sport type if provided)
+    const courts = await Court.find(courtQuery);
+
+    if (courts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          venueId,
+          venueName: venue.name,
+          date,
+          timeSlot: { startTime, endTime },
+          sportType: sportType || "all",
+          totalCourts: 0,
+          availableCourts: 0,
+          bookedCourts: 0,
+          reservedCourts: 0,
+          courtBreakdown: [],
+        },
+      });
+    }
+
+    // Import Booking model
+    const Booking = (await import("../models/booking.js")).default;
+
+    // Check bookings for the specified date and time
+    const bookingDate = new Date(date);
+    const requestedSlot = { start: startTime, end: endTime };
+
+    const bookings = await Booking.find({
+      venue: venueId,
+      date: bookingDate,
+      status: { $in: ["reserved", "confirmed"] },
+      court: { $in: courts.map((c) => c._id) },
+    }).populate("court", "name sportType");
+
+    // Filter active bookings (not expired reservations)
+    const now = new Date();
+    const activeBookings = bookings.filter((booking) => {
+      if (booking.status === "confirmed") return true;
+      if (booking.status === "reserved") {
+        return new Date(booking.reservationExpiresAt) > now;
+      }
+      return false;
+    });
+
+    // Check which bookings conflict with requested time slot
+    const conflictingBookings = activeBookings.filter((booking) => {
+      return booking.timeSlots.some((bookingSlot) =>
+        timeSlotsOverlap(requestedSlot, bookingSlot)
+      );
+    });
+
+    // Group courts by sport type for detailed breakdown
+    const courtsBySportType = {};
+
+    courts.forEach((court) => {
+      const sport = court.sportType.toLowerCase();
+      if (!courtsBySportType[sport]) {
+        courtsBySportType[sport] = {
+          sportType: court.sportType,
+          totalCourts: 0,
+          availableCourts: 0,
+          bookedCourts: 0,
+          reservedCourts: 0,
+          courts: [],
+        };
+      }
+
+      const isBooked = conflictingBookings.some(
+        (booking) => booking.court._id.toString() === court._id.toString()
+      );
+
+      const conflictingBooking = conflictingBookings.find(
+        (booking) => booking.court._id.toString() === court._id.toString()
+      );
+
+      const courtStatus = isBooked
+        ? conflictingBooking.status === "confirmed"
+          ? "booked"
+          : "reserved"
+        : "available";
+
+      courtsBySportType[sport].totalCourts++;
+      if (courtStatus === "available") {
+        courtsBySportType[sport].availableCourts++;
+      } else if (courtStatus === "booked") {
+        courtsBySportType[sport].bookedCourts++;
+      } else if (courtStatus === "reserved") {
+        courtsBySportType[sport].reservedCourts++;
+      }
+
+      courtsBySportType[sport].courts.push({
+        courtId: court._id,
+        courtName: court.name,
+        status: courtStatus,
+        reservationExpiresAt: conflictingBooking?.reservationExpiresAt || null,
+      });
+    });
+
+    // Calculate totals
+    const totalCourts = courts.length;
+    const bookedCourtsCount = conflictingBookings.filter(
+      (b) => b.status === "confirmed"
+    ).length;
+    const reservedCourtsCount = conflictingBookings.filter(
+      (b) => b.status === "reserved"
+    ).length;
+    const availableCourtsCount =
+      totalCourts - bookedCourtsCount - reservedCourtsCount;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        venueId,
+        venueName: venue.name,
+        date,
+        timeSlot: { startTime, endTime },
+        sportType: sportType || "all",
+        totalCourts,
+        availableCourts: availableCourtsCount,
+        bookedCourts: bookedCourtsCount,
+        reservedCourts: reservedCourtsCount,
+        courtBreakdown: Object.values(courtsBySportType),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get Available Time Slots for Multiple Courts
+export const getAvailableTimeSlotsForMultipleCourts = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const { date, courtQuantity, sportType, duration } = req.query;
+
+    // Validate required parameters
+    if (!date || !courtQuantity) {
+      return res.status(400).json({
+        success: false,
+        message: "Date và courtQuantity là bắt buộc",
+      });
+    }
+
+    const requestedQuantity = parseInt(courtQuantity);
+    const durationHours = parseInt(duration) || 2; // Default 2 hours
+
+    // Check if venue exists
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy venue",
+      });
+    }
+
+    // Build query for courts in this venue
+    let courtQuery = {
+      venueId: venueId,
+      isActive: true,
+    };
+
+    // Add sport type filter if provided
+    if (sportType) {
+      const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+        sportType,
+      ];
+      courtQuery.sportType = {
+        $in: sportVariations.map((sport) => new RegExp(sport, "i")),
+      };
+    }
+
+    // Get all courts in venue (filtered by sport type if provided)
+    const courts = await Court.find(courtQuery);
+
+    if (courts.length < requestedQuantity) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          venueId,
+          venueName: venue.name,
+          date,
+          requestedQuantity,
+          availableTimeSlots: [],
+          unavailableTimeSlots: [],
+          message: `Venue chỉ có ${courts.length} sân ${
+            sportType || "tổng"
+          }, không đủ ${requestedQuantity} sân yêu cầu`,
+        },
+      });
+    }
+
+    // Import Booking model
+    const Booking = (await import("../models/booking.js")).default;
+
+    // Get all bookings for the date
+    const bookingDate = new Date(date);
+    const bookings = await Booking.find({
+      venue: venueId,
+      date: bookingDate,
+      status: { $in: ["reserved", "confirmed"] },
+      court: { $in: courts.map((c) => c._id) },
+    }).populate("court", "name sportType pricing");
+
+    // Filter active bookings (not expired reservations)
+    const now = new Date();
+    const activeBookings = bookings.filter((booking) => {
+      if (booking.status === "confirmed") return true;
+      if (booking.status === "reserved") {
+        return new Date(booking.reservationExpiresAt) > now;
+      }
+      return false;
+    });
+
+    // Generate possible time slots (8:00 - 22:00)
+    const possibleSlots = [];
+    for (let hour = 8; hour <= 22 - durationHours; hour++) {
+      const startTime = `${hour.toString().padStart(2, "0")}:00`;
+      const endTime = `${(hour + durationHours)
+        .toString()
+        .padStart(2, "0")}:00`;
+      possibleSlots.push({ start: startTime, end: endTime });
+    }
+
+    const availableTimeSlots = [];
+    const unavailableTimeSlots = [];
+
+    // Check each time slot
+    for (const timeSlot of possibleSlots) {
+      const availableCourts = [];
+
+      // Check which courts are available for this time slot
+      for (const court of courts) {
+        const isConflicting = activeBookings.some((booking) => {
+          if (booking.court._id.toString() !== court._id.toString())
+            return false;
+          return booking.timeSlots.some((bookingSlot) =>
+            timeSlotsOverlap(timeSlot, bookingSlot)
+          );
+        });
+
+        if (!isConflicting) {
+          // Get pricing for this court and time slot
+          const pricing = getCourtPricing(court, timeSlot, date);
+          availableCourts.push({
+            courtId: court._id,
+            courtName: court.name,
+            price: pricing.pricePerHour * durationHours,
+            pricePerHour: pricing.pricePerHour,
+          });
+        }
+      }
+
+      if (availableCourts.length >= requestedQuantity) {
+        // Sort by price to get cheapest combination
+        availableCourts.sort((a, b) => a.price - b.price);
+        const recommendedCourts = availableCourts.slice(0, requestedQuantity);
+        const totalPrice = recommendedCourts.reduce(
+          (sum, court) => sum + court.price,
+          0
+        );
+
+        availableTimeSlots.push({
+          start: timeSlot.start,
+          end: timeSlot.end,
+          availableCourts: availableCourts.length,
+          courtsInfo: availableCourts,
+          recommendedCourts: recommendedCourts.map((c) => c.courtId),
+          recommendedCourtsInfo: recommendedCourts,
+          totalPrice,
+          averagePrice: Math.round(totalPrice / requestedQuantity),
+        });
+      } else {
+        unavailableTimeSlots.push({
+          start: timeSlot.start,
+          end: timeSlot.end,
+          availableCourts: availableCourts.length,
+          reason: `Chỉ có ${availableCourts.length} sân available, cần ${requestedQuantity} sân`,
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        venueId,
+        venueName: venue.name,
+        date,
+        requestedQuantity,
+        sportType: sportType || "all",
+        duration: durationHours,
+        availableTimeSlots,
+        unavailableTimeSlots: unavailableTimeSlots.slice(0, 5), // Limit response size
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Bulk Court Availability Check
+export const bulkCourtAvailabilityCheck = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const { date, requests } = req.body;
+
+    // Validate required parameters
+    if (!date || !requests || !Array.isArray(requests)) {
+      return res.status(400).json({
+        success: false,
+        message: "Date và requests array là bắt buộc",
+      });
+    }
+
+    // Check if venue exists
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy venue",
+      });
+    }
+
+    // Import Booking model
+    const Booking = (await import("../models/booking.js")).default;
+
+    // Get all bookings for the date
+    const bookingDate = new Date(date);
+    const bookings = await Booking.find({
+      venue: venueId,
+      date: bookingDate,
+      status: { $in: ["reserved", "confirmed"] },
+    }).populate("court", "name sportType pricing");
+
+    // Filter active bookings
+    const now = new Date();
+    const activeBookings = bookings.filter((booking) => {
+      if (booking.status === "confirmed") return true;
+      if (booking.status === "reserved") {
+        return new Date(booking.reservationExpiresAt) > now;
+      }
+      return false;
+    });
+
+    const results = [];
+
+    // Process each request
+    for (const request of requests) {
+      const { timeSlot, courtQuantity, sportType } = request;
+
+      if (!timeSlot || !courtQuantity) {
+        results.push({
+          timeSlot,
+          requestedQuantity: courtQuantity,
+          isAvailable: false,
+          error: "TimeSlot và courtQuantity là bắt buộc",
+        });
+        continue;
+      }
+
+      // Build query for courts
+      let courtQuery = {
+        venueId: venueId,
+        isActive: true,
+      };
+
+      if (sportType) {
+        const sportVariations = sportTypeMapping[sportType.toLowerCase()] || [
+          sportType,
+        ];
+        courtQuery.sportType = {
+          $in: sportVariations.map((sport) => new RegExp(sport, "i")),
+        };
+      }
+
+      // Get courts for this request
+      const courts = await Court.find(courtQuery);
+      const availableCourts = [];
+
+      // Check availability for each court
+      for (const court of courts) {
+        const isConflicting = activeBookings.some((booking) => {
+          if (booking.court._id.toString() !== court._id.toString())
+            return false;
+          return booking.timeSlots.some((bookingSlot) =>
+            timeSlotsOverlap(timeSlot, bookingSlot)
+          );
+        });
+
+        if (!isConflicting) {
+          const pricing = getCourtPricing(court, timeSlot, date);
+          availableCourts.push({
+            courtId: court._id,
+            courtName: court.name,
+            price: pricing.pricePerHour * 2, // Assume 2 hours default
+            pricePerHour: pricing.pricePerHour,
+          });
+        }
+      }
+
+      const isAvailable = availableCourts.length >= courtQuantity;
+
+      if (isAvailable) {
+        // Sort by price and get recommended courts
+        availableCourts.sort((a, b) => a.price - b.price);
+        const recommendedCourts = availableCourts.slice(0, courtQuantity);
+        const totalPrice = recommendedCourts.reduce(
+          (sum, court) => sum + court.price,
+          0
+        );
+
+        results.push({
+          timeSlot,
+          requestedQuantity: courtQuantity,
+          isAvailable: true,
+          availableCourts: availableCourts.length,
+          recommendedCourts: recommendedCourts.map((c) => c.courtId),
+          recommendedCourtsInfo: recommendedCourts,
+          totalPrice,
+        });
+      } else {
+        results.push({
+          timeSlot,
+          requestedQuantity: courtQuantity,
+          isAvailable: false,
+          availableCourts: availableCourts.length,
+          reason: `Chỉ có ${availableCourts.length} sân available, cần ${courtQuantity} sân`,
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        venueId,
+        venueName: venue.name,
+        date,
+        results,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Helper function to get court pricing for specific time slot
+const getCourtPricing = (court, timeSlot, date) => {
+  const dayOfWeek = new Date(date).getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  const dayType = isWeekend ? "weekend" : "weekday";
+
+  // Find matching pricing rule
+  const pricingRule = court.pricing?.find(
+    (p) =>
+      p.dayType === dayType &&
+      p.isActive &&
+      p.timeSlot &&
+      timeSlot.start >= p.timeSlot.start &&
+      timeSlot.end <= p.timeSlot.end
+  );
+
+  // Fallback to first active pricing or default
+  const fallbackPricing = court.pricing?.find((p) => p.isActive);
+
+  return {
+    pricePerHour:
+      pricingRule?.pricePerHour || fallbackPricing?.pricePerHour || 200000,
+    dayType,
+  };
+};
+
+// Helper function to check if two time slots overlap
+const timeSlotsOverlap = (slot1, slot2) => {
+  const start1 = timeToMinutes(slot1.start);
+  const end1 = timeToMinutes(slot1.end);
+  const start2 = timeToMinutes(slot2.start);
+  const end2 = timeToMinutes(slot2.end);
+
+  return start1 < end2 && end1 > start2;
+};
+
+// Helper function to convert time string to minutes
+const timeToMinutes = (timeString) => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return hours * 60 + minutes;
 };

@@ -7,7 +7,7 @@ import {
   deleteCourt,
   getCourtsByVenue,
   getCourtsBySport,
-  checkCourtAvailability,
+  getCourtAvailability,
   getCourtPricing,
   uploadCourtImages,
   getAvailableSports,
@@ -19,12 +19,12 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getAllCourts);
+router.get("/sports", getAvailableSports); // Move before /:courtId to avoid conflicts
 router.get("/:courtId", getCourtById);
 router.get("/venue/:venueId", getCourtsByVenue);
-router.get("/sport/:sportType", getCourtsBySport);
-router.get("/:courtId/availability", checkCourtAvailability);
+router.get("/sport/:sportType", getCourtsBySport); // Updated to support venueId query param
+router.get("/:courtId/availability", getCourtAvailability); // Updated availability check
 router.get("/:courtId/pricing", getCourtPricing);
-router.get("/sports", getAvailableSports);
 
 // Owner routes
 router.use(protect);

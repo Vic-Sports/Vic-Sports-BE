@@ -1,5 +1,6 @@
 import Court from "../models/court.js";
 import Venue from "../models/venue.js";
+import Booking from "../models/booking.js";
 
 // @desc    Create Court
 // @route   POST /api/courts
@@ -145,8 +146,10 @@ export const getCourtById = async (req, res) => {
   try {
     const { courtId } = req.params;
 
-    const court = await Court.findById(courtId)
-      .populate("venueId", "name address contactInfo amenities");
+    const court = await Court.findById(courtId).populate(
+      "venueId",
+      "name address contactInfo amenities"
+    );
 
     if (!court) {
       return res.status(404).json({
@@ -195,7 +198,7 @@ export const updateCourt = async (req, res) => {
     }
 
     // Update court
-    Object.keys(updateData).forEach(key => {
+    Object.keys(updateData).forEach((key) => {
       if (updateData[key] !== undefined) {
         court[key] = updateData[key];
       }
@@ -264,8 +267,10 @@ export const getCourtsByVenue = async (req, res) => {
   try {
     const { venueId } = req.params;
 
-    const courts = await Court.find({ venueId, isActive: true })
-      .populate("venueId", "name address");
+    const courts = await Court.find({ venueId, isActive: true }).populate(
+      "venueId",
+      "name address"
+    );
 
     res.status(200).json({
       success: true,
@@ -281,46 +286,31 @@ export const getCourtsByVenue = async (req, res) => {
   }
 };
 
-// @desc    Get Courts by Sport Type
+// @desc    Get Courts by Sport Type (Updated for FE Logic)
 // @route   GET /api/courts/sport/:sportType
 // @access Public
 export const getCourtsBySport = async (req, res) => {
   try {
     const { sportType } = req.params;
-    const { page = 1, limit = 10, city, district } = req.query;
+    const { venueId } = req.query; // Filter by specific venue if provided
 
     const query = { sportType, isActive: true };
 
-    // If location filters are provided, filter by venue location
-    if (city || district) {
-      const venueQuery = { isActive: true, isVerified: true };
-      if (city) venueQuery["address.city"] = city;
-      if (district) venueQuery["address.district"] = district;
-
-      const venues = await Venue.find(venueQuery).select("_id");
-      const venueIds = venues.map(venue => venue._id);
-      query.venueId = { $in: venueIds };
+    // Filter by venue if provided (for venue page flow)
+    if (venueId) {
+      query.venueId = venueId;
     }
 
     const courts = await Court.find(query)
       .populate("venueId", "name address ratings")
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Court.countDocuments(query);
+      .sort({ name: 1 }); // Sort by name for consistent ordering
 
     res.status(200).json({
       success: true,
       data: {
         courts,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / limit),
-          totalCourts: total,
-          hasNext: page < Math.ceil(total / limit),
-          hasPrev: page > 1,
-        },
+        sportType,
+        venueId: venueId || null,
       },
     });
   } catch (error) {
@@ -331,18 +321,21 @@ export const getCourtsBySport = async (req, res) => {
   }
 };
 
-// @desc    Check Court Availability
+// @desc    Check Court Availability (Updated for FE Logic)
 // @route   GET /api/courts/:courtId/availability
 // @access Public
-export const checkCourtAvailability = async (req, res) => {
+export const getCourtAvailability = async (req, res) => {
   try {
     const { courtId } = req.params;
-    const { date, startTime, endTime } = req.query;
+    const { date } = req.query;
 
     if (!date) {
       return res.status(400).json({
         success: false,
-        message: "Date is required",
+        error: {
+          code: "MISSING_DATE",
+          message: "Thiếu thông tin ngày",
+        },
       });
     }
 
@@ -350,57 +343,96 @@ export const checkCourtAvailability = async (req, res) => {
     if (!court) {
       return res.status(404).json({
         success: false,
-        message: "Court not found",
-      });
-    }
-
-    // Get day of week (0 = Sunday, 1 = Monday, etc.)
-    const requestedDate = new Date(date);
-    const dayOfWeek = requestedDate.getDay();
-
-    // Find default availability for this day
-    const dayAvailability = court.defaultAvailability.find(
-      day => day.dayOfWeek === dayOfWeek
-    );
-
-    if (!dayAvailability) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          available: false,
-          reason: "Court not available on this day",
-          timeSlots: [],
+        error: {
+          code: "COURT_NOT_FOUND",
+          message: "Sân không tồn tại",
         },
       });
     }
 
-    // Filter time slots based on requested time range
-    let availableSlots = dayAvailability.timeSlots.filter(slot => slot.isAvailable);
+    // Get existing bookings for this date
+    const existingBookings = await Booking.find({
+      $or: [
+        { court: courtId }, // Single court booking
+        { courtIds: courtId }, // Multi-court booking
+      ],
+      date: date,
+      status: { $in: ["confirmed", "pending"] },
+    });
 
-    if (startTime && endTime) {
-      availableSlots = availableSlots.filter(slot => {
-        return slot.start >= startTime && slot.end <= endTime;
+    // Generate time slots from 6:00 to 22:00 (as per FE logic)
+    const timeSlots = [];
+    for (let hour = 6; hour < 22; hour++) {
+      const slotStart = `${hour.toString().padStart(2, "0")}:00`;
+      const slotEnd = `${(hour + 1).toString().padStart(2, "0")}:00`;
+
+      // Check if this slot is booked
+      const isBooked = existingBookings.some((booking) => {
+        return booking.timeSlots.some((timeSlot) =>
+          isTimeSlotOverlap(slotStart, slotEnd, timeSlot.start, timeSlot.end)
+        );
+      });
+
+      // Get price for this time slot
+      const requestedDate = new Date(date);
+      const dayOfWeek = requestedDate.getDay();
+      const dayType =
+        dayOfWeek === 0 || dayOfWeek === 6 ? "weekend" : "weekday";
+
+      const pricing = court.pricing.find((p) => {
+        const pStart = parseInt(p.timeSlot.start.split(":")[0]);
+        const pEnd = parseInt(p.timeSlot.end.split(":")[0]);
+        const slotHour = parseInt(slotStart.split(":")[0]);
+
+        return (
+          slotHour >= pStart &&
+          slotHour < pEnd &&
+          (p.dayType === dayType || !p.dayType) &&
+          p.isActive
+        );
+      });
+
+      timeSlots.push({
+        start: slotStart,
+        end: slotEnd,
+        isAvailable: !isBooked,
+        price: pricing ? pricing.pricePerHour : 0,
       });
     }
 
-    res.status(200).json({
+    res.json({
       success: true,
       data: {
-        available: availableSlots.length > 0,
-        timeSlots: availableSlots,
-        courtInfo: {
-          name: court.name,
-          sportType: court.sportType,
-          capacity: court.capacity,
-        },
+        courtId,
+        date,
+        timeSlots,
       },
     });
   } catch (error) {
+    console.error("Error getting court availability:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Lỗi server",
+      },
     });
   }
+};
+
+// Helper function to check time slot overlap
+const isTimeSlotOverlap = (start1, end1, start2, end2) => {
+  const timeToMinutes = (timeString) => {
+    const [hours, minutes] = timeString.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const s1 = timeToMinutes(start1);
+  const e1 = timeToMinutes(end1);
+  const s2 = timeToMinutes(start2);
+  const e2 = timeToMinutes(end2);
+
+  return s1 < e2 && e1 > s2;
 };
 
 // @desc    Get Court Pricing
@@ -430,11 +462,13 @@ export const getCourtPricing = async (req, res) => {
     }
 
     // Find applicable pricing
-    const applicablePricing = court.pricing.filter(price => {
+    const applicablePricing = court.pricing.filter((price) => {
       if (!price.isActive) return false;
       if (price.dayType && price.dayType !== dayType) return false;
       if (timeSlot && price.timeSlot) {
-        return timeSlot >= price.timeSlot.start && timeSlot <= price.timeSlot.end;
+        return (
+          timeSlot >= price.timeSlot.start && timeSlot <= price.timeSlot.end
+        );
       }
       return true;
     });
