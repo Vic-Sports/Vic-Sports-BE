@@ -1,49 +1,65 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
 import TokenBlacklist from "../models/tokenBlacklist.js";
+import User from "../models/user.js";
 
 // Protect routes - verify JWT token
 export const protect = async (req, res, next) => {
+  console.log('=== PROTECT MIDDLEWARE START ===');
+  console.log('Request path:', req.path);
+  console.log('Request method:', req.method);
+  console.log('Authorization header:', req.headers.authorization);
+  
   try {
     let token;
 
     // Get token from header or cookie
     if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
+      console.log('Token extracted from header:', token ? 'YES' : 'NO');
     } else if (req.cookies.token) {
       token = req.cookies.token;
+      console.log('Token extracted from cookie:', token ? 'YES' : 'NO');
     }
 
     if (!token) {
+      console.log('No token found');
       return res.status(401).json({
         success: false,
         message: "Not authorized to access this route",
       });
     }
 
+    console.log('Token found, checking blacklist');
     // Check if token is blacklisted
-    const isBlacklisted = await TokenBlacklist.isTokenBlacklisted(token);
+    const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
     if (isBlacklisted) {
+      console.log('Token is blacklisted');
       return res.status(401).json({
         success: false,
         message: "Token has been invalidated",
       });
     }
 
+    console.log('Token not blacklisted, verifying...');
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Token decoded successfully, user ID:', decoded.userId);
 
     // Get user from token
     const user = await User.findById(decoded.userId);
     if (!user) {
+      console.log('User not found in database');
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
 
+    console.log('User found:', { id: user._id, role: user.role, status: user.status });
+
     // Check if user is active
     if (user.status !== "ACTIVE") {
+      console.log('User status not active:', user.status);
       return res.status(401).json({
         success: false,
         message: "Account is not active",
@@ -52,15 +68,21 @@ export const protect = async (req, res, next) => {
 
     // Check if user is blocked
     if (user.isBlocked) {
+      console.log('User is blocked');
       return res.status(401).json({
         success: false,
         message: "Account is blocked",
       });
     }
 
+    console.log('User authenticated successfully');
     req.user = user;
     next();
   } catch (error) {
+    console.log('=== PROTECT MIDDLEWARE ERROR ===');
+    console.log('Error message:', error.message);
+    console.log('Error name:', error.name);
+    
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         success: false,
@@ -113,7 +135,7 @@ export const optionalAuth = async (req, res, next) => {
     }
 
     if (token) {
-      const isBlacklisted = await TokenBlacklist.isTokenBlacklisted(token);
+      const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
       if (!isBlacklisted) {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);

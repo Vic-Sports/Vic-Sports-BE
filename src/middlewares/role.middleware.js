@@ -90,7 +90,13 @@ export const requireExactRole = role => {
  */
 export const requireRoles = (...roles) => {
   return (req, res, next) => {
+    console.log('=== REQUIRE ROLES MIDDLEWARE ===');
+    console.log('Required roles:', roles);
+    console.log('User role:', req.user?.role);
+    console.log('User ID:', req.user?.id);
+    
     if (!req.user) {
+      console.log('No user found in request');
       return res.status(401).json({
         success: false,
         error: 'Authentication required',
@@ -98,8 +104,10 @@ export const requireRoles = (...roles) => {
     }
 
     if (roles.includes(req.user.role)) {
+      console.log('User role authorized');
       next();
     } else {
+      console.log('User role not authorized');
       res.status(403).json({
         success: false,
         error: `Role ${
