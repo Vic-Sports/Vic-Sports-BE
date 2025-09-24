@@ -2,92 +2,90 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    customerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true
-    },
-    courtId: {
+    // Support both single court (court) and multi-court (courtIds) booking
+    court: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Court",
-      required: true
     },
-    venueId: {
+    courtIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Court",
+      },
+    ],
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    venue: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Venue",
-      required: true
+      required: true,
     },
 
-    bookingDate: { type: Date, required: true },
-    timeSlot: {
-      start: { type: String, required: true },
-      end: { type: String, required: true }
-    },
-    duration: { type: Number, required: true },
+    date: { type: String, required: true }, // "YYYY-MM-DD" format as per FE
+    timeSlots: [
+      {
+        start: { type: String, required: true }, // "HH:mm" format
+        end: { type: String, required: true }, // "HH:mm" format
+        price: { type: Number, required: true },
+      },
+    ],
+    courtQuantity: { type: Number, default: 1 },
+    totalPrice: { type: Number, required: true }, // Match FE interface
 
-    pricePerHour: { type: Number, required: true },
-    totalPrice: { type: Number, required: true },
-    discountApplied: {
-      type: { type: String },
-      amount: Number,
-      percentage: Number
+    // Customer Information - match FE interface
+    customerInfo: {
+      fullName: { type: String, required: true },
+      phone: { type: String, required: true },
+      email: { type: String, required: true },
+      notes: { type: String }, // Optional notes
     },
-    finalPrice: { type: Number, required: true },
 
+    // Payment Information
+    bookingCode: { type: String, unique: true }, // 'BK' + timestamp
     paymentMethod: {
       type: String,
-      enum: ["cash", "card", "transfer", "wallet"]
+      enum: ["vnpay", "momo", "zalopay", "banking"], // Match FE payment methods
+      default: "vnpay",
     },
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed", "refunded"],
-      default: "pending"
+      default: "pending",
     },
+    paymentRef: { type: String }, // Reference từ payment gateway
     paymentId: String,
     paidAt: Date,
 
-    coachId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    coachFee: Number,
-
+    // Booking Status
     status: {
       type: String,
-      enum: ["pending", "confirmed", "cancelled", "completed", "no-show"],
-      default: "pending"
+      enum: ["pending", "confirmed", "cancelled", "completed"],
+      default: "pending",
     },
-    cancellationReason: String,
-    cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    cancelledAt: Date,
 
-    checkedIn: { type: Boolean, default: false },
-    checkedInAt: Date,
-    checkedOut: { type: Boolean, default: false },
-    checkedOutAt: Date,
+    // Multi-Court Booking Support
+    groupBookingId: { type: String }, // For linking multiple court bookings
+    isGroupBooking: { type: Boolean, default: false },
 
-    customerNotes: String,
-    venueNotes: String,
-
-    contactPhone: String,
-    contactEmail: String,
-
-    pointsEarned: { type: Number, default: 0 },
-    pointsUsed: { type: Number, default: 0 },
-
-    weatherAlertId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "WeatherAlert"
-    },
-    weatherImpacted: { type: Boolean, default: false },
-
-    tournamentId: { type: mongoose.Schema.Types.ObjectId, ref: "Tournament" },
-    isTournamentMatch: { type: Boolean, default: false }
+    // Timestamps
+    confirmedAt: { type: Date },
+    cancelledAt: { type: Date },
+    cancellationReason: { type: String },
   },
   { timestamps: true }
 );
 
-bookingSchema.index({ customerId: 1 });
-bookingSchema.index({ courtId: 1, bookingDate: 1 });
-bookingSchema.index({ venueId: 1, bookingDate: 1 });
-bookingSchema.index({ status: 1 });
+// Indexes for efficient queries
+bookingSchema.index({ user: 1 });
+bookingSchema.index({ court: 1, date: 1 });
+bookingSchema.index({ courtIds: 1, date: 1 });
+bookingSchema.index({ venue: 1, date: 1 });
+bookingSchema.index({ status: 1, paymentStatus: 1 });
+bookingSchema.index({ groupBookingId: 1 });
+bookingSchema.index({ court: 1, date: 1, status: 1 }); // For availability checks
 
 const Booking = mongoose.model("Booking", bookingSchema);
 

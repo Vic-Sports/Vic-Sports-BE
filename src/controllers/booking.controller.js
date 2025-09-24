@@ -4,110 +4,130 @@ import Venue from "../models/venue.js";
 import User from "../models/user.js";
 import Coach from "../models/coach.js";
 
-// @desc    Create Booking
+// @desc    Create Booking (Updated for FE Multi-Court Logic)
 // @route   POST /api/bookings
 // @access Private
 export const createBooking = async (req, res) => {
   try {
-    const customerId = req.user.id;
     const {
-      courtId,
-      venueId,
-      bookingDate,
-      timeSlot,
-      duration,
-      coachId,
-      customerNotes,
-      contactPhone,
-      contactEmail,
+      courtIds, // Array of court IDs for multi-court booking
+      userId, // Optional: if not provided, use req.user.id
+      date, // "YYYY-MM-DD" format
+      timeSlots, // Array of time slots with start, end, price
+      totalPrice, // Total price for all courts and slots
+      venue, // Venue ID
+      customerInfo, // Customer information object
+      paymentMethod = "vnpay",
+      notes,
     } = req.body;
 
+    // Use provided userId or fallback to authenticated user
+    const bookingUserId = userId || req.user?.id;
+
     // Validate required fields
-    if (!courtId || !venueId || !bookingDate || !timeSlot || !duration) {
+    if (!courtIds || !Array.isArray(courtIds) || courtIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Court ID, venue ID, booking date, time slot, and duration are required",
+        message: "Court IDs are required and must be an array",
       });
     }
 
-    // Check if court exists and is active
-    const court = await Court.findById(courtId);
-    if (!court || !court.isActive) {
-      return res.status(404).json({
-        success: false,
-        message: "Court not found or inactive",
-      });
-    }
-
-    // Check if venue exists and is active
-    const venue = await Venue.findById(venueId);
-    if (!venue || !venue.isActive) {
-      return res.status(404).json({
-        success: false,
-        message: "Venue not found or inactive",
-      });
-    }
-
-    // Check court availability
-    const availability = await checkCourtAvailability(courtId, bookingDate, timeSlot.start, timeSlot.end);
-    if (!availability.available) {
+    if (!date || !timeSlots || !totalPrice || !venue || !customerInfo) {
       return res.status(400).json({
         success: false,
-        message: "Court is not available at the requested time",
+        message:
+          "Date, timeSlots, totalPrice, venue, and customerInfo are required",
       });
     }
 
-    // Calculate pricing
-    const pricing = await calculateBookingPrice(courtId, bookingDate, timeSlot.start, timeSlot.end);
-    if (!pricing) {
+    // Validate customer info
+    if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.email) {
       return res.status(400).json({
         success: false,
-        message: "Unable to calculate pricing for the requested time",
+        message: "Customer fullName, phone, and email are required",
       });
     }
 
-    // Calculate coach fee if coach is selected
-    let coachFee = 0;
-    if (coachId) {
-      const coach = await User.findById(coachId);
-      if (coach && coach.role === "coach") {
-        // Get coach profile and calculate fee
-        const coachProfile = await Coach.findOne({ userId: coachId });
-        if (coachProfile) {
-          coachFee = coachProfile.hourlyRate * (duration / 60);
+    // Validate all courts exist and belong to the venue
+    const courts = await Court.find({
+      _id: { $in: courtIds },
+      venueId: venue,
+      isActive: true,
+    });
+
+    if (courts.length !== courtIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: "One or more courts not found or inactive",
+      });
+    }
+
+    // Check availability for all courts and time slots
+    for (const courtId of courtIds) {
+      for (const timeSlot of timeSlots) {
+        const isAvailable = await checkCourtAvailabilityForSlot(
+          courtId,
+          date,
+          timeSlot.start,
+          timeSlot.end
+        );
+
+        if (!isAvailable) {
+          return res.status(409).json({
+            success: false,
+            message: `Court ${courtId} is not available for ${timeSlot.start}-${timeSlot.end}`,
+          });
         }
       }
     }
 
-    // Calculate total price
-    const totalPrice = pricing.pricePerHour * (duration / 60) + coachFee;
-    const finalPrice = totalPrice; // Apply discounts later
-
-    // Create booking
-    const booking = await Booking.create({
-      customerId,
-      courtId,
-      venueId,
-      bookingDate: new Date(bookingDate),
-      timeSlot,
-      duration,
-      pricePerHour: pricing.pricePerHour,
+    // Create booking object
+    const bookingData = {
+      venue,
+      date,
+      timeSlots,
       totalPrice,
-      coachFee,
-      finalPrice,
-      coachId,
-      customerNotes,
-      contactPhone: contactPhone || req.user.phone,
-      contactEmail: contactEmail || req.user.email,
-      status: "pending",
+      customerInfo: {
+        fullName: customerInfo.fullName,
+        phone: customerInfo.phone,
+        email: customerInfo.email,
+        notes: customerInfo.notes || notes,
+      },
+      paymentMethod,
       paymentStatus: "pending",
-    });
+      status: "pending",
+      courtQuantity: courtIds.length,
+    };
+
+    // Handle single vs multi-court booking
+    if (courtIds.length === 1) {
+      bookingData.court = courtIds[0];
+      bookingData.isGroupBooking = false;
+    } else {
+      bookingData.courtIds = courtIds;
+      bookingData.isGroupBooking = true;
+      bookingData.groupBookingId = `group_${Date.now()}`;
+    }
+
+    // Add user if provided
+    if (bookingUserId) {
+      bookingData.user = bookingUserId;
+    }
+
+    const booking = await Booking.create(bookingData);
+
+    // Populate the booking with court and venue details
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate("court", "name sportType")
+      .populate("courtIds", "name sportType")
+      .populate("venue", "name address")
+      .populate("user", "fullName email phone");
 
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
       data: {
-        booking,
+        booking: populatedBooking,
       },
     });
   } catch (error) {
@@ -118,7 +138,7 @@ export const createBooking = async (req, res) => {
   }
 };
 
-// @desc    Get User Bookings
+// @desc    Get User Bookings (Updated)
 // @route   GET /api/bookings
 // @access Private
 export const getUserBookings = async (req, res) => {
@@ -128,11 +148,11 @@ export const getUserBookings = async (req, res) => {
       page = 1,
       limit = 10,
       status,
-      sortBy = "bookingDate",
+      sortBy = "createdAt",
       sortOrder = "desc",
     } = req.query;
 
-    const query = { customerId: userId };
+    const query = { user: userId };
 
     // Filter by status
     if (status) {
@@ -143,9 +163,9 @@ export const getUserBookings = async (req, res) => {
     sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
     const bookings = await Booking.find(query)
-      .populate("courtId", "name sportType")
-      .populate("venueId", "name address")
-      .populate("coachId", "fullName")
+      .populate("court", "name sportType")
+      .populate("courtIds", "name sportType")
+      .populate("venue", "name address")
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -173,7 +193,7 @@ export const getUserBookings = async (req, res) => {
   }
 };
 
-// @desc    Get Booking by ID
+// @desc    Get Booking by ID (Updated)
 // @route   GET /api/bookings/:bookingId
 // @access Private
 export const getBookingById = async (req, res) => {
@@ -182,10 +202,10 @@ export const getBookingById = async (req, res) => {
     const userId = req.user.id;
 
     const booking = await Booking.findById(bookingId)
-      .populate("customerId", "fullName email phone")
-      .populate("courtId", "name sportType capacity")
-      .populate("venueId", "name address contactInfo")
-      .populate("coachId", "fullName phone");
+      .populate("user", "fullName email phone")
+      .populate("court", "name sportType capacity")
+      .populate("courtIds", "name sportType capacity")
+      .populate("venue", "name address contactInfo");
 
     if (!booking) {
       return res.status(404).json({
@@ -195,7 +215,11 @@ export const getBookingById = async (req, res) => {
     }
 
     // Check if user is authorized to view this booking
-    if (!booking.customerId._id.equals(userId) && req.user.role !== "admin") {
+    if (
+      booking.user &&
+      !booking.user._id.equals(userId) &&
+      req.user.role !== "admin"
+    ) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to view this booking",
@@ -216,7 +240,7 @@ export const getBookingById = async (req, res) => {
   }
 };
 
-// @desc    Cancel Booking
+// @desc    Cancel Booking (Simplified)
 // @route   PUT /api/bookings/:bookingId/cancel
 // @access Private
 export const cancelBooking = async (req, res) => {
@@ -234,7 +258,11 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Check if user is authorized to cancel this booking
-    if (!booking.customerId.equals(userId) && req.user.role !== "admin") {
+    if (
+      booking.user &&
+      !booking.user.equals(userId) &&
+      req.user.role !== "admin"
+    ) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to cancel this booking",
@@ -256,27 +284,10 @@ export const cancelBooking = async (req, res) => {
       });
     }
 
-    // Calculate cancellation policy
-    const hoursUntilBooking = (new Date(booking.bookingDate) - new Date()) / (1000 * 60 * 60);
-    let refundAmount = 0;
-
-    if (hoursUntilBooking > 24) {
-      refundAmount = booking.finalPrice; // Full refund
-    } else if (hoursUntilBooking > 2) {
-      refundAmount = booking.finalPrice * 0.5; // 50% refund
-    } else {
-      refundAmount = 0; // No refund
-    }
-
     // Update booking
     booking.status = "cancelled";
     booking.cancellationReason = reason;
-    booking.cancelledBy = userId;
     booking.cancelledAt = new Date();
-
-    if (refundAmount > 0) {
-      booking.paymentStatus = "refunded";
-    }
 
     await booking.save();
 
@@ -288,7 +299,6 @@ export const cancelBooking = async (req, res) => {
           id: booking._id,
           status: booking.status,
           cancellationReason: booking.cancellationReason,
-          refundAmount,
         },
       },
     });
@@ -300,237 +310,17 @@ export const cancelBooking = async (req, res) => {
   }
 };
 
-// @desc    Reschedule Booking
-// @route   PUT /api/bookings/:bookingId/reschedule
-// @access Private
-export const rescheduleBooking = async (req, res) => {
-  try {
-    const { bookingId } = req.params;
-    const userId = req.user.id;
-    const { newBookingDate, newTimeSlot } = req.body;
-
-    if (!newBookingDate || !newTimeSlot) {
-      return res.status(400).json({
-        success: false,
-        message: "New booking date and time slot are required",
-      });
-    }
-
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
-
-    // Check if user is authorized to reschedule this booking
-    if (!booking.customerId.equals(userId) && req.user.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to reschedule this booking",
-      });
-    }
-
-    // Check if booking can be rescheduled
-    if (booking.status !== "confirmed" && booking.status !== "pending") {
-      return res.status(400).json({
-        success: false,
-        message: "Only confirmed or pending bookings can be rescheduled",
-      });
-    }
-
-    // Check new time availability
-    const availability = await checkCourtAvailability(
-      booking.courtId,
-      newBookingDate,
-      newTimeSlot.start,
-      newTimeSlot.end
-    );
-
-    if (!availability.available) {
-      return res.status(400).json({
-        success: false,
-        message: "Court is not available at the new requested time",
-      });
-    }
-
-    // Update booking
-    booking.bookingDate = new Date(newBookingDate);
-    booking.timeSlot = newTimeSlot;
-    await booking.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Booking rescheduled successfully",
-      data: {
-        booking: {
-          id: booking._id,
-          bookingDate: booking.bookingDate,
-          timeSlot: booking.timeSlot,
-        },
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// @desc    Check-in to Booking
-// @route   PUT /api/bookings/:bookingId/checkin
-// @access Private
-export const checkInBooking = async (req, res) => {
-  try {
-    const { bookingId } = req.params;
-    const userId = req.user.id;
-
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
-
-    // Check if user is authorized to check-in
-    if (!booking.customerId.equals(userId) && req.user.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to check-in to this booking",
-      });
-    }
-
-    if (booking.status !== "confirmed") {
-      return res.status(400).json({
-        success: false,
-        message: "Only confirmed bookings can be checked-in",
-      });
-    }
-
-    if (booking.checkedIn) {
-      return res.status(400).json({
-        success: false,
-        message: "Booking is already checked-in",
-      });
-    }
-
-    booking.checkedIn = true;
-    booking.checkedInAt = new Date();
-    await booking.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Checked-in successfully",
-      data: {
-        booking: {
-          id: booking._id,
-          checkedIn: booking.checkedIn,
-          checkedInAt: booking.checkedInAt,
-        },
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// @desc    Check-out from Booking
-// @route   PUT /api/bookings/:bookingId/checkout
-// @access Private
-export const checkOutBooking = async (req, res) => {
-  try {
-    const { bookingId } = req.params;
-    const userId = req.user.id;
-
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
-    }
-
-    // Check if user is authorized to check-out
-    if (!booking.customerId.equals(userId) && req.user.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to check-out from this booking",
-      });
-    }
-
-    if (!booking.checkedIn) {
-      return res.status(400).json({
-        success: false,
-        message: "Must check-in before checking out",
-      });
-    }
-
-    if (booking.checkedOut) {
-      return res.status(400).json({
-        success: false,
-        message: "Booking is already checked-out",
-      });
-    }
-
-    booking.checkedOut = true;
-    booking.checkedOutAt = new Date();
-    booking.status = "completed";
-    await booking.save();
-
-    // Award points to customer
-    const customer = await User.findById(booking.customerId);
-    if (customer) {
-      const pointsEarned = User.calculateRewardPoints(booking.finalPrice, customer.loyaltyTier);
-      customer.addPoints(pointsEarned, "booking");
-      customer.totalBookings += 1;
-      customer.totalSpent += booking.finalPrice;
-      await customer.save();
-
-      booking.pointsEarned = pointsEarned;
-      await booking.save();
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Checked-out successfully",
-      data: {
-        booking: {
-          id: booking._id,
-          checkedOut: booking.checkedOut,
-          checkedOutAt: booking.checkedOutAt,
-          status: booking.status,
-          pointsEarned: booking.pointsEarned,
-        },
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// @desc    Search Available Courts
+// @desc    Search Available Courts (Simplified for FE)
 // @route   GET /api/bookings/search
 // @access Public
 export const searchAvailableCourts = async (req, res) => {
   try {
     const {
       sportType,
-      city,
-      district,
+      venueId,
       date,
       startTime,
       endTime,
-      minPrice,
-      maxPrice,
       page = 1,
       limit = 10,
     } = req.query;
@@ -549,15 +339,9 @@ export const searchAvailableCourts = async (req, res) => {
       query.sportType = sportType;
     }
 
-    // Filter by location through venue
-    if (city || district) {
-      const venueQuery = { isActive: true, isVerified: true };
-      if (city) venueQuery["address.city"] = city;
-      if (district) venueQuery["address.district"] = district;
-
-      const venues = await Venue.find(venueQuery).select("_id");
-      const venueIds = venues.map(venue => venue._id);
-      query.venueId = { $in: venueIds };
+    // Filter by venue
+    if (venueId) {
+      query.venueId = venueId;
     }
 
     const courts = await Court.find(query)
@@ -565,28 +349,18 @@ export const searchAvailableCourts = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    // Filter by availability and pricing
+    // Filter by availability
     const availableCourts = [];
     for (const court of courts) {
-      const availability = await checkCourtAvailability(court._id, date, startTime, endTime);
-      if (availability.available) {
-        const pricing = await calculateBookingPrice(court._id, date, startTime, endTime);
-        if (pricing) {
-          const totalPrice = pricing.pricePerHour * ((new Date(`2000-01-01 ${endTime}`) - new Date(`2000-01-01 ${startTime}`)) / (1000 * 60 * 60));
-          
-          // Filter by price range
-          if (minPrice && totalPrice < minPrice) continue;
-          if (maxPrice && totalPrice > maxPrice) continue;
+      const isAvailable = await checkCourtAvailabilityForSlot(
+        court._id,
+        date,
+        startTime,
+        endTime
+      );
 
-          availableCourts.push({
-            ...court.toObject(),
-            availability,
-            pricing: {
-              ...pricing,
-              totalPrice,
-            },
-          });
-        }
+      if (isAvailable) {
+        availableCourts.push(court);
       }
     }
 
@@ -596,13 +370,10 @@ export const searchAvailableCourts = async (req, res) => {
         courts: availableCourts,
         searchParams: {
           sportType,
-          city,
-          district,
+          venueId,
           date,
           startTime,
           endTime,
-          minPrice,
-          maxPrice,
         },
       },
     });
@@ -614,54 +385,197 @@ export const searchAvailableCourts = async (req, res) => {
   }
 };
 
-// Helper function to check court availability
-const checkCourtAvailability = async (courtId, date, startTime, endTime) => {
-  const court = await Court.findById(courtId);
-  if (!court) return { available: false, reason: "Court not found" };
+// Helper function to check court availability for specific slot
+const checkCourtAvailabilityForSlot = async (
+  courtId,
+  date,
+  startTime,
+  endTime
+) => {
+  try {
+    const existingBookings = await Booking.find({
+      $or: [
+        { court: courtId }, // Single court booking
+        { courtIds: courtId }, // Multi-court booking
+      ],
+      date: date,
+      status: { $in: ["confirmed", "pending"] },
+    });
 
-  const requestedDate = new Date(date);
-  const dayOfWeek = requestedDate.getDay();
+    // Check if any existing booking conflicts with the requested time slot
+    const hasConflict = existingBookings.some((booking) => {
+      return booking.timeSlots.some((timeSlot) =>
+        isTimeSlotOverlap(startTime, endTime, timeSlot.start, timeSlot.end)
+      );
+    });
 
-  const dayAvailability = court.defaultAvailability.find(
-    day => day.dayOfWeek === dayOfWeek
-  );
-
-  if (!dayAvailability) {
-    return { available: false, reason: "Court not available on this day" };
+    return !hasConflict;
+  } catch (error) {
+    console.error("Error checking court availability:", error);
+    return false;
   }
-
-  const availableSlots = dayAvailability.timeSlots.filter(slot => 
-    slot.isAvailable && 
-    slot.start >= startTime && 
-    slot.end <= endTime
-  );
-
-  return {
-    available: availableSlots.length > 0,
-    timeSlots: availableSlots,
-  };
 };
 
-// Helper function to calculate booking price
-const calculateBookingPrice = async (courtId, date, startTime, endTime) => {
-  const court = await Court.findById(courtId);
-  if (!court) return null;
+// Helper function to check time slot overlap
+const isTimeSlotOverlap = (start1, end1, start2, end2) => {
+  const timeToMinutes = (timeString) => {
+    const [hours, minutes] = timeString.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
 
-  let dayType = "weekday";
-  const requestedDate = new Date(date);
-  const dayOfWeek = requestedDate.getDay();
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
-    dayType = "weekend";
+  const s1 = timeToMinutes(start1);
+  const e1 = timeToMinutes(end1);
+  const s2 = timeToMinutes(start2);
+  const e2 = timeToMinutes(end2);
+
+  return s1 < e2 && e1 > s2;
+};
+
+// @desc    Test Booking Creation (For Backend Testing)
+// @route   POST /api/bookings/test
+// @access  Public
+export const testBookingCreation = async (req, res) => {
+  try {
+    console.log("=== TEST BOOKING CREATION ===");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+
+    // Test data with realistic values
+    const testData = {
+      venue: "676b2d123456789012345678", // Default venue ID
+      date: "2024-12-20",
+      timeSlots: [
+        { start: "09:00", end: "10:00", price: 150000 },
+        { start: "10:00", end: "11:00", price: 150000 },
+      ],
+      totalPrice: 300000,
+      customerInfo: {
+        fullName: "Test Customer",
+        phone: "0123456789",
+        email: "test@example.com",
+      },
+      paymentMethod: "vnpay",
+      paymentStatus: "pending",
+      status: "confirmed",
+      court: "676b2d123456789012345679", // Default court ID
+      isGroupBooking: false,
+      courtQuantity: 1,
+      notes: "Test booking from backend",
+    };
+
+    const booking = await Booking.create(testData);
+    console.log("Test booking created successfully:", booking._id);
+
+    res.status(201).json({
+      success: true,
+      data: {
+        paymentUrl: null,
+        paymentRef: booking.bookingCode || `BK${Date.now()}`,
+      },
+      booking: {
+        _id: booking._id,
+        bookingId: booking.bookingCode,
+        venue: booking.venue,
+        date: booking.date,
+        timeSlots: booking.timeSlots,
+        totalPrice: booking.totalPrice,
+        customerInfo: booking.customerInfo,
+        paymentMethod: booking.paymentMethod,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
+        bookingRef: booking.bookingCode || `BK${Date.now()}`,
+        createdAt: booking.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Test booking error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
+};
 
-  const applicablePricing = court.pricing.find(price => {
-    if (!price.isActive) return false;
-    if (price.dayType && price.dayType !== dayType) return false;
-    return startTime >= price.timeSlot.start && endTime <= price.timeSlot.end;
-  });
+// @desc    Create Simple Booking (No Validation - For Frontend Testing)
+// @route   POST /api/bookings/simple
+// @access  Public
+export const createSimpleBooking = async (req, res) => {
+  try {
+    console.log("=== CREATE SIMPLE BOOKING ===");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
 
-  return applicablePricing ? {
-    pricePerHour: applicablePricing.pricePerHour,
-    dayType: applicablePricing.dayType,
-  } : null;
+    const {
+      courtIds,
+      venue,
+      date,
+      timeSlots,
+      totalPrice,
+      customerInfo,
+      paymentMethod = "vnpay",
+      notes,
+    } = req.body;
+
+    // Create booking object (bypass validation)
+    const bookingData = {
+      venue: venue || "676b2d123456789012345678", // Default venue ID
+      date,
+      timeSlots,
+      totalPrice,
+      customerInfo,
+      paymentMethod,
+      paymentStatus: "pending",
+      status: "confirmed",
+      courtQuantity: courtIds?.length || 1,
+      notes,
+    };
+
+    // Handle courts without validation
+    if (courtIds && courtIds.length === 1) {
+      bookingData.court = "676b2d123456789012345679"; // Default court ID
+      bookingData.isGroupBooking = false;
+    } else if (courtIds && courtIds.length > 1) {
+      bookingData.courtIds = [
+        "676b2d123456789012345679",
+        "676b2d123456789012345680",
+      ];
+      bookingData.isGroupBooking = true;
+      bookingData.groupBookingId = `group_${Date.now()}`;
+    } else {
+      bookingData.court = "676b2d123456789012345679"; // Default court ID
+      bookingData.isGroupBooking = false;
+    }
+
+    const booking = await Booking.create(bookingData);
+    console.log("Booking created successfully:", booking._id);
+
+    // Trả về response đơn giản
+    res.status(201).json({
+      success: true,
+      data: {
+        paymentUrl: null,
+        paymentRef: booking.bookingCode,
+      },
+      booking: {
+        _id: booking._id,
+        bookingId: booking.bookingCode,
+        venue: booking.venue,
+        date: booking.date,
+        timeSlots: booking.timeSlots,
+        totalPrice: booking.totalPrice,
+        customerInfo: booking.customerInfo,
+        paymentMethod: booking.paymentMethod,
+        status: booking.status,
+        paymentStatus: booking.paymentStatus,
+        bookingRef: booking.bookingCode,
+        createdAt: booking.createdAt,
+      },
+      // Để frontend dễ truy cập
+      bookingId: booking._id,
+    });
+  } catch (error) {
+    console.error("Simple booking error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
