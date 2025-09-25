@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
 import TokenBlacklist from "../models/tokenBlacklist.js";
+import User from "../models/user.js";
 
 // Protect routes - verify JWT token
 export const protect = async (req, res, next) => {
@@ -22,7 +22,7 @@ export const protect = async (req, res, next) => {
     }
 
     // Check if token is blacklisted
-    const isBlacklisted = await TokenBlacklist.isTokenBlacklisted(token);
+    const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
     if (isBlacklisted) {
       return res.status(401).json({
         success: false,
@@ -113,7 +113,7 @@ export const optionalAuth = async (req, res, next) => {
     }
 
     if (token) {
-      const isBlacklisted = await TokenBlacklist.isTokenBlacklisted(token);
+      const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
       if (!isBlacklisted) {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
