@@ -328,3 +328,19 @@
 {"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-22 13:11:23"}
 {"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-22 13:11:33"}
 {"error":"invalid_grant","level":"error","message":"Error sending email:","stack":"Error: invalid_grant\n    at Gaxios._request (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\gaxios\\build\\cjs\\src\\gaxios.js:154:23)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async OAuth2Client.refreshTokenNoCache (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\google-auth-library\\build\\src\\auth\\oauth2client.js:259:19)\n    at async OAuth2Client.refreshAccessTokenAsync (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\google-auth-library\\build\\src\\auth\\oauth2client.js:288:19)\n    at async OAuth2Client.getAccessTokenAsync (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\google-auth-library\\build\\src\\auth\\oauth2client.js:317:23)\n    at async sendEmail (file:///D:/EXE_201/VIC-SPORTS-BACKEND/src/utils/sendEmail.js:21:36)\n    at async register (file:///D:/EXE_201/VIC-SPORTS-BACKEND/src/controllers/auth.controller.js:66:7)","timestamp":"2025-09-22 13:13:01"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-22 13:23:01"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 12:59:58"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 15:09:38"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 15:50:32"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:27:35"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:29:44"}
+{"error":"invalid_grant","level":"error","message":"Error sending email:","stack":"Error: invalid_grant\n    at Gaxios._request (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\gaxios\\build\\cjs\\src\\gaxios.js:154:23)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async OAuth2Client.refreshTokenNoCache (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\google-auth-library\\build\\src\\auth\\oauth2client.js:259:19)\n    at async OAuth2Client.refreshAccessTokenAsync (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\google-auth-library\\build\\src\\auth\\oauth2client.js:288:19)\n    at async OAuth2Client.getAccessTokenAsync (D:\\EXE_201\\VIC-SPORTS-BACKEND\\node_modules\\google-auth-library\\build\\src\\auth\\oauth2client.js:317:23)\n    at async sendEmail (file:///D:/EXE_201/VIC-SPORTS-BACKEND/src/utils/sendEmail.js:21:36)\n    at async register (file:///D:/EXE_201/VIC-SPORTS-BACKEND/src/controllers/auth.controller.js:66:7)","timestamp":"2025-09-23 20:30:50"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:42:04"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:44:40"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:44:47"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:47:12"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:47:21"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:49:27"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:49:40"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 20:49:42"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-23 21:20:43"}

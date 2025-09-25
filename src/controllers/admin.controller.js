@@ -10,14 +10,18 @@ import Review from "../models/review.js";
 export const getAllUsers = async (req, res) => {
   try {
     const {
-      page = 1,
-      limit = 10,
+      page: pageRaw = 1,
+      limit: limitRaw = 10,
       role,
       status,
       search,
       sortBy = "createdAt",
       sortOrder = "desc",
     } = req.query;
+
+    // Coerce to numbers and enforce sane bounds
+    const page = Math.max(1, parseInt(pageRaw, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(limitRaw, 10) || 10));
 
     const query = {};
 
@@ -45,7 +49,7 @@ export const getAllUsers = async (req, res) => {
     const users = await User.find(query)
       .select("-password -emailVerificationToken -passwordResetToken")
       .sort(sortOptions)
-      .limit(limit * 1)
+      .limit(limit)
       .skip((page - 1) * limit);
 
     const total = await User.countDocuments(query);
@@ -55,7 +59,7 @@ export const getAllUsers = async (req, res) => {
       data: {
         users,
         pagination: {
-          currentPage: parseInt(page),
+          currentPage: page,
           totalPages: Math.ceil(total / limit),
           totalUsers: total,
           hasNext: page < Math.ceil(total / limit),

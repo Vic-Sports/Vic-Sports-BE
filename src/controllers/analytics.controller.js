@@ -502,7 +502,9 @@ export const getDashboardOverview = async (req, res) => {
       totalRevenue,
       newUsers,
       newVenues,
-      pendingApprovals,
+      venuePending,
+      coachPending,
+      ownerPending,
     ] = await Promise.all([
       User.countDocuments(),
       Venue.countDocuments({ isActive: true }),
@@ -513,10 +515,12 @@ export const getDashboardOverview = async (req, res) => {
       ]),
       User.countDocuments({ createdAt: { $gte: startDate } }),
       Venue.countDocuments({ createdAt: { $gte: startDate } }),
-      Venue.countDocuments({ isVerified: false }) + 
-      Coach.countDocuments({ isVerified: false }) +
+      Venue.countDocuments({ isVerified: false }),
+      Coach.countDocuments({ isVerified: false }),
       Owner.countDocuments({ isVerified: false }),
     ]);
+
+    const pendingApprovals = (venuePending || 0) + (coachPending || 0) + (ownerPending || 0);
 
     const revenue = totalRevenue.length > 0 ? totalRevenue[0].total : 0;
 
