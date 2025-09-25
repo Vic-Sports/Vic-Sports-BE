@@ -18,13 +18,13 @@ import { protect, authorize } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 // Public routes
-router.get("/", getAllCourts);
+router.get("/", getAllCourts); // done
 router.get("/sports", getAvailableSports); // Move before /:courtId to avoid conflicts
-router.get("/:courtId", getCourtById);
-router.get("/venue/:venueId", getCourtsByVenue);
+router.get("/:courtId", getCourtById); // done
+router.get("/venue/:venueId", getCourtsByVenue); // done
 router.get("/sport/:sportType", getCourtsBySport); // Updated to support venueId query param
 router.get("/:courtId/availability", getCourtAvailability); // Updated availability check
-router.get("/:courtId/pricing", getCourtPricing);
+router.get("/:courtId/pricing", getCourtPricing); // done
 
 // Owner routes
 router.use(protect);

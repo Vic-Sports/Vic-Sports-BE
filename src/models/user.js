@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import mongoose_delete from "mongoose-delete";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import mongoose from "mongoose";
+import mongoose_delete from "mongoose-delete";
 
 const userSchema = new mongoose.Schema(
   {
