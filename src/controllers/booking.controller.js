@@ -207,6 +207,7 @@ export const createBooking = async (req, res) => {
         user: userId || undefined,
         venue: venueId,
         court: court._id,
+        courtIds: courtIdsArray, // Lưu mảng courtIds vào DB
         date: date, // Use string format as expected by model
         timeSlots: transformedTimeSlots,
         courtQuantity: courts.length,
