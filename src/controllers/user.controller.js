@@ -12,6 +12,7 @@ export const updateProfile = async (req, res) => {
       dateOfBirth,
       gender,
       address,
+      avatar,
       favoriteSports,
       notificationSettings,
     } = req.body;
@@ -41,6 +42,7 @@ export const updateProfile = async (req, res) => {
     if (dateOfBirth) user.dateOfBirth = dateOfBirth;
     if (gender) user.gender = gender;
     if (address) user.address = address;
+    if (avatar) user.avatar = avatar;
     if (favoriteSports) user.favoriteSports = favoriteSports;
     if (notificationSettings) user.notificationSettings = notificationSettings;
 
