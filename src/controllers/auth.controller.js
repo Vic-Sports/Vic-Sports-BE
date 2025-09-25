@@ -1,8 +1,7 @@
-import User from "../models/user.js";
-import TokenBlacklist from "../models/tokenBlacklist.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import TokenBlacklist from "../models/tokenBlacklist.js";
+import User from "../models/user.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
 // Generate JWT Token
@@ -516,39 +515,71 @@ export const changePassword = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     if (token) {
-      // Add token to blacklist
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      await TokenBlacklist.create({
-        token,
-        userId: decoded.userId,
-        tokenType: "ACCESS_TOKEN",
-        reason: "LOGOUT",
-        expiresAt: new Date(decoded.exp * 1000),
-      });
+      try {
+        // Add token to blacklist
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        await TokenBlacklist.create({
+          token,
+          userId: decoded.userId,
+          tokenType: "ACCESS_TOKEN",
+          reason: "LOGOUT",
+          expiresAt: new Date(decoded.exp * 1000),
+        });
+      } catch (jwtError) {
+        // If token is invalid, we still proceed with logout
+        console.log("Token verification failed during logout:", jwtError.message);
+      }
     }
 
-    // Update user online status
-    const user = await User.findById(userId);
-    if (user) {
-      user.isOnline = false;
-      await user.save();
+    // Update user online status if user exists
+    if (userId) {
+      try {
+        const user = await User.findById(userId);
+        if (user) {
+          user.isOnline = false;
+          await user.save();
+        }
+      } catch (userError) {
+        console.log("User update failed during logout:", userError.message);
+      }
     }
 
     res.status(200)
-      .clearCookie("token")
-      .clearCookie("refreshToken")
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
       .json({
         success: true,
         message: "Logged out successfully",
       });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    console.error("Logout error:", error);
+    // Even if there's an error, we should still clear cookies and respond
+    res.status(200)
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      })
+      .json({
+        success: true,
+        message: "Logged out successfully",
+      });
   }
 };
 

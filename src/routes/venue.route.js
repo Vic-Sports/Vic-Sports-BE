@@ -3,6 +3,7 @@ import {
   createVenue,
   getAllVenues,
   getVenueById,
+  getVenueCourts,
   updateVenue,
   deleteVenue,
   uploadVenueImages,
@@ -12,6 +13,10 @@ import {
   getVenuesByOwner,
   getAvailableCities,
   getDistrictsByCity,
+  searchVenues,
+  getVenueCourtAvailabilityCount,
+  getAvailableTimeSlotsForMultipleCourts,
+  bulkCourtAvailabilityCheck,
 } from "../controllers/venue.controller.js";
 import { protect, authorize } from "../middlewares/auth.middleware.js";
 
@@ -19,10 +24,21 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getAllVenues);
-router.get("/:venueId", getVenueById);
-router.get("/search/location", searchVenuesByLocation);
+router.post("/search", searchVenues);
 router.get("/cities", getAvailableCities);
 router.get("/districts/:city", getDistrictsByCity);
+router.get("/search/location", searchVenuesByLocation);
+router.get("/:venueId", getVenueById);
+router.get("/:venueId/courts", getVenueCourts);
+router.get(
+  "/:venueId/courts/availability-count",
+  getVenueCourtAvailabilityCount
+);
+router.get(
+  "/:venueId/available-time-slots",
+  getAvailableTimeSlotsForMultipleCourts
+);
+router.post("/:venueId/bulk-availability-check", bulkCourtAvailabilityCheck);
 
 // Owner routes
 router.use(protect);
