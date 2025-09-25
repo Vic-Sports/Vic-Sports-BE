@@ -23,7 +23,9 @@ const generateRefreshToken = (userId) => {
 // @access Public
 export const register = async (req, res) => {
   try {
-    const { fullName, email, password, phone, role = "customer" } = req.body;
+    // Cho phép đăng ký với role owner
+    const { fullName, email, password, phone, role } = req.body;
+    const userRole = role === "owner" ? "owner" : "customer";
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -51,7 +53,7 @@ export const register = async (req, res) => {
       email,
       password,
       phone,
-      role,
+      role: userRole,
     });
 
     // Generate email verification token
@@ -195,118 +197,77 @@ export const login = async (req, res) => {
 // @access Public
 export const socialLogin = async (req, res) => {
   try {
-    const { provider, socialId, email, name, picture } = req.body;
+    const {
+      email,
+      name,
+      fullName,
+      picture,
+      phone,
+      role = "customer",
+      dateOfBirth,
+      gender,
+      address,
+      loyaltyTier,
+      rewardPoints,
+      referralCode,
+      referredBy,
+      referralCount,
+      birthdayVoucherClaimed,
+      lastBirthdayVoucherYear,
+      totalBookings,
+      totalSpent,
+      favoriteVenues,
+      favoriteSports,
+      notificationSettings,
+      lastLoginDevice,
+    } = req.body;
 
-    // Check if user exists with social login
-    const user = await User.findOne({
-      [`socialLogin.${provider}.id`]: socialId,
-    });
+    // Tự động ép kiểu email về string nếu FE truyền object
+    const emailString = email;
+    const userFullName = name?.trim() || fullName?.trim() || "Google User";
+
+    let user = await User.findOne({ email: emailString });
 
     if (user) {
-      // User exists, generate tokens
-      const token = generateToken(user._id);
-      const refreshToken = generateRefreshToken(user._id);
-
-      // Update user online status
-      user.isOnline = true;
-      user.lastSeen = new Date();
+      if (user.status === "banned") {
+        return res.status(403).json({
+          message:
+            "Your account has been banned. Please contact an administrator.",
+          errorCode: "ACCOUNT_BANNED",
+        });
+      }
+    } else {
+      user = new User({
+        fullName: userFullName,
+        email: emailString,
+        password: null,
+        avatar: picture,
+        phone,
+        role,
+        dateOfBirth,
+        gender,
+        address,
+        loyaltyTier,
+        rewardPoints,
+        referralCode,
+        referredBy,
+        referralCount,
+        birthdayVoucherClaimed,
+        lastBirthdayVoucherYear,
+        totalBookings,
+        totalSpent,
+        favoriteVenues,
+        favoriteSports,
+        notificationSettings,
+        lastLoginDevice,
+        status: "ACTIVE",
+        isEmailVerified: true,
+      });
       await user.save();
-
-      const options = {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      };
-
-      return res
-        .status(200)
-        .cookie("token", token, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json({
-          success: true,
-          message: "Social login successful",
-          data: {
-            user: {
-              id: user._id,
-              fullName: user.fullName,
-              email: user.email,
-              role: user.role,
-              avatar: user.avatar,
-              isEmailVerified: user.isEmailVerified,
-            },
-            token,
-            refreshToken,
-          },
-        });
     }
 
-    // Check if user exists with email
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      // Link social account to existing user
-      existingUser.socialLogin[provider] = {
-        id: socialId,
-        email,
-        name,
-        picture,
-      };
-      existingUser.isEmailVerified = true; // Social login implies email verification
-      existingUser.isOnline = true;
-      existingUser.lastSeen = new Date();
-      await existingUser.save();
-
-      const token = generateToken(existingUser._id);
-      const refreshToken = generateRefreshToken(existingUser._id);
-
-      const options = {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      };
-
-      return res
-        .status(200)
-        .cookie("token", token, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json({
-          success: true,
-          message: "Social account linked successfully",
-          data: {
-            user: {
-              id: existingUser._id,
-              fullName: existingUser.fullName,
-              email: existingUser.email,
-              role: existingUser.role,
-              avatar: existingUser.avatar,
-              isEmailVerified: existingUser.isEmailVerified,
-            },
-            token,
-            refreshToken,
-          },
-        });
-    }
-
-    // Create new user
-    const newUser = await User.create({
-      fullName: name,
-      email,
-      avatar: picture,
-      socialLogin: {
-        [provider]: {
-          id: socialId,
-          email,
-          name,
-          picture,
-        },
-      },
-      isEmailVerified: true,
-      status: "ACTIVE",
-    });
-
-    const token = generateToken(newUser._id);
-    const refreshToken = generateRefreshToken(newUser._id);
+    const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
     const options = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -316,20 +277,22 @@ export const socialLogin = async (req, res) => {
     };
 
     res
-      .status(201)
+      .status(200)
       .cookie("token", token, options)
       .cookie("refreshToken", refreshToken, options)
       .json({
         success: true,
-        message: "Account created successfully",
+        message: "Login successful",
         data: {
           user: {
-            id: newUser._id,
-            fullName: newUser.fullName,
-            email: newUser.email,
-            role: newUser.role,
-            avatar: newUser.avatar,
-            isEmailVerified: newUser.isEmailVerified,
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            isEmailVerified: user.isEmailVerified,
+            loyaltyTier: user.loyaltyTier,
+            rewardPoints: user.rewardPoints,
           },
           token,
           refreshToken,
