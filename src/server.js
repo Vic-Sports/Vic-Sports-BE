@@ -43,6 +43,7 @@ import coachRoutes from "./routes/coach.route.js";
 import loyaltyRoutes from "./routes/loyalty.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import paymentRoutes from "./routes/payment.route.js";
+import webhookRoutes from "./routes/webhook.route.js";
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
@@ -55,7 +56,23 @@ app.use("/api/v1/chats", chatRoutes);
 app.use("/api/v1/coaches", coachRoutes);
 app.use("/api/v1/loyalty", loyaltyRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
-app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/webhooks", webhookRoutes);
+
+// Add routes without v1 prefix for backward compatibility
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/venues", venueRoutes);
+app.use("/api/courts", courtRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/chats", chatRoutes);
+app.use("/api/coaches", coachRoutes);
+app.use("/api/loyalty", loyaltyRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/webhooks", webhookRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -3,137 +3,375 @@ import Court from "../models/court.js";
 import Venue from "../models/venue.js";
 import User from "../models/user.js";
 import Coach from "../models/coach.js";
+import payosService from "../services/payos.service.js";
 
 // @desc    Create Booking (Updated for FE Multi-Court Logic)
 // @route   POST /api/bookings
 // @access Private
 export const createBooking = async (req, res) => {
   try {
+    console.log("=== CREATE BOOKING REQUEST ===");
+    console.log("Request body:", JSON.stringify(req.body, null, 2));
+
     const {
-      courtIds, // Array of court IDs for multi-court booking
-      userId, // Optional: if not provided, use req.user.id
-      date, // "YYYY-MM-DD" format
-      timeSlots, // Array of time slots with start, end, price
-      totalPrice, // Total price for all courts and slots
-      venue, // Venue ID
-      customerInfo, // Customer information object
-      paymentMethod = "vnpay",
+      venueId,
+      courtIds,
+      date,
+      timeSlots,
+      paymentMethod,
       notes,
+      paymentInfo,
     } = req.body;
+    const userId = req.user?.id;
 
-    // Use provided userId or fallback to authenticated user
-    const bookingUserId = userId || req.user?.id;
-
-    // Validate required fields
-    if (!courtIds || !Array.isArray(courtIds) || courtIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Court IDs are required and must be an array",
-      });
-    }
-
-    if (!date || !timeSlots || !totalPrice || !venue || !customerInfo) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Date, timeSlots, totalPrice, venue, and customerInfo are required",
-      });
-    }
-
-    // Validate customer info
-    if (!customerInfo.fullName || !customerInfo.phone || !customerInfo.email) {
-      return res.status(400).json({
-        success: false,
-        message: "Customer fullName, phone, and email are required",
-      });
-    }
-
-    // Validate all courts exist and belong to the venue
-    const courts = await Court.find({
-      _id: { $in: courtIds },
-      venueId: venue,
-      isActive: true,
+    console.log("Extracted data:", {
+      venueId,
+      courtIds,
+      date,
+      timeSlots,
+      paymentMethod,
+      paymentInfo,
+      userId,
     });
 
-    if (courts.length !== courtIds.length) {
+    // Validation
+    if (!venueId) {
       return res.status(400).json({
         success: false,
-        message: "One or more courts not found or inactive",
+        message: "Venue ID is required",
+      });
+    }
+
+    // Support both single court (courtId) and multiple courts (courtIds)
+    let courtIdsArray = [];
+    if (req.body.courtId) {
+      // Backward compatibility for single court
+      courtIdsArray = [req.body.courtId];
+    } else if (courtIds && Array.isArray(courtIds) && courtIds.length > 0) {
+      courtIdsArray = courtIds;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Court ID(s) are required",
+      });
+    }
+
+    if (
+      !date ||
+      !timeSlots ||
+      !Array.isArray(timeSlots) ||
+      timeSlots.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Date and time slots are required",
+      });
+    }
+
+    // Verify venue exists
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found",
+      });
+    }
+
+    // Verify all courts exist and belong to venue
+    console.log("Looking for courts:", { courtIdsArray, venueId });
+    const courts = await Court.find({
+      _id: { $in: courtIdsArray },
+      venueId: venueId,
+    });
+    console.log(
+      "Found courts:",
+      courts.length,
+      "Expected:",
+      courtIdsArray.length
+    );
+
+    if (courts.length !== courtIdsArray.length) {
+      console.log("Court validation failed:");
+      console.log("- Requested court IDs:", courtIdsArray);
+      console.log(
+        "- Found courts:",
+        courts.map((c) => ({ id: c._id, name: c.name, venueId: c.venueId }))
+      );
+
+      return res.status(404).json({
+        success: false,
+        message: "One or more courts not found or do not belong to this venue",
+        debug: {
+          requestedCourts: courtIdsArray,
+          foundCourts: courts.map((c) => c._id),
+          venueId: venueId,
+        },
       });
     }
 
     // Check availability for all courts and time slots
-    for (const courtId of courtIds) {
-      for (const timeSlot of timeSlots) {
-        const isAvailable = await checkCourtAvailabilityForSlot(
-          courtId,
-          date,
-          timeSlot.start,
-          timeSlot.end
-        );
+    const bookingDate = new Date(date);
+    const existingBookings = await Booking.find({
+      court: { $in: courtIdsArray },
+      date: bookingDate,
+      timeSlots: { $in: timeSlots },
+      status: { $in: ["CONFIRMED", "PENDING"] },
+    });
 
-        if (!isAvailable) {
-          return res.status(409).json({
+    if (existingBookings.length > 0) {
+      const conflictDetails = existingBookings.map((booking) => ({
+        court: booking.court,
+        timeSlots: booking.timeSlots,
+        bookingCode: booking.bookingCode,
+      }));
+
+      return res.status(400).json({
+        success: false,
+        message: "Some time slots are already booked",
+        conflicts: conflictDetails,
+      });
+    }
+
+    // Get customer info from authenticated user or create fallback
+    let customerInfo;
+    if (userId) {
+      const user = await User.findById(userId);
+      customerInfo = {
+        fullName: user?.fullName || "Guest User",
+        phone: user?.phone || "0000000000",
+        email: user?.email || "guest@example.com",
+        notes: notes || "",
+      };
+    } else {
+      // Fallback customer info for guest bookings
+      customerInfo = {
+        fullName: "Guest User",
+        phone: "0000000000",
+        email: "guest@example.com",
+        notes: notes || "",
+      };
+    }
+
+    // Transform timeSlots data format (startTime/endTime -> start/end)
+    const transformedTimeSlots = timeSlots.map((slot) => ({
+      start: slot.startTime || slot.start,
+      end: slot.endTime || slot.end,
+      price: slot.price || 0,
+    }));
+
+    console.log("Original timeSlots:", timeSlots);
+    console.log("Transformed timeSlots:", transformedTimeSlots);
+
+    // Calculate total amount from timeSlots instead of court pricePerHour
+    let totalAmount = 0;
+    transformedTimeSlots.forEach((slot) => {
+      if (slot.price) {
+        totalAmount += slot.price * courtIdsArray.length; // Multiply by number of courts
+      }
+    });
+
+    // If no price in timeSlots, try to get from courts
+    if (totalAmount === 0) {
+      courts.forEach((court) => {
+        // Try to get price from court's pricing array or default
+        let courtPrice = 200000; // Default price
+        if (court.pricing && court.pricing.length > 0) {
+          courtPrice = court.pricing[0].pricePerHour || 200000;
+        }
+        totalAmount += courtPrice * transformedTimeSlots.length;
+      });
+    }
+
+    console.log("Customer info:", customerInfo);
+    console.log("Total amount calculated:", totalAmount);
+
+    // Create bookings for each court
+    const bookings = [];
+    const paymentLinks = []; // Array to collect payment links
+    const groupBookingCode = `VIC${Date.now()}`;
+
+    for (let i = 0; i < courts.length; i++) {
+      const court = courts[i];
+
+      // Calculate individual court amount
+      let individualAmount = 0;
+      transformedTimeSlots.forEach((slot) => {
+        individualAmount += slot.price || 200000; // Use slot price or default
+      });
+
+      const bookingData = {
+        bookingCode:
+          courts.length === 1
+            ? groupBookingCode
+            : `${groupBookingCode}-${i + 1}`,
+        user: userId || undefined,
+        venue: venueId,
+        court: court._id,
+        date: date, // Use string format as expected by model
+        timeSlots: transformedTimeSlots,
+        courtQuantity: courts.length,
+        totalPrice: totalAmount, // Add required totalPrice field
+        customerInfo, // Add required customerInfo
+        duration: transformedTimeSlots.length,
+        status: "pending", // Use lowercase enum value
+        paymentStatus: "pending", // Use lowercase enum value
+        paymentMethod: paymentMethod?.toLowerCase() || "vnpay", // Ensure lowercase
+        notes,
+        groupBookingCode: courts.length > 1 ? groupBookingCode : undefined,
+      };
+
+      // Nếu sử dụng PayOS, tạo payment link
+      let paymentLink = null;
+      if (paymentMethod?.toLowerCase() === "payos" && paymentInfo) {
+        console.log("Creating PayOS payment link for court:", court.name);
+
+        try {
+          const paymentData = {
+            orderCode: Math.floor(Date.now() / 1000) + i, // Unique order code for each court
+            amount: individualAmount,
+            description: `Đặt sân ${court.name} - ${date} - ${transformedTimeSlots.length} giờ`,
+            items: [
+              {
+                name: `${court.name} - ${transformedTimeSlots.length} giờ`,
+                quantity: 1,
+                price: individualAmount,
+              },
+            ],
+            returnUrl:
+              paymentInfo.returnUrl || "http://localhost:5173/booking/success",
+            cancelUrl:
+              paymentInfo.cancelUrl || "http://localhost:5173/booking/cancel",
+            buyerName: customerInfo?.fullName,
+            buyerEmail: customerInfo?.email,
+            buyerPhone: customerInfo?.phone,
+          };
+
+          console.log("PayOS payment data:", paymentData);
+
+          const paymentResult = await payosService.createPaymentLink(
+            paymentData
+          );
+          console.log("PayOS payment result:", paymentResult);
+
+          if (paymentResult.success && paymentResult.data) {
+            // Kiểm tra PayOS response code
+            if (paymentResult.data.code && paymentResult.data.code !== "00") {
+              console.warn(
+                "PayOS returned error code:",
+                paymentResult.data.code,
+                paymentResult.data.desc
+              );
+
+              // Nếu là lỗi PayOS, vẫn tạo booking nhưng không có payment link
+              console.log(
+                "Creating booking without payment link due to PayOS error"
+              );
+              bookingData.payosOrderCode = paymentData.orderCode;
+              bookingData.payosError = {
+                code: paymentResult.data.code,
+                desc: paymentResult.data.desc,
+              };
+            } else {
+              // PayOS success - có payment link
+              paymentLink =
+                paymentResult.data.data?.checkoutUrl ||
+                paymentResult.data.checkoutUrl;
+              bookingData.payosOrderCode = paymentData.orderCode;
+              bookingData.payosPaymentLinkId =
+                paymentResult.data.data?.paymentLinkId;
+            }
+          } else {
+            console.error(
+              "PayOS service error:",
+              paymentResult.error || paymentResult
+            );
+            // Vẫn tạo booking nhưng không có PayOS info
+            console.log("Creating booking without PayOS due to service error");
+          }
+        } catch (payosError) {
+          console.error("PayOS payment creation error:", payosError);
+          return res.status(400).json({
             success: false,
-            message: `Court ${courtId} is not available for ${timeSlot.start}-${timeSlot.end}`,
+            message: "Không thể tạo link thanh toán PayOS",
+            error: payosError.message,
           });
         }
       }
-    }
 
-    // Create booking object
-    const bookingData = {
-      venue,
-      date,
-      timeSlots,
-      totalPrice,
-      customerInfo: {
-        fullName: customerInfo.fullName,
-        phone: customerInfo.phone,
-        email: customerInfo.email,
-        notes: customerInfo.notes || notes,
-      },
-      paymentMethod,
-      paymentStatus: "pending",
-      status: "pending",
-      courtQuantity: courtIds.length,
-    };
+      console.log(
+        "Creating booking with data:",
+        JSON.stringify(bookingData, null, 2)
+      );
 
-    // Handle single vs multi-court booking
-    if (courtIds.length === 1) {
-      bookingData.court = courtIds[0];
-      bookingData.isGroupBooking = false;
-    } else {
-      bookingData.courtIds = courtIds;
-      bookingData.isGroupBooking = true;
-      bookingData.groupBookingId = `group_${Date.now()}`;
-    }
+      const booking = await Booking.create(bookingData);
+      bookings.push(booking);
 
-    // Add user if provided
-    if (bookingUserId) {
-      bookingData.user = bookingUserId;
-    }
-
-    const booking = await Booking.create(bookingData);
-
-    // Populate the booking with court and venue details
-    const populatedBooking = await Booking.findById(booking._id)
-      .populate("court", "name sportType")
-      .populate("courtIds", "name sportType")
-      .populate("venue", "name address")
+      // Lưu payment link nếu có
+      if (paymentLink) {
+        paymentLinks.push({
+          bookingId: booking._id,
+          paymentUrl: paymentLink,
+          orderCode: bookingData.payosOrderCode,
+        });
+      }
+    } // Populate booking data
+    const populatedBookings = await Booking.find({
+      _id: { $in: bookings.map((b) => b._id) },
+    })
+      .populate("venue", "name address phone email")
+      .populate("court", "name type pricePerHour")
       .populate("user", "fullName email phone");
 
-    res.status(201).json({
-      success: true,
-      message: "Booking created successfully",
-      data: {
-        booking: populatedBooking,
-      },
-    });
+    // Return format compatible with single booking
+    if (courts.length === 1) {
+      const response = {
+        success: true,
+        data: {
+          booking: populatedBookings[0],
+        },
+        message: "Booking created successfully",
+      };
+
+      // Thêm thông tin thanh toán nếu có
+      if (paymentLinks.length > 0) {
+        response.data.payment = {
+          method: paymentMethod,
+          paymentUrl: paymentLinks[0].paymentUrl,
+          orderCode: paymentLinks[0].orderCode,
+        };
+      } else if (populatedBookings[0].payosError) {
+        // Thêm thông tin lỗi PayOS
+        response.data.payosError = populatedBookings[0].payosError;
+        response.message =
+          "Booking created but PayOS payment failed: " +
+          populatedBookings[0].payosError.desc;
+      }
+
+      res.status(201).json(response);
+    } else {
+      const response = {
+        success: true,
+        data: {
+          bookings: populatedBookings,
+          totalAmount,
+          groupBookingCode,
+          bookingCount: bookings.length,
+        },
+        message: `Successfully created ${bookings.length} bookings`,
+      };
+
+      // Thêm thông tin thanh toán nếu có
+      if (paymentLinks.length > 0) {
+        response.data.payments = paymentLinks;
+      }
+
+      res.status(201).json(response);
+    }
   } catch (error) {
+    console.error("Create booking error:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal server error",
     });
   }
 };

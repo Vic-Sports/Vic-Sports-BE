@@ -47,17 +47,21 @@ const bookingSchema = new mongoose.Schema(
     bookingCode: { type: String, unique: true }, // 'BK' + timestamp
     paymentMethod: {
       type: String,
-      enum: ["vnpay", "momo", "zalopay", "banking"], // Match FE payment methods
+      enum: ["vnpay", "momo", "zalopay", "banking", "payos"], // Add PayOS
       default: "vnpay",
     },
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed", "refunded", "cancelled"],
       default: "pending",
     },
     paymentRef: { type: String }, // Reference từ payment gateway
     paymentId: String,
     paidAt: Date,
+
+    // PayOS specific fields
+    payosOrderCode: { type: String }, // PayOS order code
+    payosTransactionId: { type: String }, // PayOS transaction ID
 
     // Booking Status
     status: {
