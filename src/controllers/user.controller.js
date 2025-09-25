@@ -1,79 +1,5 @@
 import User from "../models/user.js";
 
-// @desc    Update Profile
-// @route   PUT /api/users/profile
-// @access Private
-export const updateProfile = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const {
-      fullName,
-      phone,
-      dateOfBirth,
-      gender,
-      address,
-      avatar,
-      favoriteSports,
-      notificationSettings,
-    } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    // Check if phone is already taken by another user
-    if (phone && phone !== user.phone) {
-      const existingPhone = await User.findOne({ phone, _id: { $ne: userId } });
-      if (existingPhone) {
-        return res.status(400).json({
-          success: false,
-          message: "Phone number is already taken",
-        });
-      }
-    }
-
-    // Update user fields
-    if (fullName) user.fullName = fullName;
-    if (phone) user.phone = phone;
-    if (dateOfBirth) user.dateOfBirth = dateOfBirth;
-    if (gender) user.gender = gender;
-    if (address) user.address = address;
-    if (avatar) user.avatar = avatar;
-    if (favoriteSports) user.favoriteSports = favoriteSports;
-    if (notificationSettings) user.notificationSettings = notificationSettings;
-
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: {
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          phone: user.phone,
-          avatar: user.avatar,
-          dateOfBirth: user.dateOfBirth,
-          gender: user.gender,
-          address: user.address,
-          favoriteSports: user.favoriteSports,
-          notificationSettings: user.notificationSettings,
-        },
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 // @desc    Upload Avatar
 // @route   POST /api/users/avatar
 // @access Private
@@ -518,6 +444,97 @@ export const getFriends = async (req, res) => {
       },
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Update User Profile
+// @route   PUT /api/users/profile
+// @access Private
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      fullName,
+      phone,
+      dateOfBirth,
+      gender,
+      address,
+      favoriteSports,
+      notificationSettings
+    } = req.body;
+
+    // Build update object with allowed fields
+    const updateFields = {};
+    if (fullName) updateFields.fullName = fullName;
+    if (phone) updateFields.phone = phone;
+    if (dateOfBirth) updateFields.dateOfBirth = dateOfBirth;
+    if (gender) updateFields.gender = gender;
+    if (address) updateFields.address = address;
+    if (favoriteSports) updateFields.favoriteSports = favoriteSports;
+    if (notificationSettings) updateFields.notificationSettings = notificationSettings;
+
+    // Check if email is being updated and if it's already taken
+    if (req.body.email) {
+      const existingUser = await User.findOne({ 
+        email: req.body.email, 
+        _id: { $ne: userId } 
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists",
+        });
+      }
+      updateFields.email = req.body.email;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      {
+        new: true,
+        runValidators: true,
+        select: '-password -emailVerificationToken -passwordResetToken'
+      }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: user,
+    });
+  } catch (error) {
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: errors,
+      });
+    }
+
+    // Handle duplicate key error
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        success: false,
+        message: `${field} already exists`,
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: error.message,
