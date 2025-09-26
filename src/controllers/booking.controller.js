@@ -5,6 +5,62 @@ import User from "../models/user.js";
 import Coach from "../models/coach.js";
 import payosService from "../services/payos.service.js";
 
+// @desc    Admin get bookings by userId
+// @route   GET /api/bookings/user/:userId
+// @access  Admin
+export const getBookingsByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    const query = { user: userId };
+    if (status) {
+      query.status = status;
+    }
+
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    console.log("[getBookingsByUserId] query:", query);
+    const bookings = await Booking.find(query)
+      .populate("court", "name sportType")
+      .populate("courtIds", "name sportType")
+      .populate("venue", "name address")
+      .sort(sortOptions)
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+    console.log("[getBookingsByUserId] result:", bookings);
+
+    const total = await Booking.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        bookings,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalBookings: total,
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("[getBookingsByUserId] error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
 // @desc    Create Booking (Updated for FE Multi-Court Logic)
 // @route   POST /api/bookings
 // @access Private
@@ -207,6 +263,7 @@ export const createBooking = async (req, res) => {
         user: userId || undefined,
         venue: venueId,
         court: court._id,
+        courtIds: courtIdsArray, // Lưu mảng courtIds vào DB
         date: date, // Use string format as expected by model
         timeSlots: transformedTimeSlots,
         courtQuantity: courts.length,
@@ -381,6 +438,7 @@ export const createBooking = async (req, res) => {
 // @access Private
 export const getUserBookings = async (req, res) => {
   try {
+    console.log("[getUserBookings] req.user:", req.user);
     const userId = req.user.id;
     const {
       page = 1,
