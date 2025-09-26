@@ -473,11 +473,6 @@ export const resetPassword = async (req, res) => {
 // @route   PUT /api/auth/change-password
 // @access Private
 export const changePassword = async (req, res) => {
-  // Xoá token xác thực email nếu đã xác thực
-  if (user.isEmailVerified) {
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-  }
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id;
