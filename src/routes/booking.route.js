@@ -1,3 +1,4 @@
+// ...existing code...
 import express from "express";
 import {
   createBooking,
@@ -7,6 +8,7 @@ import {
   searchAvailableCourts,
   createSimpleBooking,
   testBookingCreation,
+  getBookingsByUserId,
 } from "../controllers/booking.controller.js";
 import { protect, authorize } from "../middlewares/auth.middleware.js";
 
@@ -37,6 +39,23 @@ router.post("/simple", createSimpleBooking); // Simple booking for frontend test
 router.post("/", optionalAuth, createBooking); // Allow guest bookings
 
 // Protected routes
+
+// Admin route: get bookings by userId
+router.get(
+  "/user/:userId",
+  protect,
+  authorize("admin", "customer"),
+  getBookingsByUserId
+);
+
+// User route: get own booking history
+router.get(
+  "/user/me",
+  protect,
+  authorize("customer", "owner", "admin"),
+  getUserBookings
+);
+
 router.use(protect);
 router.use(authorize("customer", "owner", "admin"));
 
