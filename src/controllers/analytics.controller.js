@@ -6,7 +6,7 @@ import Review from "../models/review.js";
 import Coach from "../models/coach.js";
 import Owner from "../models/owner.js";
 import mongoose from "mongoose";
-
+//conflict resolution
 // @desc    Get Revenue Reports
 // @route   GET /api/analytics/revenue
 // @access Private (Admin/Owner)
