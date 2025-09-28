@@ -28,7 +28,6 @@ export const getBookingsByUserId = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
-    console.log("[getBookingsByUserId] query:", query);
     const bookings = await Booking.find(query)
       .populate("court", "name sportType")
       .populate("courtIds", "name sportType")
@@ -36,7 +35,6 @@ export const getBookingsByUserId = async (req, res) => {
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);
-    console.log("[getBookingsByUserId] result:", bookings);
 
     const total = await Booking.countDocuments(query);
 
@@ -54,7 +52,6 @@ export const getBookingsByUserId = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("[getBookingsByUserId] error:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Internal server error",
@@ -870,6 +867,494 @@ export const createSimpleBooking = async (req, res) => {
     });
   } catch (error) {
     console.error("Simple booking error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Owner Booking Management APIs
+export const getOwnerBookings = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      venueId,
+      courtId,
+      startDate,
+      endDate,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      groupBy,
+    } = req.query;
+
+    // First, find all venues owned by this user
+    const venueQuery = { ownerId, isActive: true };
+    if (venueId) {
+      venueQuery._id = venueId;
+    }
+
+    const ownerVenues = await Venue.find(venueQuery).select("_id name");
+    const venueIds = ownerVenues.map((venue) => venue._id);
+
+    if (venueIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          bookings: [],
+          pagination: {
+            currentPage: parseInt(page),
+            totalPages: 0,
+            totalBookings: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+          message: venueId
+            ? "Venue not found or you don't own this venue"
+            : "No venues found",
+        },
+      });
+    }
+
+    // Build booking query
+    const bookingQuery = { venue: { $in: venueIds } };
+
+    // Add filters
+    if (status) {
+      if (Array.isArray(status)) {
+        bookingQuery.status = { $in: status };
+      } else {
+        bookingQuery.status = status;
+      }
+    }
+
+    if (courtId) {
+      bookingQuery.court = courtId;
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      bookingQuery.date = {};
+      if (startDate) {
+        bookingQuery.date.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        bookingQuery.date.$lte = new Date(endDate);
+      }
+    }
+
+    // Sort options
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    // Execute query with pagination
+    const bookings = await Booking.find(bookingQuery)
+      .populate({
+        path: "user",
+        select: "fullName email phone avatar loyaltyTier",
+      })
+      .populate({
+        path: "court",
+        select: "name sportType courtType capacity surface pricing",
+      })
+      .populate({
+        path: "venue",
+        select: "name address contactInfo",
+      })
+      .sort(sortOptions)
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const totalBookings = await Booking.countDocuments(bookingQuery);
+
+    // Group bookings if requested
+    let groupedBookings = null;
+    if (groupBy) {
+      groupedBookings = {};
+
+      if (groupBy === "venue") {
+        bookings.forEach((booking) => {
+          const venueId = booking.venue._id.toString();
+          if (!groupedBookings[venueId]) {
+            groupedBookings[venueId] = {
+              venue: booking.venue,
+              bookings: [],
+              totalBookings: 0,
+              totalRevenue: 0,
+            };
+          }
+          groupedBookings[venueId].bookings.push(booking);
+          groupedBookings[venueId].totalBookings++;
+          groupedBookings[venueId].totalRevenue += booking.finalPrice || 0;
+        });
+      } else if (groupBy === "status") {
+        bookings.forEach((booking) => {
+          if (!groupedBookings[booking.status]) {
+            groupedBookings[booking.status] = [];
+          }
+          groupedBookings[booking.status].push(booking);
+        });
+      } else if (groupBy === "date") {
+        bookings.forEach((booking) => {
+          const dateKey = booking.date.toISOString().split("T")[0];
+          if (!groupedBookings[dateKey]) {
+            groupedBookings[dateKey] = [];
+          }
+          groupedBookings[dateKey].push(booking);
+        });
+      }
+    }
+
+    // Calculate statistics
+    const stats = {
+      totalBookings,
+      totalRevenue: bookings.reduce(
+        (sum, booking) => sum + (booking.finalPrice || 0),
+        0
+      ),
+      statusDistribution: {},
+    };
+
+    // Count bookings by status
+    const statusCounts = await Booking.aggregate([
+      { $match: bookingQuery },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]);
+
+    statusCounts.forEach((item) => {
+      stats.statusDistribution[item._id] = item.count;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        bookings,
+        groupedBookings: groupBy ? Object.values(groupedBookings) : null,
+        stats,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(totalBookings / parseInt(limit)),
+          totalBookings,
+          hasNext: parseInt(page) * parseInt(limit) < totalBookings,
+          hasPrev: parseInt(page) > 1,
+        },
+        filters: {
+          status: status || null,
+          venueId: venueId || null,
+          courtId: courtId || null,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          sortBy,
+          sortOrder,
+          groupBy: groupBy || null,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getOwnerBookingDetail = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const ownerId = req.user.id;
+
+    // Find booking and check if it belongs to owner's venue
+    const booking = await Booking.findById(bookingId)
+      .populate({
+        path: "user",
+        select: "fullName email phone avatar loyaltyTier totalBookings",
+      })
+      .populate({
+        path: "court",
+        select: "name sportType courtType capacity surface pricing images",
+      })
+      .populate({
+        path: "venue",
+        select: "name address contactInfo operatingHours ownerId",
+      })
+      .populate({
+        path: "coach",
+        select: "fullName email phone avatar specialization",
+      });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Check if booking belongs to owner's venue
+    if (!booking.venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view this booking",
+      });
+    }
+
+    // Get related bookings from the same customer at this venue
+    const relatedBookings = await Booking.find({
+      user: booking.user._id,
+      venue: booking.venue._id,
+      _id: { $ne: bookingId },
+    })
+      .select("date status finalPrice createdAt")
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // Calculate customer stats at this venue
+    const customerStats = await Booking.aggregate([
+      {
+        $match: {
+          user: booking.user._id,
+          venue: booking.venue._id,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalBookings: { $sum: 1 },
+          totalSpent: { $sum: "$finalPrice" },
+          completedBookings: {
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+          },
+          cancelledBookings: {
+            $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        booking,
+        relatedBookings,
+        customerStats:
+          customerStats.length > 0
+            ? customerStats[0]
+            : {
+                totalBookings: 0,
+                totalSpent: 0,
+                completedBookings: 0,
+                cancelledBookings: 0,
+              },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const approveOwnerBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const ownerId = req.user.id;
+    const { notes } = req.body;
+
+    // Find booking and check if it belongs to owner's venue
+    const booking = await Booking.findById(bookingId)
+      .populate("venue", "ownerId name")
+      .populate("user", "fullName email")
+      .populate("court", "name");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Check if booking belongs to owner's venue
+    if (!booking.venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to manage this booking",
+      });
+    }
+
+    // Check if booking can be approved
+    if (booking.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot approve booking with status: ${booking.status}`,
+      });
+    }
+
+    // Update booking status
+    booking.status = "confirmed";
+    booking.confirmedAt = new Date();
+    if (notes) {
+      booking.ownerNotes = notes;
+    }
+
+    await booking.save();
+
+    // TODO: Send notification email to customer
+    // await sendBookingConfirmationEmail(booking.user.email, booking);
+
+    res.status(200).json({
+      success: true,
+      message: "Booking approved successfully",
+      data: {
+        booking,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const rejectOwnerBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const ownerId = req.user.id;
+    const { reason, notes } = req.body;
+
+    if (!reason) {
+      return res.status(400).json({
+        success: false,
+        message: "Rejection reason is required",
+      });
+    }
+
+    // Find booking and check if it belongs to owner's venue
+    const booking = await Booking.findById(bookingId)
+      .populate("venue", "ownerId name")
+      .populate("user", "fullName email")
+      .populate("court", "name");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Check if booking belongs to owner's venue
+    if (!booking.venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to manage this booking",
+      });
+    }
+
+    // Check if booking can be rejected
+    if (booking.status !== "pending" && booking.status !== "reserved") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot reject booking with status: ${booking.status}`,
+      });
+    }
+
+    // Update booking status
+    booking.status = "cancelled";
+    booking.cancellationReason = reason;
+    booking.cancelledAt = new Date();
+    booking.cancelledBy = "owner";
+    if (notes) {
+      booking.ownerNotes = notes;
+    }
+
+    await booking.save();
+
+    // TODO: Process refund if payment was made
+    // if (booking.paymentStatus === "paid") {
+    //   await processRefund(booking.paymentId, booking.finalPrice);
+    // }
+
+    // TODO: Send notification email to customer
+    // await sendBookingRejectionEmail(booking.user.email, booking, reason);
+
+    res.status(200).json({
+      success: true,
+      message: "Booking rejected successfully",
+      data: {
+        booking,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const checkinOwnerBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const ownerId = req.user.id;
+    const { notes, actualStartTime } = req.body;
+
+    // Find booking and check if it belongs to owner's venue
+    const booking = await Booking.findById(bookingId)
+      .populate("venue", "ownerId name")
+      .populate("user", "fullName email loyaltyPoints")
+      .populate("court", "name");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Check if booking belongs to owner's venue
+    if (!booking.venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to manage this booking",
+      });
+    }
+
+    // Check if booking can be checked in
+    if (booking.status !== "confirmed") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot check in booking with status: ${booking.status}`,
+      });
+    }
+
+    // Update booking status
+    booking.status = "in_progress";
+    booking.checkedInAt = new Date();
+    if (actualStartTime) {
+      booking.actualStartTime = new Date(actualStartTime);
+    }
+    if (notes) {
+      booking.ownerNotes = notes;
+    }
+
+    await booking.save();
+
+    // Update customer's total bookings counter
+    await User.findByIdAndUpdate(booking.user._id, {
+      $inc: { totalBookings: 1 },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Customer checked in successfully",
+      data: {
+        booking,
+      },
+    });
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: error.message,
