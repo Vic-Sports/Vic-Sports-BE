@@ -4,6 +4,7 @@ import Venue from "../models/venue.js";
 import User from "../models/user.js";
 import Coach from "../models/coach.js";
 import payosService from "../services/payos.service.js";
+import payosService from "../services/payos.service.js";
 
 // @desc    Create Booking (Updated for FE Multi-Court Logic)
 // @route   POST /api/bookings
