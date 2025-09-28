@@ -9,7 +9,6 @@ const venueSchema = new mongoose.Schema(
     },
     name: { type: String, required: true },
     description: String,
-    slug: { type: String, lowercase: true, trim: true, unique: true, sparse: true },
 
     address: {
       street: { type: String, required: true },
@@ -28,11 +27,6 @@ const venueSchema = new mongoose.Schema(
     },
 
     images: [String],
-    coverImage: String,
-
-    // Tags and supported sports for search/faceting
-    tags: [String],
-    sports: [String],
 
     amenities: [
       {
@@ -62,28 +56,12 @@ const venueSchema = new mongoose.Schema(
       count: { type: Number, default: 0 },
     },
 
-    pricingSummary: {
-      minPrice: { type: Number, default: 0 },
-      maxPrice: { type: Number, default: 0 },
-    },
-
     totalBookings: { type: Number, default: 0 },
     totalRevenue: { type: Number, default: 0 },
 
     isActive: { type: Boolean, default: true },
     isVerified: { type: Boolean, default: false },
-    moderationStatus: {
-      type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
-    },
     verifiedAt: Date,
-    verificationNotes: String,
-
-    policies: {
-      cancellation: String,
-      rules: String,
-    },
   },
   { timestamps: true }
 );
@@ -103,7 +81,6 @@ venueSchema.set("toObject", { virtuals: true });
 venueSchema.index({ "address.city": 1, "address.district": 1 });
 venueSchema.index({ "address.coordinates": "2dsphere" });
 venueSchema.index({ ownerId: 1 });
-venueSchema.index({ slug: 1 }, { unique: true, sparse: true });
 venueSchema.index({ "ratings.average": -1 });
 venueSchema.index({ isActive: 1, isVerified: 1 });
 venueSchema.index({ name: "text", description: "text" });
