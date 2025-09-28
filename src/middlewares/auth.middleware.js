@@ -42,20 +42,20 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // Check if user is active
-    if (user.status !== "ACTIVE") {
-      return res.status(401).json({
-        success: false,
-        message: "Account is not active",
-      });
-    }
-
-    // Check if user is blocked
-    if (user.isBlocked) {
-      return res.status(401).json({
-        success: false,
-        message: "Account is blocked",
-      });
+    // Enforce status/blocked for non-admins only to avoid blocking admin management during setup
+    if (user.role !== "admin") {
+      if (user.status !== "ACTIVE") {
+        return res.status(401).json({
+          success: false,
+          message: "Account is not active",
+        });
+      }
+      if (user.isBlocked) {
+        return res.status(401).json({
+          success: false,
+          message: "Account is blocked",
+        });
+      }
     }
 
     req.user = user;
