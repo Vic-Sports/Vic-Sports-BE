@@ -4,6 +4,7 @@ import Venue from "../models/venue.js";
 import User from "../models/user.js";
 import Coach from "../models/coach.js";
 import payosService from "../services/payos.service.js";
+import payosService from "../services/payos.service.js";
 
 // @desc    Admin get bookings by userId
 // @route   GET /api/bookings/user/:userId
