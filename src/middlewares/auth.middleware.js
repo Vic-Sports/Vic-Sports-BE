@@ -7,34 +7,22 @@ export const protect = async (req, res, next) => {
   try {
     let token;
 
-    // Log token header for debugging
-    console.log("=== TOKEN DEBUGGING ===");
-    console.log("Authorization header:", req.headers.authorization);
-    console.log("Cookie token:", req.cookies?.token);
-    console.log("All headers:", JSON.stringify(req.headers, null, 2));
-    console.log("========================");
-
     // Get token from header or cookie
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
     ) {
       token = req.headers.authorization.split(" ")[1];
-      console.log("Token extracted from Bearer header:", token);
     } else if (req.cookies.token) {
       token = req.cookies.token;
-      console.log("Token extracted from cookie:", token);
     }
 
     if (!token) {
-      console.log("❌ No token found!");
       return res.status(401).json({
         success: false,
         message: "Not authorized to access this route",
       });
     }
-
-    console.log("✅ Token found, proceeding with verification...");
 
     // Check if token is blacklisted
     const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
@@ -47,65 +35,47 @@ export const protect = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("📝 Token decoded successfully:", {
-      userId: decoded.userId,
-      role: decoded.role,
-    });
 
     // Get user from token
     const user = await User.findById(decoded.userId);
     if (!user) {
-      console.log("❌ User not found with ID:", decoded.userId);
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
 
-    console.log("👤 User found:", {
-      id: user._id,
-      role: user.role,
-      status: user.status,
-    });
-
-    // Check if user is active
-    if (user.status !== "ACTIVE") {
-      console.log("❌ User account not active, status:", user.status);
-      return res.status(401).json({
-        success: false,
-        message: "Account is not active",
-      });
+    // Enforce status/blocked for non-admins only to avoid blocking admin management during setup
+    if (user.role !== "admin") {
+      if (user.status !== "ACTIVE") {
+        return res.status(401).json({
+          success: false,
+          message: "Account is not active",
+        });
+      }
+      if (user.isBlocked) {
+        return res.status(401).json({
+          success: false,
+          message: "Account is blocked",
+        });
+      }
     }
 
-    // Check if user is blocked
-    if (user.isBlocked) {
-      console.log("❌ User account is blocked");
-      return res.status(401).json({
-        success: false,
-        message: "Account is blocked",
-      });
-    }
-
-    console.log("🎉 Authentication successful for user:", user.role);
     req.user = user;
     next();
   } catch (error) {
-    console.log("🔥 Auth error:", error.name, error.message);
     if (error.name === "JsonWebTokenError") {
-      console.log("❌ Invalid JWT token");
       return res.status(401).json({
         success: false,
         message: "Invalid token",
       });
     }
     if (error.name === "TokenExpiredError") {
-      console.log("❌ JWT token expired");
       return res.status(401).json({
         success: false,
         message: "Token expired",
       });
     }
-    console.log("❌ Server error in auth:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -116,11 +86,7 @@ export const protect = async (req, res, next) => {
 // Authorize specific roles
 export const authorize = (...roles) => {
   return (req, res, next) => {
-    console.log("🔐 Authorization check - Required roles:", roles);
-    console.log("👤 User role:", req.user?.role);
-
     if (!req.user) {
-      console.log("❌ No user object in request");
       return res.status(401).json({
         success: false,
         message: "Not authorized to access this route",
@@ -128,19 +94,12 @@ export const authorize = (...roles) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      console.log(
-        "❌ Role authorization failed - User role:",
-        req.user.role,
-        "Required:",
-        roles
-      );
       return res.status(403).json({
         success: false,
         message: `User role ${req.user.role} is not authorized to access this route`,
       });
     }
 
-    console.log("✅ Role authorization successful");
     next();
   };
 };
