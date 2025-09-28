@@ -44,6 +44,7 @@ import loyaltyRoutes from "./routes/loyalty.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
+import ownerRoutes from "./routes/owner.route.js";
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
@@ -58,6 +59,7 @@ app.use("/api/v1/loyalty", loyaltyRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/webhooks", webhookRoutes);
+app.use("/api/v1/owner", ownerRoutes);
 
 // Add routes without v1 prefix for backward compatibility
 app.use("/api/auth", authRoutes);
@@ -73,6 +75,7 @@ app.use("/api/loyalty", loyaltyRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/webhooks", webhookRoutes);
+app.use("/api/owner", ownerRoutes);
 
 // Error handler
 app.use(errorHandler);

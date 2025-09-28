@@ -7,19 +7,34 @@ export const protect = async (req, res, next) => {
   try {
     let token;
 
+    // Log token header for debugging
+    console.log("=== TOKEN DEBUGGING ===");
+    console.log("Authorization header:", req.headers.authorization);
+    console.log("Cookie token:", req.cookies?.token);
+    console.log("All headers:", JSON.stringify(req.headers, null, 2));
+    console.log("========================");
+
     // Get token from header or cookie
-    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
       token = req.headers.authorization.split(" ")[1];
+      console.log("Token extracted from Bearer header:", token);
     } else if (req.cookies.token) {
       token = req.cookies.token;
+      console.log("Token extracted from cookie:", token);
     }
 
     if (!token) {
+      console.log("❌ No token found!");
       return res.status(401).json({
         success: false,
         message: "Not authorized to access this route",
       });
     }
+
+    console.log("✅ Token found, proceeding with verification...");
 
     // Check if token is blacklisted
     const isBlacklisted = await TokenBlacklist.isBlacklisted(token);
@@ -32,18 +47,30 @@ export const protect = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("📝 Token decoded successfully:", {
+      userId: decoded.userId,
+      role: decoded.role,
+    });
 
     // Get user from token
     const user = await User.findById(decoded.userId);
     if (!user) {
+      console.log("❌ User not found with ID:", decoded.userId);
       return res.status(401).json({
         success: false,
         message: "User not found",
       });
     }
 
+    console.log("👤 User found:", {
+      id: user._id,
+      role: user.role,
+      status: user.status,
+    });
+
     // Check if user is active
     if (user.status !== "ACTIVE") {
+      console.log("❌ User account not active, status:", user.status);
       return res.status(401).json({
         success: false,
         message: "Account is not active",
@@ -52,27 +79,33 @@ export const protect = async (req, res, next) => {
 
     // Check if user is blocked
     if (user.isBlocked) {
+      console.log("❌ User account is blocked");
       return res.status(401).json({
         success: false,
         message: "Account is blocked",
       });
     }
 
+    console.log("🎉 Authentication successful for user:", user.role);
     req.user = user;
     next();
   } catch (error) {
+    console.log("🔥 Auth error:", error.name, error.message);
     if (error.name === "JsonWebTokenError") {
+      console.log("❌ Invalid JWT token");
       return res.status(401).json({
         success: false,
         message: "Invalid token",
       });
     }
     if (error.name === "TokenExpiredError") {
+      console.log("❌ JWT token expired");
       return res.status(401).json({
         success: false,
         message: "Token expired",
       });
     }
+    console.log("❌ Server error in auth:", error);
     return res.status(500).json({
       success: false,
       message: "Server error",
@@ -83,7 +116,11 @@ export const protect = async (req, res, next) => {
 // Authorize specific roles
 export const authorize = (...roles) => {
   return (req, res, next) => {
+    console.log("🔐 Authorization check - Required roles:", roles);
+    console.log("👤 User role:", req.user?.role);
+
     if (!req.user) {
+      console.log("❌ No user object in request");
       return res.status(401).json({
         success: false,
         message: "Not authorized to access this route",
@@ -91,12 +128,19 @@ export const authorize = (...roles) => {
     }
 
     if (!roles.includes(req.user.role)) {
+      console.log(
+        "❌ Role authorization failed - User role:",
+        req.user.role,
+        "Required:",
+        roles
+      );
       return res.status(403).json({
         success: false,
         message: `User role ${req.user.role} is not authorized to access this route`,
       });
     }
 
+    console.log("✅ Role authorization successful");
     next();
   };
 };
@@ -106,7 +150,10 @@ export const optionalAuth = async (req, res, next) => {
   try {
     let token;
 
-    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
       token = req.headers.authorization.split(" ")[1];
     } else if (req.cookies.token) {
       token = req.cookies.token;
@@ -144,7 +191,9 @@ export const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 
     // Clean old entries
     if (rateLimitMap.has(key)) {
-      const requests = rateLimitMap.get(key).filter(time => time > windowStart);
+      const requests = rateLimitMap
+        .get(key)
+        .filter((time) => time > windowStart);
       rateLimitMap.set(key, requests);
     } else {
       rateLimitMap.set(key, []);
@@ -216,7 +265,7 @@ export const checkChatParticipation = async (req, res, next) => {
   try {
     const { chatId } = req.params;
     const Chat = (await import("../models/chat.js")).default;
-    
+
     const chat = await Chat.findById(chatId);
     if (!chat) {
       return res.status(404).json({
@@ -247,7 +296,7 @@ export const checkBookingAccess = async (req, res, next) => {
   try {
     const { bookingId } = req.params;
     const Booking = (await import("../models/booking.js")).default;
-    
+
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({
@@ -259,7 +308,7 @@ export const checkBookingAccess = async (req, res, next) => {
     // Check if user is customer, venue owner, or admin
     const isCustomer = booking.customerId.equals(req.user.id);
     const isAdmin = req.user.role === "admin";
-    
+
     let isVenueOwner = false;
     if (!isCustomer && !isAdmin) {
       const Venue = (await import("../models/venue.js")).default;
