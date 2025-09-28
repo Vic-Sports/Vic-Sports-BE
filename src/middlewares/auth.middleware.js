@@ -8,10 +8,7 @@ export const protect = async (req, res, next) => {
     let token;
 
     // Get token from header or cookie
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
     } else if (req.cookies.token) {
       token = req.cookies.token;
@@ -109,10 +106,7 @@ export const optionalAuth = async (req, res, next) => {
   try {
     let token;
 
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
     } else if (req.cookies.token) {
       token = req.cookies.token;
@@ -150,9 +144,7 @@ export const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 
     // Clean old entries
     if (rateLimitMap.has(key)) {
-      const requests = rateLimitMap
-        .get(key)
-        .filter((time) => time > windowStart);
+      const requests = rateLimitMap.get(key).filter(time => time > windowStart);
       rateLimitMap.set(key, requests);
     } else {
       rateLimitMap.set(key, []);
@@ -224,7 +216,7 @@ export const checkChatParticipation = async (req, res, next) => {
   try {
     const { chatId } = req.params;
     const Chat = (await import("../models/chat.js")).default;
-
+    
     const chat = await Chat.findById(chatId);
     if (!chat) {
       return res.status(404).json({
@@ -255,7 +247,7 @@ export const checkBookingAccess = async (req, res, next) => {
   try {
     const { bookingId } = req.params;
     const Booking = (await import("../models/booking.js")).default;
-
+    
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({
@@ -267,7 +259,7 @@ export const checkBookingAccess = async (req, res, next) => {
     // Check if user is customer, venue owner, or admin
     const isCustomer = booking.customerId.equals(req.user.id);
     const isAdmin = req.user.role === "admin";
-
+    
     let isVenueOwner = false;
     if (!isCustomer && !isAdmin) {
       const Venue = (await import("../models/venue.js")).default;
