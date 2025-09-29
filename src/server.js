@@ -1,13 +1,16 @@
+import compression from "compression";
 import dotenv from "dotenv";
 import express from "express";
-import connectDB from "./config/database.js";
-import logger from "./utils/logger.js";
-import { corsMiddleware } from "./config/cors.config.js";
-import { errorHandler } from "./middlewares/error.middleware.js";
-import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
-import morgan from "morgan";
 import helmet from "helmet";
-import compression from "compression";
+import { createServer } from "http";
+import morgan from "morgan";
+import { Server } from "socket.io";
+import { corsMiddleware } from "./config/cors.config.js";
+import connectDB from "./config/database.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+import { initializeChatSocket } from "./socket/chat.socket.js";
+import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
+import logger from "./utils/logger.js";
 
 // Load environment variables
 dotenv.config();
@@ -16,6 +19,19 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = createServer(app);
+
+// Socket.IO setup
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Initialize chat socket handlers
+initializeChatSocket(io);
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
@@ -31,17 +47,17 @@ app.get("/", (req, res) => {
 });
 
 // Routes
-import authRoutes from "./routes/auth.route.js";
-import userRoutes from "./routes/user.route.js";
 import adminRoutes from "./routes/admin.route.js";
-import venueRoutes from "./routes/venue.route.js";
-import courtRoutes from "./routes/court.route.js";
+import authRoutes from "./routes/auth.route.js";
 import bookingRoutes from "./routes/booking.route.js";
-import reviewRoutes from "./routes/review.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import coachRoutes from "./routes/coach.route.js";
+import courtRoutes from "./routes/court.route.js";
 import loyaltyRoutes from "./routes/loyalty.route.js";
 import paymentRoutes from "./routes/payment.route.js";
+import reviewRoutes from "./routes/review.route.js";
+import userRoutes from "./routes/user.route.js";
+import venueRoutes from "./routes/venue.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
 import ownerRoutes from "./routes/owner.route.js";
 app.use("/api/v1/auth", authRoutes);
@@ -64,8 +80,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
 const HOST = "0.0.0.0"; // Cho phép lắng nghe mọi địa chỉ mạng
 
-app.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, () => {
   logger.info(`Server is running on port ${PORT}`);
+  logger.info(`Socket.IO server is running`);
 
   // Initialize cleanup jobs after server starts
   initializeCleanupJobs();

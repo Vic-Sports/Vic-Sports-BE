@@ -541,3 +541,51 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all users (for chat)
+// @route   GET /api/users
+// @access Private
+export const getAllUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search } = req.query;
+    const currentUserId = req.user.id;
+
+    // Build query
+    let query = { _id: { $ne: currentUserId } }; // Exclude current user
+
+    // Add search functionality
+    if (search) {
+      query.$or = [
+        { fullName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const users = await User.find(query)
+      .select('-password -emailVerificationToken -passwordResetToken')
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ fullName: 1 });
+
+    const total = await User.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+          totalUsers: total,
+          hasNext: page < Math.ceil(total / limit),
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
