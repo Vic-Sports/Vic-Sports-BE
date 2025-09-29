@@ -4,6 +4,7 @@ import {
   addFriend,
   blockUser,
   claimBirthdayVoucher,
+  getAllUsers,
   getFriends,
   getUserStats,
   removeFavoriteVenue,
@@ -32,5 +33,6 @@ router.delete("/block/:userId", unblockUser);
 router.post("/friends/:userId", addFriend);
 router.delete("/friends/:userId", removeFriend);
 router.get("/friends", getFriends);
+router.get("/", getAllUsers);
 
 export default router;

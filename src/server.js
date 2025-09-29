@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
 import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import connectDB from "./config/database.js";
 import logger from "./utils/logger.js";
 import { corsMiddleware } from "./config/cors.config.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
+import { initializeChatSocket } from "./socket/chat.socket.js";
 import morgan from "morgan";
 import helmet from "helmet";
 import compression from "compression";
@@ -16,6 +19,19 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = createServer(app);
+
+// Socket.IO setup
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Initialize chat socket handlers
+initializeChatSocket(io);
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
@@ -63,8 +79,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
 const HOST = "0.0.0.0"; // Cho phép lắng nghe mọi địa chỉ mạng
 
-app.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, () => {
   logger.info(`Server is running on port ${PORT}`);
+  logger.info(`Socket.IO server is running`);
 
   // Initialize cleanup jobs after server starts
   initializeCleanupJobs();
