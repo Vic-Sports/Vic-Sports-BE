@@ -1422,6 +1422,284 @@ export const bulkCourtAvailabilityCheck = async (req, res) => {
   }
 };
 
+// Owner Venue Management APIs
+export const getOwnerVenues = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const venues = await Venue.find({ ownerId }).populate(
+      "ownerId",
+      "fullName"
+    );
+    res.status(200).json({
+      success: true,
+      data: {
+        venues,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getOwnerVenueDetail = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const ownerId = req.user.id;
+
+    const venue = await Venue.findOne({ _id: venueId, ownerId })
+      .populate("ownerId", "fullName email phone")
+      .populate({
+        path: "courts",
+        select: "name sportType courtType capacity surface pricing",
+        match: { isActive: true },
+      });
+
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found or you are not the owner",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: venue,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const createOwnerVenue = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const {
+      name,
+      description,
+      address,
+      contactInfo,
+      amenities,
+      operatingHours,
+      parking,
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !name ||
+      !address ||
+      !address.street ||
+      !address.ward ||
+      !address.district ||
+      !address.city
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and complete address are required",
+      });
+    }
+
+    const venue = await Venue.create({
+      ownerId,
+      name,
+      description,
+      address,
+      contactInfo,
+      amenities,
+      operatingHours,
+      parking,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Venue created successfully",
+      data: {
+        venue,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateOwnerVenue = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const ownerId = req.user.id;
+    const updateData = req.body;
+
+    console.log("=== UPDATE OWNER VENUE DEBUG ===");
+    console.log("Venue ID:", venueId);
+    console.log("Owner ID:", ownerId);
+    console.log("Update Data:", JSON.stringify(updateData, null, 2));
+
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      console.log("❌ Venue not found with ID:", venueId);
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found",
+      });
+    }
+
+    console.log("✅ Venue found:", {
+      id: venue._id,
+      name: venue.name,
+      ownerId: venue.ownerId,
+    });
+
+    // Check if user is the owner
+    if (!venue.ownerId.equals(ownerId)) {
+      console.log(
+        "❌ Owner mismatch - Venue owner:",
+        venue.ownerId,
+        "Request owner:",
+        ownerId
+      );
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this venue",
+      });
+    }
+
+    console.log("✅ Owner verification passed");
+
+    // Update venue
+    console.log("📝 Starting venue update...");
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] !== undefined) {
+        console.log(`Updating ${key}:`, updateData[key]);
+
+        // Special handling for address to avoid overriding coordinates
+        if (key === "address" && venue.address && venue.address.coordinates) {
+          // Merge address fields while preserving existing coordinates
+          venue.address = {
+            ...venue.address.toObject(),
+            ...updateData[key],
+            coordinates:
+              updateData[key].coordinates || venue.address.coordinates,
+          };
+        } else {
+          venue[key] = updateData[key];
+        }
+      }
+    });
+
+    console.log("💾 Saving venue...");
+    const updatedVenue = await venue.save();
+    console.log("✅ Venue saved successfully:", {
+      id: updatedVenue._id,
+      name: updatedVenue.name,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Venue updated successfully",
+      data: {
+        venue: updatedVenue,
+      },
+    });
+  } catch (error) {
+    console.log("🔥 Update venue error:", error.name, error.message);
+    console.log("Error stack:", error.stack);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteOwnerVenue = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const ownerId = req.user.id;
+
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found",
+      });
+    }
+
+    // Check if user is the owner
+    if (!venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this venue",
+      });
+    }
+
+    venue.isActive = false;
+    await venue.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Venue deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const uploadOwnerVenueImages = async (req, res) => {
+  try {
+    const { venueId } = req.params;
+    const ownerId = req.user.id;
+    const { images } = req.body;
+
+    if (!images || !Array.isArray(images)) {
+      return res.status(400).json({
+        success: false,
+        message: "Images array is required",
+      });
+    }
+
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found",
+      });
+    }
+
+    // Check if user is the owner
+    if (!venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this venue",
+      });
+    }
+
+    venue.images = [...(venue.images || []), ...images];
+    await venue.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Images uploaded successfully",
+      data: {
+        images: venue.images,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // Helper function to get court pricing for specific time slot
 const getCourtPricing = (court, timeSlot, date) => {
   const dayOfWeek = new Date(date).getDay();

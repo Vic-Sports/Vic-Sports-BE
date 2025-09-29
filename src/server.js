@@ -59,7 +59,7 @@ import reviewRoutes from "./routes/review.route.js";
 import userRoutes from "./routes/user.route.js";
 import venueRoutes from "./routes/venue.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
-
+import ownerRoutes from "./routes/owner.route.js";
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
@@ -72,6 +72,7 @@ app.use("/api/v1/coaches", coachRoutes);
 app.use("/api/v1/loyalty", loyaltyRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/webhooks", webhookRoutes);
+app.use("/api/v1/owner", ownerRoutes);
 
 // Error handler
 app.use(errorHandler);
