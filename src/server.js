@@ -1,16 +1,16 @@
+import compression from "compression";
 import dotenv from "dotenv";
 import express from "express";
-import { createServer } from "http";
-import { Server } from "socket.io";
-import connectDB from "./config/database.js";
-import logger from "./utils/logger.js";
-import { corsMiddleware } from "./config/cors.config.js";
-import { errorHandler } from "./middlewares/error.middleware.js";
-import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
-import { initializeChatSocket } from "./socket/chat.socket.js";
-import morgan from "morgan";
 import helmet from "helmet";
-import compression from "compression";
+import { createServer } from "http";
+import morgan from "morgan";
+import { Server } from "socket.io";
+import { corsMiddleware } from "./config/cors.config.js";
+import connectDB from "./config/database.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
+import { initializeChatSocket } from "./socket/chat.socket.js";
+import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
+import logger from "./utils/logger.js";
 
 // Load environment variables
 dotenv.config();
@@ -47,17 +47,17 @@ app.get("/", (req, res) => {
 });
 
 // Routes
-import authRoutes from "./routes/auth.route.js";
-import userRoutes from "./routes/user.route.js";
 import adminRoutes from "./routes/admin.route.js";
-import venueRoutes from "./routes/venue.route.js";
-import courtRoutes from "./routes/court.route.js";
+import authRoutes from "./routes/auth.route.js";
 import bookingRoutes from "./routes/booking.route.js";
-import reviewRoutes from "./routes/review.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import coachRoutes from "./routes/coach.route.js";
+import courtRoutes from "./routes/court.route.js";
 import loyaltyRoutes from "./routes/loyalty.route.js";
 import paymentRoutes from "./routes/payment.route.js";
+import reviewRoutes from "./routes/review.route.js";
+import userRoutes from "./routes/user.route.js";
+import venueRoutes from "./routes/venue.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
 
 app.use("/api/v1/auth", authRoutes);
