@@ -105,7 +105,7 @@ export const verifyPayOSPayment = async (req, res) => {
       // Kiểm tra trạng thái thanh toán theo docs PayOS mới
       if (paymentInfo.status === "PAID") {
         // Cập nhật booking thành công
-        booking.paymentStatus = "completed";
+        booking.paymentStatus = "paid";
         booking.status = "confirmed";
         booking.payosTransactionId =
           paymentResult.transactions?.[0]?.reference || reference;
@@ -150,33 +150,27 @@ export const verifyPayOSPayment = async (req, res) => {
 
         return res.status(200).json({
           success: false,
-          data: {
-            booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-            },
-          },
-          message: "Payment was cancelled",
+          status: "CANCELLED",
+          message: "Payment failed or cancelled",
         });
       } else {
-        // Thanh toán vẫn đang pending
-        return res.status(200).json({
+        // Thanh toán vẫn đang pending/unknown
+        const flow = process.env.PAYOS_FLOW || process.env.NODE_ENV || "poll"; // poll | webhook
+        const pendingPayload = {
           success: false,
-          data: {
-            booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-            },
-            paymentInfo: {
-              status: paymentInfo.status,
-            },
-          },
-          message: "Payment is still pending",
-        });
+          status: paymentInfo.status || "UNKNOWN",
+          message: "Payment is pending",
+        };
+
+        if (
+          String(flow).toLowerCase() === "poll" ||
+          String(flow).toLowerCase() === "development"
+        ) {
+          // Dev/local: trả 202 để FE hiểu đang xử lý và tiếp tục poll
+          return res.status(202).json(pendingPayload);
+        }
+        // Prod/webhook: vẫn trả 200 nhưng FE nên dựa webhook là chính
+        return res.status(200).json(pendingPayload);
       }
     } catch (payosError) {
       console.error("PayOS verification error:", payosError);
@@ -256,7 +250,7 @@ export const payosWebhook = async (req, res) => {
     // Cập nhật trạng thái booking
     switch (data.code) {
       case "00": // Thành công
-        booking.paymentStatus = "completed";
+        booking.paymentStatus = "paid";
         booking.status = "confirmed";
         booking.payosTransactionId = data.reference;
         booking.paidAt = new Date();
@@ -327,27 +321,8 @@ export const getPaymentStatus = async (req, res) => {
         res.status(200).json({
           success: true,
           data: {
-            booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-              venue: booking.venue,
-              court: booking.court,
-              date: booking.date,
-              timeSlots: booking.timeSlots,
-              totalPrice: booking.totalPrice,
-              payosOrderCode: booking.payosOrderCode,
-              payosTransactionId: booking.payosTransactionId,
-              paidAt: booking.paidAt,
-            },
-            paymentInfo: {
-              orderCode: paymentResult.orderCode,
-              amount: paymentResult.amount,
-              currency: paymentResult.currency,
-              status: paymentResult.status,
-              paidAt: paymentResult.paidAt,
-            },
+            orderCode: paymentResult.orderCode,
+            status: paymentResult.status,
           },
         });
       } else {
@@ -408,10 +383,10 @@ export const createPayOSPayment = async (req, res) => {
       expiredAt,
     } = req.body;
 
-    if (!bookingId || !amount || !description) {
+    if (!bookingId || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: bookingId, amount, description",
+        message: "Missing required fields: bookingId, amount",
       });
     }
 
@@ -427,24 +402,79 @@ export const createPayOSPayment = async (req, res) => {
       });
     }
 
-    // Tạo unique order code
+    // Idempotent behavior: if booking already has a PayOS order, return existing payment info
+    if (booking.payosOrderCode) {
+      try {
+        const existing = await payosService.getPaymentInfo(
+          booking.payosOrderCode
+        );
+        if (existing.success) {
+          return res.status(200).json({
+            success: true,
+            data: {
+              booking: {
+                id: booking._id,
+                bookingCode: booking.bookingCode,
+                payosOrderCode: booking.payosOrderCode,
+              },
+              payment: {
+                orderCode: existing.data?.orderCode,
+                checkoutUrl:
+                  existing.data?.checkoutUrl ||
+                  existing.data?.data?.checkoutUrl,
+                qrCode: existing.data?.qrCode || existing.data?.data?.qrCode,
+                paymentLinkId:
+                  existing.data?.paymentLinkId ||
+                  existing.data?.data?.paymentLinkId,
+                amount: existing.data?.amount,
+                currency:
+                  existing.data?.currency ||
+                  existing.data?.data?.currency ||
+                  "VND",
+                status:
+                  existing.data?.status ||
+                  existing.data?.data?.status ||
+                  "PENDING",
+                // Normalized
+                paymentUrl:
+                  existing.data?.checkoutUrl ||
+                  existing.data?.data?.checkoutUrl ||
+                  null,
+                paymentRef:
+                  existing.data?.paymentLinkId ||
+                  existing.data?.data?.paymentLinkId ||
+                  String(booking.payosOrderCode),
+              },
+            },
+            message: "Existing PayOS payment link returned",
+          });
+        }
+      } catch (e) {
+        // fall through to creation if fetching existing fails
+      }
+    }
+
+    // Tạo unique order code (PayOS yêu cầu duy nhất)
     const orderCode = Math.floor(Date.now() / 1000);
+
+    // PayOS giới hạn mô tả <= 25 ký tự
+    const fallbackDesc = `Đặt sân ${booking.court?.name || "N/A"} - ${
+      booking.venue?.name || "N/A"
+    }`;
+    const rawDescription = description || fallbackDesc;
+    const safeDescription = String(rawDescription).slice(0, 25);
 
     const paymentData = {
       orderCode,
-      amount,
-      description:
-        description ||
-        `Đặt sân ${booking.court?.name || "N/A"} - ${
-          booking.venue?.name || "N/A"
-        }`,
+      amount: Number(amount),
+      description: safeDescription,
       items: items || [
         {
           name: `${booking.court?.name || "Court"} - ${
             booking.venue?.name || "Venue"
           }`,
           quantity: 1,
-          price: amount,
+          price: Number(amount),
         },
       ],
       buyerName,
@@ -457,7 +487,8 @@ export const createPayOSPayment = async (req, res) => {
 
     console.log("Creating PayOS payment with data:", paymentData);
 
-    const result = await payosService.createPaymentLink(paymentData);
+    // Gọi PayOS bằng SDK
+    const result = await payosService.createPaymentLinkSDK(paymentData);
 
     if (result.success) {
       // Cập nhật booking với PayOS order code
@@ -477,12 +508,25 @@ export const createPayOSPayment = async (req, res) => {
           },
           payment: {
             orderCode,
-            checkoutUrl: result.data.data?.checkoutUrl,
-            qrCode: result.data.data?.qrCode,
-            paymentLinkId: result.data.data?.paymentLinkId,
-            amount,
-            currency: result.data.data?.currency || "VND",
-            status: result.data.data?.status || "PENDING",
+            checkoutUrl:
+              result.data?.checkoutUrl || result.data?.data?.checkoutUrl,
+            qrCode: result.data?.qrCode || result.data?.data?.qrCode,
+            paymentLinkId:
+              result.data?.paymentLinkId || result.data?.data?.paymentLinkId,
+            amount: Number(amount),
+            currency:
+              result.data?.currency || result.data?.data?.currency || "VND",
+            status:
+              result.data?.status || result.data?.data?.status || "PENDING",
+            // Normalized fields for FE
+            paymentUrl:
+              result.data?.checkoutUrl ||
+              result.data?.data?.checkoutUrl ||
+              null,
+            paymentRef:
+              result.data?.paymentLinkId ||
+              result.data?.data?.paymentLinkId ||
+              String(orderCode),
           },
         },
         message: "PayOS payment link created successfully",

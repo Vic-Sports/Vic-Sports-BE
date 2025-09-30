@@ -1,12 +1,30 @@
 import axios from "axios";
 import crypto from "crypto";
+import { PayOS, APIError } from "@payos/node";
 
 // Lấy các biến môi trường
 const PAYOS_CLIENT_ID = process.env.PAYOS_CLIENT_ID;
 const PAYOS_API_KEY = process.env.PAYOS_API_KEY;
+const PAYOS_CHECKSUM_KEY = process.env.PAYOS_CHECKSUM_KEY;
 
 // URL cơ sở cho API
 const PAYOS_API_BASE_URL = "https://api-merchant.payos.vn/v2/payment-requests";
+
+// Lazily initialize SDK client to avoid env-required throw at import time
+let payosSdkClient = null;
+function getEnvSdkClient() {
+  if (payosSdkClient) return payosSdkClient;
+  if (PAYOS_CLIENT_ID && PAYOS_API_KEY && PAYOS_CHECKSUM_KEY) {
+    payosSdkClient = new PayOS({
+      clientId: PAYOS_CLIENT_ID,
+      apiKey: PAYOS_API_KEY,
+      checksumKey: PAYOS_CHECKSUM_KEY,
+      logLevel: "debug",
+    });
+    return payosSdkClient;
+  }
+  return null;
+}
 
 /**
  * Hàm đệ quy để chuyển đổi object/array thành một mảng các chuỗi "key=value".
@@ -134,6 +152,51 @@ export default {
   },
 
   /**
+   * Tạo payment link sử dụng PayOS SDK theo ví dụ cung cấp
+   * @param {object} paymentData
+   * @returns {Promise<object>}
+   */
+  async createPaymentLinkSDK(paymentData, clientOptions = undefined) {
+    try {
+      const sdkClient = clientOptions
+        ? new PayOS({
+            clientId: clientOptions.clientId,
+            apiKey: clientOptions.apiKey,
+            checksumKey: clientOptions.checksumKey,
+            logLevel: clientOptions.logLevel || "debug",
+          })
+        : getEnvSdkClient();
+      if (!sdkClient) {
+        throw new Error(
+          "PayOS SDK client is not configured. Provide clientOptions or set PAYOS_* envs."
+        );
+      }
+      const requestBody = {
+        amount: paymentData.amount,
+        orderCode: paymentData.orderCode,
+        description: paymentData.description,
+        returnUrl: paymentData.returnUrl,
+        cancelUrl: paymentData.cancelUrl,
+        // Các trường tùy chọn nếu có
+        items: paymentData.items,
+        buyerName: paymentData.buyerName,
+        buyerEmail: paymentData.buyerEmail,
+        buyerPhone: paymentData.buyerPhone,
+        buyerAddress: paymentData.buyerAddress,
+        expiredAt: paymentData.expiredAt,
+      };
+
+      const response = await sdkClient.paymentRequests.create(requestBody);
+      return { success: true, data: response };
+    } catch (err) {
+      if (err instanceof APIError) {
+        return { success: false, error: err.message, details: err.error };
+      }
+      return { success: false, error: err.message };
+    }
+  },
+
+  /**
    * Lấy thông tin của một đơn hàng thanh toán.
    * @param {number} orderCode Mã đơn hàng.
    * @returns {Promise<object>} Thông tin đơn hàng.
@@ -182,6 +245,8 @@ export default {
           "x-client-id": PAYOS_CLIENT_ID,
           "x-api-key": PAYOS_API_KEY,
           "Content-Type": "application/json",
+          // Thêm checksum vào header để phục vụ kiểm tra
+          "x-checksum": signature,
         },
       });
       return { success: true, data: res.data };
@@ -205,11 +270,17 @@ export default {
       const url = `${PAYOS_API_BASE_URL}/${orderCode}/cancel`;
       const body = cancellationReason ? { cancellationReason } : null;
 
+      // Tính checksum dựa trên body (nếu có)
+      const checksumPayload = body ? { ...body } : {};
+      const headerChecksum = createSignature(checksumPayload);
+
       const res = await axios.post(url, body, {
         headers: {
           "x-client-id": PAYOS_CLIENT_ID,
           "x-api-key": PAYOS_API_KEY,
           "Content-Type": "application/json",
+          // Thêm checksum vào header để phục vụ kiểm tra
+          "x-checksum": headerChecksum,
         },
       });
 

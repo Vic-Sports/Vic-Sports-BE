@@ -11,6 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@payos/node": "^2.0.3",
     "api-query-params": "5.4.0",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
