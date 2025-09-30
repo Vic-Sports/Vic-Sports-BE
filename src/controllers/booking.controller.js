@@ -280,10 +280,14 @@ export const createBooking = async (req, res) => {
         console.log("Creating PayOS payment link for court:", court.name);
 
         try {
+          // PayOS yêu cầu description <= 25 ký tự
+          const rawDesc = `Đặt sân ${court.name} - ${date} - ${transformedTimeSlots.length} giờ`;
+          const safeDesc = String(rawDesc).slice(0, 25);
+
           const paymentData = {
             orderCode: Math.floor(Date.now() / 1000) + i, // Unique order code for each court
             amount: individualAmount,
-            description: `Đặt sân ${court.name} - ${date} - ${transformedTimeSlots.length} giờ`,
+            description: safeDesc,
             items: [
               {
                 name: `${court.name} - ${transformedTimeSlots.length} giờ`,
@@ -302,7 +306,7 @@ export const createBooking = async (req, res) => {
 
           console.log("PayOS payment data:", paymentData);
 
-          const paymentResult = await payosService.createPaymentLink(
+          const paymentResult = await payosService.createPaymentLinkSDK(
             paymentData
           );
           console.log("PayOS payment result:", paymentResult);
@@ -328,11 +332,16 @@ export const createBooking = async (req, res) => {
             } else {
               // PayOS success - có payment link
               paymentLink =
-                paymentResult.data.data?.checkoutUrl ||
-                paymentResult.data.checkoutUrl;
+                paymentResult.data?.checkoutUrl ||
+                paymentResult.data?.data?.checkoutUrl;
               bookingData.payosOrderCode = paymentData.orderCode;
               bookingData.payosPaymentLinkId =
-                paymentResult.data.data?.paymentLinkId;
+                paymentResult.data?.paymentLinkId ||
+                paymentResult.data?.data?.paymentLinkId;
+              // Normalized fields for FE compatibility
+              bookingData.paymentUrl = paymentLink;
+              bookingData.paymentRef =
+                bookingData.payosPaymentLinkId || String(paymentData.orderCode);
             }
           } else {
             console.error(
