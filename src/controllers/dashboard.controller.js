@@ -69,16 +69,6 @@ export const getDashboardStats = async (req, res) => {
       },
     ]);
 
-    console.log("Dashboard stats:", {
-      totalVenues,
-      totalCourts,
-      totalBookings,
-      pendingBookings,
-      confirmedBookings,
-      completedBookings,
-      totalRevenue: totalRevenue[0]?.revenue || 0,
-    });
-
     return res.json({
       success: true,
       data: {
@@ -92,7 +82,6 @@ export const getDashboardStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("Dashboard stats error:", error);
     return res.status(500).json({
       success: false,
       error: { code: "SERVER_ERROR", message: error.message },
@@ -106,17 +95,11 @@ export const getRevenueChart = async (req, res) => {
     const ownerId = req.user.id;
     const { months = 12 } = req.query; // Default 12 months
 
-    console.log("=== REVENUE CHART DEBUG ===");
-    console.log("Owner ID:", ownerId);
-    console.log("Months requested:", months);
-
     // Get owner's venues
     const ownerVenues = await Venue.find({ ownerId, isActive: true }).select(
       "_id"
     );
     const venueIds = ownerVenues.map((venue) => venue._id);
-
-    console.log("Owner venues:", venueIds.length);
 
     if (venueIds.length === 0) {
       return res.json({
@@ -129,8 +112,6 @@ export const getRevenueChart = async (req, res) => {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - parseInt(months));
-
-    console.log("Date range:", startDate, "to", endDate);
 
     // Group by month and year - match FE requirements exactly
     const chart = await Booking.aggregate([
@@ -153,8 +134,6 @@ export const getRevenueChart = async (req, res) => {
       { $sort: { "_id.year": 1, "_id.month": 1 } },
     ]);
 
-    console.log("Revenue chart data:", chart);
-
     return res.json({
       success: true,
       data: chart,
@@ -173,18 +152,11 @@ export const getBookingStats = async (req, res) => {
   try {
     const ownerId = req.user.id;
     const { period = 30 } = req.query; // Default 30 days
-
-    console.log("=== BOOKING STATS DEBUG ===");
-    console.log("Owner ID:", ownerId);
-    console.log("Period (days):", period);
-
     // Get owner's venues
     const ownerVenues = await Venue.find({ ownerId, isActive: true }).select(
       "_id"
     );
     const venueIds = ownerVenues.map((venue) => venue._id);
-
-    console.log("Owner venues:", venueIds.length);
 
     if (venueIds.length === 0) {
       return res.json({
@@ -196,8 +168,6 @@ export const getBookingStats = async (req, res) => {
     // Calculate date range for recent bookings
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - parseInt(period));
-
-    console.log("Date range: last", period, "days from", startDate);
 
     // Group by status and sportType - match FE requirements exactly
     const stats = await Booking.aggregate([
@@ -233,8 +203,6 @@ export const getBookingStats = async (req, res) => {
       { $sort: { "_id.status": 1, "_id.sportType": 1 } },
     ]);
 
-    console.log("Booking stats data:", stats);
-
     return res.json({
       success: true,
       data: stats,
@@ -253,18 +221,11 @@ export const getRecentActivities = async (req, res) => {
   try {
     const ownerId = req.user.id;
     const { limit = 10 } = req.query;
-
-    console.log("=== RECENT ACTIVITIES DEBUG ===");
-    console.log("Owner ID:", ownerId);
-    console.log("Limit:", limit);
-
     // Get owner's venues
     const ownerVenues = await Venue.find({ ownerId, isActive: true }).select(
       "_id"
     );
     const venueIds = ownerVenues.map((venue) => venue._id);
-
-    console.log("Owner venues:", venueIds.length);
 
     if (venueIds.length === 0) {
       return res.json({
@@ -291,8 +252,6 @@ export const getRecentActivities = async (req, res) => {
       })
       .sort({ updatedAt: -1 })
       .limit(parseInt(limit));
-
-    console.log("Recent activities found:", activities.length);
 
     return res.json({
       success: true,

@@ -24,6 +24,8 @@ import {
   updateOwnerCourt,
   deleteOwnerCourt,
   uploadOwnerCourtImages,
+  updateCourtPricing,
+  updateCourtAvailability,
 } from "../controllers/court.controller.js";
 import {
   // Booking
@@ -68,6 +70,8 @@ router.post("/courts", createOwnerCourt);
 router.put("/courts/:courtId", updateOwnerCourt);
 router.delete("/courts/:courtId", deleteOwnerCourt);
 router.post("/courts/:courtId/upload-images", uploadOwnerCourtImages);
+router.put("/courts/:courtId/pricing", updateCourtPricing);
+router.put("/courts/:courtId/availability", updateCourtAvailability);
 
 // Booking Management APIs
 router.get("/bookings", getOwnerBookings);
