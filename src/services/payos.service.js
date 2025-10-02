@@ -68,13 +68,7 @@ function createSignature(data) {
   const dataQueries = objectToQueryString(data);
   const sortedQueries = dataQueries.sort();
   const dataString = sortedQueries.join("&");
-  console.log("--- PAYOS SIGNATURE DEBUG ---");
-  console.log("Data String to be Signed:", dataString);
-  console.log(
-    "Checksum Key Used (first 5 chars):",
-    PAYOS_CHECKSUM_KEY ? PAYOS_CHECKSUM_KEY.substring(0, 5) : "NOT FOUND"
-  );
-  console.log("-----------------------------");
+  // Removed verbose debug logs to reduce noise in production
   return crypto
     .createHmac("sha256", PAYOS_CHECKSUM_KEY)
     .update(dataString)
@@ -238,7 +232,7 @@ export default {
     const cleanPayload = JSON.parse(JSON.stringify(payload));
     const signature = createSignature(cleanPayload);
     payload.signature = signature;
-    console.log("Payload gửi đi:", JSON.stringify(payload, null, 2));
+    // Removed verbose payload log
     try {
       const res = await axios.post(PAYOS_API_BASE_URL, payload, {
         headers: {
@@ -268,12 +262,16 @@ export default {
   async cancelPaymentLink(orderCode, cancellationReason = "") {
     try {
       const url = `${PAYOS_API_BASE_URL}/${orderCode}/cancel`;
-      const body = cancellationReason ? { cancellationReason } : null;
 
-      // Tính checksum dựa trên body (nếu có)
-      const checksumPayload = body ? { ...body } : {};
-      const headerChecksum = createSignature(checksumPayload);
+      // Luôn gửi một object JSON hợp lệ, không bao giờ null
+      const body = cancellationReason
+        ? { cancellationReason }
+        : { cancellationReason: "Cancelled by user" };
 
+      // Tính checksum dựa trên body
+      const headerChecksum = createSignature(body);
+
+      // Removed verbose request/ checksum logs
       const res = await axios.post(url, body, {
         headers: {
           "x-client-id": PAYOS_CLIENT_ID,
@@ -296,30 +294,45 @@ export default {
   },
 
   /**
-   * Xác thực chữ ký từ Webhook của PayOS.
+   * Xác thực chữ ký từ Webhook của PayOS v2.
    * @param {object} webhookBody Toàn bộ body nhận được từ webhook.
+   * @param {string} receivedSignature Signature từ header.
    * @returns {boolean} True nếu chữ ký hợp lệ.
    */
-  verifyWebhookSignature(webhookBody) {
+  verifyWebhookSignature(webhookBody, receivedSignature) {
     try {
-      const { signature } = webhookBody;
-      if (!signature) {
-        console.error("Webhook Error: Signature is missing from the body.");
+      if (!receivedSignature) {
+        console.error("Webhook Error: Signature is missing from header.");
         return false;
       }
 
+      // PayOS v2: sử dụng SDK để verify
+      const sdkClient = getEnvSdkClient();
+      if (sdkClient) {
+        try {
+          // PayOS v2 SDK có method verifyPaymentWebhookData
+          const isValid = sdkClient.verifyPaymentWebhookData(
+            webhookBody,
+            receivedSignature
+          );
+          // Intentionally not logging success to reduce noise
+          return isValid;
+        } catch (err) {
+          console.error("PayOS SDK webhook verification error:", err);
+          return false;
+        }
+      }
+
+      // Fallback: manual verification (minimal logs)
       const dataToSign = { ...webhookBody };
-      delete dataToSign.signature;
+      if (dataToSign.signature) delete dataToSign.signature;
 
       const expectedSignature = createSignature(dataToSign);
 
-      return expectedSignature === signature;
+      return expectedSignature === receivedSignature;
     } catch (error) {
-      console.error("Webhook signature verification failed with error:", error);
+      console.error("Webhook signature verification failed:", error);
       return false;
     }
   },
 };
-
-console.log("PAYOS_CLIENT_ID:", process.env.PAYOS_CLIENT_ID);
-console.log("PAYOS_API_KEY:", process.env.PAYOS_API_KEY);
