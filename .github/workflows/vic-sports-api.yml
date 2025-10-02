@@ -69,6 +69,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "vic-sport-fearc9hggvdbapdn"
+          app-name: "vic-sport"
           slot-name: "Production"
           package: .
