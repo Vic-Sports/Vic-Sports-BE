@@ -26,8 +26,8 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 // Initialize chat socket handlers
@@ -53,6 +53,7 @@ import bookingRoutes from "./routes/booking.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import coachRoutes from "./routes/coach.route.js";
 import courtRoutes from "./routes/court.route.js";
+import fileRoutes from "./routes/file.route.js";
 import loyaltyRoutes from "./routes/loyalty.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import reviewRoutes from "./routes/review.route.js";
@@ -73,6 +74,7 @@ app.use("/api/v1/loyalty", loyaltyRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/webhooks", webhookRoutes);
 app.use("/api/v1/owner", ownerRoutes);
+app.use("/api/v1/file", fileRoutes);
 
 // Error handler
 app.use(errorHandler);
