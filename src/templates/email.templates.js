@@ -109,4 +109,42 @@ export const emailTemplates = {
       </div>
     `,
   },
+
+  ACCOUNT_BANNED: {
+    subject: 'Your Account Has Been Banned - Vic Sports',
+    getContent: ({ name }) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #c0392b; margin: 0;">Account Banned</h1>
+        </div>
+        <div style="background-color: #fdf2f2; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+          <p style="color: #34495e; margin: 0;">Hi ${name},</p>
+          <p style="color: #34495e; margin: 15px 0 0 0;">Your Vic Sports account has been banned due to policy violations or suspicious activities.</p>
+          <p style="color: #34495e; margin: 10px 0 0 0;">If you believe this is a mistake, please contact our support team.</p>
+        </div>
+        <div style="text-align: center; color: #7f8c8d; font-size: 14px;">
+          <p style="margin: 0;">Best regards,<br>Vic Sports Team</p>
+        </div>
+      </div>
+    `,
+  },
+
+  ACCOUNT_UNBANNED: {
+    subject: 'Your Account Has Been Restored - Vic Sports',
+    getContent: ({ name }) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #27ae60; margin: 0;">Account Restored</h1>
+        </div>
+        <div style="background-color: #f0fdf4; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+          <p style="color: #34495e; margin: 0;">Hi ${name},</p>
+          <p style="color: #34495e; margin: 15px 0 0 0;">Good news! Your Vic Sports account has been unbanned and restored to ACTIVE status.</p>
+          <p style="color: #34495e; margin: 10px 0 0 0;">You can now continue using our services.</p>
+        </div>
+        <div style="text-align: center; color: #7f8c8d; font-size: 14px;">
+          <p style="margin: 0;">Best regards,<br>Vic Sports Team</p>
+        </div>
+      </div>
+    `,
+  },
 };

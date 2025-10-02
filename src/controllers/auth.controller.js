@@ -23,7 +23,9 @@ const generateRefreshToken = (userId) => {
 // @access Public
 export const register = async (req, res) => {
   try {
-    const { fullName, email, password, phone, role = "customer" } = req.body;
+    // Cho phép đăng ký với role owner
+    const { fullName, email, password, phone, role } = req.body;
+    const userRole = role === "owner" ? "owner" : "customer";
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -51,7 +53,7 @@ export const register = async (req, res) => {
       email,
       password,
       phone,
-      role,
+      role: userRole,
     });
 
     // Generate email verification token
@@ -59,8 +61,8 @@ export const register = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Send verification email
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
-    
+    const verificationUrl = `${process.env.FRONTEND_URL}/auth/email-verification?token=${verificationToken}`;
+
     try {
       await sendEmail({
         email: user.email,
@@ -70,7 +72,8 @@ export const register = async (req, res) => {
 
       res.status(201).json({
         success: true,
-        message: "User registered successfully. Please check your email for verification.",
+        message:
+          "User registered successfully. Please check your email for verification.",
         data: {
           user: {
             id: user._id,
@@ -144,6 +147,11 @@ export const login = async (req, res) => {
       ip: req.ip,
       location: req.get("X-Forwarded-For") || req.connection.remoteAddress,
     };
+    // Xoá token xác thực email nếu đã xác thực
+    if (user.isEmailVerified) {
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+    }
     await user.save();
 
     // Set cookie options
@@ -154,7 +162,8 @@ export const login = async (req, res) => {
       sameSite: "strict",
     };
 
-    res.status(200)
+    res
+      .status(200)
       .cookie("token", token, options)
       .cookie("refreshToken", refreshToken, options)
       .json({
@@ -188,116 +197,77 @@ export const login = async (req, res) => {
 // @access Public
 export const socialLogin = async (req, res) => {
   try {
-    const { provider, socialId, email, name, picture } = req.body;
+    const {
+      email,
+      name,
+      fullName,
+      picture,
+      phone,
+      role = "customer",
+      dateOfBirth,
+      gender,
+      address,
+      loyaltyTier,
+      rewardPoints,
+      referralCode,
+      referredBy,
+      referralCount,
+      birthdayVoucherClaimed,
+      lastBirthdayVoucherYear,
+      totalBookings,
+      totalSpent,
+      favoriteVenues,
+      favoriteSports,
+      notificationSettings,
+      lastLoginDevice,
+    } = req.body;
 
-    // Check if user exists with social login
-    const user = await User.findOne({
-      [`socialLogin.${provider}.id`]: socialId,
-    });
+    // Tự động ép kiểu email về string nếu FE truyền object
+    const emailString = email;
+    const userFullName = name?.trim() || fullName?.trim() || "Google User";
+
+    let user = await User.findOne({ email: emailString });
 
     if (user) {
-      // User exists, generate tokens
-      const token = generateToken(user._id);
-      const refreshToken = generateRefreshToken(user._id);
-
-      // Update user online status
-      user.isOnline = true;
-      user.lastSeen = new Date();
+      if (user.status === "banned") {
+        return res.status(403).json({
+          message:
+            "Your account has been banned. Please contact an administrator.",
+          errorCode: "ACCOUNT_BANNED",
+        });
+      }
+    } else {
+      user = new User({
+        fullName: userFullName,
+        email: emailString,
+        password: null,
+        avatar: picture,
+        phone,
+        role,
+        dateOfBirth,
+        gender,
+        address,
+        loyaltyTier,
+        rewardPoints,
+        referralCode,
+        referredBy,
+        referralCount,
+        birthdayVoucherClaimed,
+        lastBirthdayVoucherYear,
+        totalBookings,
+        totalSpent,
+        favoriteVenues,
+        favoriteSports,
+        notificationSettings,
+        lastLoginDevice,
+        status: "ACTIVE",
+        isEmailVerified: true,
+      });
       await user.save();
-
-      const options = {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      };
-
-      return res.status(200)
-        .cookie("token", token, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json({
-          success: true,
-          message: "Social login successful",
-          data: {
-            user: {
-              id: user._id,
-              fullName: user.fullName,
-              email: user.email,
-              role: user.role,
-              avatar: user.avatar,
-              isEmailVerified: user.isEmailVerified,
-            },
-            token,
-            refreshToken,
-          },
-        });
     }
 
-    // Check if user exists with email
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      // Link social account to existing user
-      existingUser.socialLogin[provider] = {
-        id: socialId,
-        email,
-        name,
-        picture,
-      };
-      existingUser.isEmailVerified = true; // Social login implies email verification
-      existingUser.isOnline = true;
-      existingUser.lastSeen = new Date();
-      await existingUser.save();
-
-      const token = generateToken(existingUser._id);
-      const refreshToken = generateRefreshToken(existingUser._id);
-
-      const options = {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      };
-
-      return res.status(200)
-        .cookie("token", token, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json({
-          success: true,
-          message: "Social account linked successfully",
-          data: {
-            user: {
-              id: existingUser._id,
-              fullName: existingUser.fullName,
-              email: existingUser.email,
-              role: existingUser.role,
-              avatar: existingUser.avatar,
-              isEmailVerified: existingUser.isEmailVerified,
-            },
-            token,
-            refreshToken,
-          },
-        });
-    }
-
-    // Create new user
-    const newUser = await User.create({
-      fullName: name,
-      email,
-      avatar: picture,
-      socialLogin: {
-        [provider]: {
-          id: socialId,
-          email,
-          name,
-          picture,
-        },
-      },
-      isEmailVerified: true,
-      status: "ACTIVE",
-    });
-
-    const token = generateToken(newUser._id);
-    const refreshToken = generateRefreshToken(newUser._id);
+    const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
     const options = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -306,20 +276,23 @@ export const socialLogin = async (req, res) => {
       sameSite: "strict",
     };
 
-    res.status(201)
+    res
+      .status(200)
       .cookie("token", token, options)
       .cookie("refreshToken", refreshToken, options)
       .json({
         success: true,
-        message: "Account created successfully",
+        message: "Login successful",
         data: {
           user: {
-            id: newUser._id,
-            fullName: newUser.fullName,
-            email: newUser.email,
-            role: newUser.role,
-            avatar: newUser.avatar,
-            isEmailVerified: newUser.isEmailVerified,
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            isEmailVerified: user.isEmailVerified,
+            loyaltyTier: user.loyaltyTier,
+            rewardPoints: user.rewardPoints,
           },
           token,
           refreshToken,
@@ -338,7 +311,7 @@ export const socialLogin = async (req, res) => {
 // @access Public
 export const verifyEmail = async (req, res) => {
   try {
-    const { token } = req.params;
+    const token = req.query.token || req.params.token;
 
     // Hash the token
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
@@ -347,32 +320,60 @@ export const verifyEmail = async (req, res) => {
     const user = await User.findOne({
       emailVerificationToken: hashedToken,
       emailVerificationExpires: { $gt: Date.now() },
-    });
+    }).select("+emailVerificationToken +emailVerificationExpires");
 
     if (!user) {
+      console.error("[VerifyEmail] Token not found or expired", {
+        token,
+        hashedToken,
+        query: req.query,
+        params: req.params,
+      });
       return res.status(400).json({
         success: false,
         message: "Invalid or expired verification token",
+        debug: {
+          token,
+          hashedToken,
+        },
       });
     }
 
-    // Verify user
+    // Nếu đã xác thực rồi thì trả về thành công, không xác thực lại
+    if (user.isEmailVerified) {
+      res.set("Cache-Control", "no-store");
+      return res.status(200).json({
+        success: true,
+        user: {
+          email: user.email,
+          isVerified: user.isEmailVerified,
+        },
+      });
+    }
+
+    // Verify user lần đầu
     user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
     user.status = "ACTIVE";
     await user.save();
 
-    res.status(200).json({
+    res.set("Cache-Control", "no-store");
+    return res.status(200).json({
       success: true,
-      message: "Email verified successfully",
+      user: {
+        email: user.email,
+        isVerified: user.isEmailVerified,
+      },
     });
   } catch (error) {
+    console.error("[VerifyEmail] Internal error:", error);
     res.status(500).json({
       success: false,
       message: error.message,
+      debug: error.stack,
     });
   }
+  // Tắt cache cho response xác thực email
+  res.set("Cache-Control", "no-store");
 };
 
 // @desc    Forgot Password
@@ -515,39 +516,95 @@ export const changePassword = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    const userId = req.user?.id;
+    const refreshToken =
+      req.cookies.refreshToken || req.headers["x-refresh-token"];
+    let userId = null;
 
+    // Always decode token to get userId
     if (token) {
       try {
-        // Add token to blacklist
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        await TokenBlacklist.create({
+        const decoded = jwt.decode(token);
+        if (decoded && decoded.userId) userId = decoded.userId;
+      } catch (e) {
+        userId = null;
+      }
+    }
+    if (!userId && refreshToken) {
+      try {
+        const decoded = jwt.decode(refreshToken);
+        if (decoded && decoded.userId) userId = decoded.userId;
+      } catch (e) {
+        userId = null;
+      }
+    }
+
+    // Fire-and-forget DB operations for performance
+    (async () => {
+      // Blacklist access token
+      if (token) {
+        let decoded, expiresAt, blacklistUserId;
+        try {
+          decoded = jwt.verify(token, process.env.JWT_SECRET);
+          expiresAt = new Date(decoded.exp * 1000);
+          blacklistUserId = decoded.userId;
+        } catch (jwtError) {
+          expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+          blacklistUserId = userId || null;
+          console.log(
+            "Token verification failed during logout:",
+            jwtError.message
+          );
+        }
+        TokenBlacklist.create({
           token,
-          userId: decoded.userId,
+          userId: blacklistUserId,
           tokenType: "ACCESS_TOKEN",
           reason: "LOGOUT",
-          expiresAt: new Date(decoded.exp * 1000),
-        });
-      } catch (jwtError) {
-        // If token is invalid, we still proceed with logout
-        console.log("Token verification failed during logout:", jwtError.message);
+          expiresAt,
+        }).catch((err) => console.log("Blacklist access token error:", err));
       }
-    }
 
-    // Update user online status if user exists
-    if (userId) {
-      try {
-        const user = await User.findById(userId);
-        if (user) {
-          user.isOnline = false;
-          await user.save();
+      // Blacklist refresh token if exists
+      if (refreshToken) {
+        let decoded, expiresAt, blacklistUserId;
+        try {
+          decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+          expiresAt = new Date(decoded.exp * 1000);
+          blacklistUserId = decoded.userId;
+        } catch (jwtError) {
+          expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days fallback
+          blacklistUserId = userId || null;
+          console.log(
+            "Refresh token verification failed during logout:",
+            jwtError.message
+          );
         }
-      } catch (userError) {
-        console.log("User update failed during logout:", userError.message);
+        TokenBlacklist.create({
+          token: refreshToken,
+          userId: blacklistUserId,
+          tokenType: "REFRESH_TOKEN",
+          reason: "LOGOUT",
+          expiresAt,
+        }).catch((err) => console.log("Blacklist refresh token error:", err));
       }
-    }
 
-    res.status(200)
+      // Update user online status if userId found
+      if (userId) {
+        try {
+          const user = await User.findById(userId);
+          if (user) {
+            user.isOnline = false;
+            await user.save();
+          }
+        } catch (userError) {
+          console.log("User update failed during logout:", userError.message);
+        }
+      }
+    })();
+
+    // Respond immediately
+    res
+      .status(200)
       .clearCookie("token", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -564,8 +621,8 @@ export const logout = async (req, res) => {
       });
   } catch (error) {
     console.error("Logout error:", error);
-    // Even if there's an error, we should still clear cookies and respond
-    res.status(200)
+    res
+      .status(200)
       .clearCookie("token", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -606,13 +663,10 @@ export const logoutAll = async (req, res) => {
       await user.save();
     }
 
-    res.status(200)
-      .clearCookie("token")
-      .clearCookie("refreshToken")
-      .json({
-        success: true,
-        message: "Logged out from all devices successfully",
-      });
+    res.status(200).clearCookie("token").clearCookie("refreshToken").json({
+      success: true,
+      message: "Logged out from all devices successfully",
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -657,7 +711,8 @@ export const refreshToken = async (req, res) => {
       sameSite: "strict",
     };
 
-    res.status(200)
+    res
+      .status(200)
       .cookie("token", newToken, options)
       .cookie("refreshToken", newRefreshToken, options)
       .json({

@@ -4,11 +4,29 @@ import { storage } from "../config/cloudinary.js";
 
 // File filter
 const fileFilter = (req, file, cb) => {
-  // Accept images only
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-    return cb(new ErrorResponse("Only image files are allowed!", 400), false);
+  // Allowed file types
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    return cb(
+      new ErrorResponse(
+        "Invalid file type. Only images, PDF, and Word documents are allowed.",
+        400
+      ),
+      false
+    );
   }
-  cb(null, true);
 };
 
 // Configure upload
@@ -16,7 +34,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max file size
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
   },
 });
 
