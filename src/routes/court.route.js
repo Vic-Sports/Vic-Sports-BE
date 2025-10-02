@@ -14,6 +14,7 @@ import {
   getCourtStats,
 } from "../controllers/court.controller.js";
 import { protect, authorize } from "../middlewares/auth.middleware.js";
+import { autoCleanupBeforeAvailabilityCheck } from "../middlewares/cleanup.middleware.js";
 
 const router = express.Router();
 
@@ -23,7 +24,11 @@ router.get("/sports", getAvailableSports); // Move before /:courtId to avoid con
 router.get("/:courtId", getCourtById); // done
 router.get("/venue/:venueId", getCourtsByVenue); // done
 router.get("/sport/:sportType", getCourtsBySport); // Updated to support venueId query param
-router.get("/:courtId/availability", getCourtAvailability); // Updated availability check
+router.get(
+  "/:courtId/availability",
+  autoCleanupBeforeAvailabilityCheck,
+  getCourtAvailability
+); // Updated availability check
 router.get("/:courtId/pricing", getCourtPricing); // done
 
 // Owner routes

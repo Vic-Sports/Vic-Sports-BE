@@ -168,7 +168,7 @@ export const createBooking = async (req, res) => {
       court: { $in: courtIdsArray },
       date: bookingDate,
       timeSlots: { $in: timeSlots },
-      status: { $in: ["CONFIRMED", "PENDING"] },
+      status: { $in: ["confirmed", "pending"] },
     });
 
     if (existingBookings.length > 0) {
@@ -296,9 +296,15 @@ export const createBooking = async (req, res) => {
               },
             ],
             returnUrl:
-              paymentInfo.returnUrl || "http://localhost:5173/booking/success",
+              paymentInfo.returnUrl ||
+              `${
+                process.env.BACKEND_URL || "http://localhost:3000"
+              }/api/v1/payments/payos/return`,
             cancelUrl:
-              paymentInfo.cancelUrl || "http://localhost:5173/booking/cancel",
+              paymentInfo.cancelUrl ||
+              `${
+                process.env.BACKEND_URL || "http://localhost:3000"
+              }/api/v1/payments/payos/cancel`,
             buyerName: customerInfo?.fullName,
             buyerEmail: customerInfo?.email,
             buyerPhone: customerInfo?.phone,
