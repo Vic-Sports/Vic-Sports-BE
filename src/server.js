@@ -10,6 +10,7 @@ import connectDB from "./config/database.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { initializeChatSocket } from "./socket/chat.socket.js";
 import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
+import { scheduleBookingCleanup } from "./utils/bookingCleanup.js";
 import logger from "./utils/logger.js";
 
 // Load environment variables
@@ -32,6 +33,12 @@ const io = new Server(server, {
 
 // Initialize chat socket handlers
 initializeChatSocket(io);
+
+// Import webhook middleware
+import { captureRawBody } from "./middlewares/webhook.middleware.js";
+
+// Webhook raw body capture - PHẢI ĐẶT TRƯỚC express.json()
+app.use(captureRawBody);
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
@@ -88,6 +95,9 @@ server.listen(PORT, HOST, () => {
 
   // Initialize cleanup jobs after server starts
   initializeCleanupJobs();
+
+  // Schedule automatic booking cleanup
+  scheduleBookingCleanup();
 });
 
 export default app;
