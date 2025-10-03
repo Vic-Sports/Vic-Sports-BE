@@ -10,6 +10,7 @@ import connectDB from "./config/database.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { initializeChatSocket } from "./socket/chat.socket.js";
 import { initializeCleanupJobs } from "./utils/cleanupJobs.js";
+import { scheduleBookingCleanup } from "./utils/bookingCleanup.js";
 import logger from "./utils/logger.js";
 
 // Load environment variables
@@ -26,12 +27,18 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 // Initialize chat socket handlers
 initializeChatSocket(io);
+
+// Import webhook middleware
+import { captureRawBody } from "./middlewares/webhook.middleware.js";
+
+// Webhook raw body capture - PHẢI ĐẶT TRƯỚC express.json()
+app.use(captureRawBody);
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
@@ -53,13 +60,14 @@ import bookingRoutes from "./routes/booking.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import coachRoutes from "./routes/coach.route.js";
 import courtRoutes from "./routes/court.route.js";
+import fileRoutes from "./routes/file.route.js";
 import loyaltyRoutes from "./routes/loyalty.route.js";
 import paymentRoutes from "./routes/payment.route.js";
 import reviewRoutes from "./routes/review.route.js";
 import userRoutes from "./routes/user.route.js";
 import venueRoutes from "./routes/venue.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
-
+import ownerRoutes from "./routes/owner.route.js";
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
@@ -72,6 +80,8 @@ app.use("/api/v1/coaches", coachRoutes);
 app.use("/api/v1/loyalty", loyaltyRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/webhooks", webhookRoutes);
+app.use("/api/v1/owner", ownerRoutes);
+app.use("/api/v1/file", fileRoutes);
 
 // Error handler
 app.use(errorHandler);
@@ -85,6 +95,9 @@ server.listen(PORT, HOST, () => {
 
   // Initialize cleanup jobs after server starts
   initializeCleanupJobs();
+
+  // Schedule automatic booking cleanup
+  scheduleBookingCleanup();
 });
 
 export default app;

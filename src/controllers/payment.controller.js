@@ -105,7 +105,7 @@ export const verifyPayOSPayment = async (req, res) => {
       // Kiểm tra trạng thái thanh toán theo docs PayOS mới
       if (paymentInfo.status === "PAID") {
         // Cập nhật booking thành công
-        booking.paymentStatus = "completed";
+        booking.paymentStatus = "paid";
         booking.status = "confirmed";
         booking.payosTransactionId =
           paymentResult.transactions?.[0]?.reference || reference;
@@ -146,37 +146,37 @@ export const verifyPayOSPayment = async (req, res) => {
         // Cập nhật booking bị hủy
         booking.paymentStatus = "cancelled";
         booking.status = "cancelled";
+        booking.cancelledAt = new Date();
+        booking.cancellationReason = "Payment cancelled by user or expired";
         await booking.save();
+
+        console.log(
+          `Booking ${booking._id} marked as cancelled due to payment cancellation`
+        );
 
         return res.status(200).json({
           success: false,
-          data: {
-            booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-            },
-          },
-          message: "Payment was cancelled",
+          status: "CANCELLED",
+          message: "Payment failed or cancelled",
         });
       } else {
-        // Thanh toán vẫn đang pending
-        return res.status(200).json({
+        // Thanh toán vẫn đang pending/unknown
+        const flow = process.env.PAYOS_FLOW || process.env.NODE_ENV || "poll"; // poll | webhook
+        const pendingPayload = {
           success: false,
-          data: {
-            booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-            },
-            paymentInfo: {
-              status: paymentInfo.status,
-            },
-          },
-          message: "Payment is still pending",
-        });
+          status: paymentInfo.status || "UNKNOWN",
+          message: "Payment is pending",
+        };
+
+        if (
+          String(flow).toLowerCase() === "poll" ||
+          String(flow).toLowerCase() === "development"
+        ) {
+          // Dev/local: trả 202 để FE hiểu đang xử lý và tiếp tục poll
+          return res.status(202).json(pendingPayload);
+        }
+        // Prod/webhook: vẫn trả 200 nhưng FE nên dựa webhook là chính
+        return res.status(200).json(pendingPayload);
       }
     } catch (payosError) {
       console.error("PayOS verification error:", payosError);
@@ -203,20 +203,21 @@ export const payosWebhook = async (req, res) => {
     console.log("Headers:", req.headers);
     console.log("Body:", JSON.stringify(req.body, null, 2));
 
+    // PayOS v2: signature trong header x-payos-signature
     const signature = req.headers["x-payos-signature"];
 
     if (!signature) {
-      console.log("Missing PayOS signature");
+      console.log("Missing PayOS signature in header");
       return res.status(400).json({
         success: false,
         message: "Missing signature",
       });
     }
 
-    // Xác thực webhook signature theo docs PayOS
+    // Xác thực webhook signature với PayOS v2
     const isValidSignature = payosService.verifyWebhookSignature(
-      req.body, // Truyền raw body object, không stringify
-      signature
+      req.body, // Raw body object
+      signature // Signature từ header
     );
 
     if (!isValidSignature) {
@@ -227,67 +228,80 @@ export const payosWebhook = async (req, res) => {
       });
     }
 
-    console.log("Webhook signature verified");
+    console.log("Webhook signature verified successfully");
 
+    // PayOS v2 webhook format
     const { data } = req.body;
 
     if (!data || !data.orderCode) {
+      console.log("Invalid webhook data format");
       return res.status(400).json({
         success: false,
         message: "Invalid webhook data",
       });
     }
 
-    // Tìm booking
+    // Tìm booking theo orderCode
     const booking = await Booking.findOne({
       payosOrderCode: data.orderCode,
     });
 
     if (!booking) {
       console.log("Booking not found for orderCode:", data.orderCode);
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
+      // Vẫn trả về 200 để PayOS không gửi lại
+      return res.status(200).json({
+        success: true,
+        message: "Booking not found, but webhook acknowledged",
       });
     }
 
     console.log("Processing webhook for booking:", booking._id);
+    console.log("Payment status:", data.status);
 
-    // Cập nhật trạng thái booking
-    switch (data.code) {
-      case "00": // Thành công
-        booking.paymentStatus = "completed";
+    // Cập nhật trạng thái booking theo PayOS v2 status
+    switch (data.status) {
+      case "PAID": // Thành công
+        booking.paymentStatus = "paid";
         booking.status = "confirmed";
-        booking.payosTransactionId = data.reference;
+        booking.payosTransactionId =
+          data.transactions?.[0]?.reference || data.reference;
         booking.paidAt = new Date();
+        console.log("Booking marked as PAID");
         break;
 
-      case "01": // Thất bại
-        booking.paymentStatus = "failed";
-        booking.status = "cancelled";
-        break;
-
-      case "02": // Hủy
+      case "CANCELLED": // Hủy bởi user
         booking.paymentStatus = "cancelled";
         booking.status = "cancelled";
+        booking.cancelledAt = new Date();
+        booking.cancellationReason = "Payment cancelled by user";
+        console.log("Booking marked as CANCELLED via webhook");
+        break;
+
+      case "EXPIRED": // Hết hạn
+        booking.paymentStatus = "expired";
+        booking.status = "cancelled";
+        booking.cancelledAt = new Date();
+        booking.cancellationReason = "Payment expired";
+        console.log("Booking marked as EXPIRED via webhook");
         break;
 
       default:
-        console.log("Unknown payment status code:", data.code);
+        console.log("Unknown payment status:", data.status);
+        // Không cập nhật gì, chỉ log
         break;
     }
 
     await booking.save();
-
     console.log("Booking updated successfully");
 
-    // Trả về success để PayOS biết webhook đã được xử lý
+    // Trả về 200 để PayOS biết webhook đã được xử lý thành công
     res.status(200).json({
       success: true,
       message: "Webhook processed successfully",
     });
   } catch (error) {
     console.error("PayOS webhook error:", error);
+    // Trả về 500 để PayOS thử gửi lại webhook
     res.status(500).json({
       success: false,
       message: "Webhook processing failed",
@@ -327,27 +341,8 @@ export const getPaymentStatus = async (req, res) => {
         res.status(200).json({
           success: true,
           data: {
-            booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-              venue: booking.venue,
-              court: booking.court,
-              date: booking.date,
-              timeSlots: booking.timeSlots,
-              totalPrice: booking.totalPrice,
-              payosOrderCode: booking.payosOrderCode,
-              payosTransactionId: booking.payosTransactionId,
-              paidAt: booking.paidAt,
-            },
-            paymentInfo: {
-              orderCode: paymentResult.orderCode,
-              amount: paymentResult.amount,
-              currency: paymentResult.currency,
-              status: paymentResult.status,
-              paidAt: paymentResult.paidAt,
-            },
+            orderCode: paymentResult.orderCode,
+            status: paymentResult.status,
           },
         });
       } else {
@@ -408,10 +403,10 @@ export const createPayOSPayment = async (req, res) => {
       expiredAt,
     } = req.body;
 
-    if (!bookingId || !amount || !description) {
+    if (!bookingId || !amount) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: bookingId, amount, description",
+        message: "Missing required fields: bookingId, amount",
       });
     }
 
@@ -427,37 +422,98 @@ export const createPayOSPayment = async (req, res) => {
       });
     }
 
-    // Tạo unique order code
+    // Idempotent behavior: if booking already has a PayOS order, return existing payment info
+    if (booking.payosOrderCode) {
+      try {
+        const existing = await payosService.getPaymentInfo(
+          booking.payosOrderCode
+        );
+        if (existing.success) {
+          return res.status(200).json({
+            success: true,
+            data: {
+              booking: {
+                id: booking._id,
+                bookingCode: booking.bookingCode,
+                payosOrderCode: booking.payosOrderCode,
+              },
+              payment: {
+                orderCode: existing.data?.orderCode,
+                checkoutUrl:
+                  existing.data?.checkoutUrl ||
+                  existing.data?.data?.checkoutUrl,
+                qrCode: existing.data?.qrCode || existing.data?.data?.qrCode,
+                paymentLinkId:
+                  existing.data?.paymentLinkId ||
+                  existing.data?.data?.paymentLinkId,
+                amount: existing.data?.amount,
+                currency:
+                  existing.data?.currency ||
+                  existing.data?.data?.currency ||
+                  "VND",
+                status:
+                  existing.data?.status ||
+                  existing.data?.data?.status ||
+                  "PENDING",
+                // Normalized
+                paymentUrl:
+                  existing.data?.checkoutUrl ||
+                  existing.data?.data?.checkoutUrl ||
+                  null,
+                paymentRef:
+                  existing.data?.paymentLinkId ||
+                  existing.data?.data?.paymentLinkId ||
+                  String(booking.payosOrderCode),
+              },
+            },
+            message: "Existing PayOS payment link returned",
+          });
+        }
+      } catch (e) {
+        // fall through to creation if fetching existing fails
+      }
+    }
+
+    // Tạo unique order code (PayOS yêu cầu duy nhất)
     const orderCode = Math.floor(Date.now() / 1000);
+
+    // PayOS giới hạn mô tả <= 25 ký tự
+    const fallbackDesc = `Đặt sân ${booking.court?.name || "N/A"} - ${
+      booking.venue?.name || "N/A"
+    }`;
+    const rawDescription = description || fallbackDesc;
+    const safeDescription = String(rawDescription).slice(0, 25);
 
     const paymentData = {
       orderCode,
-      amount,
-      description:
-        description ||
-        `Đặt sân ${booking.court?.name || "N/A"} - ${
-          booking.venue?.name || "N/A"
-        }`,
+      amount: Number(amount),
+      description: safeDescription,
       items: items || [
         {
           name: `${booking.court?.name || "Court"} - ${
             booking.venue?.name || "Venue"
           }`,
           quantity: 1,
-          price: amount,
+          price: Number(amount),
         },
       ],
       buyerName,
       buyerEmail,
       buyerPhone,
-      returnUrl,
-      cancelUrl,
+      // Use frontend URLs so PayOS redirects directly to frontend
+      returnUrl: `${
+        process.env.FRONTEND_URL || "http://localhost:5173"
+      }/booking/payos-return`,
+      cancelUrl: `${
+        process.env.FRONTEND_URL || "http://localhost:5173"
+      }/booking/payos-return`,
       expiredAt,
     };
 
     console.log("Creating PayOS payment with data:", paymentData);
 
-    const result = await payosService.createPaymentLink(paymentData);
+    // Gọi PayOS bằng SDK
+    const result = await payosService.createPaymentLinkSDK(paymentData);
 
     if (result.success) {
       // Cập nhật booking với PayOS order code
@@ -477,12 +533,25 @@ export const createPayOSPayment = async (req, res) => {
           },
           payment: {
             orderCode,
-            checkoutUrl: result.data.data?.checkoutUrl,
-            qrCode: result.data.data?.qrCode,
-            paymentLinkId: result.data.data?.paymentLinkId,
-            amount,
-            currency: result.data.data?.currency || "VND",
-            status: result.data.data?.status || "PENDING",
+            checkoutUrl:
+              result.data?.checkoutUrl || result.data?.data?.checkoutUrl,
+            qrCode: result.data?.qrCode || result.data?.data?.qrCode,
+            paymentLinkId:
+              result.data?.paymentLinkId || result.data?.data?.paymentLinkId,
+            amount: Number(amount),
+            currency:
+              result.data?.currency || result.data?.data?.currency || "VND",
+            status:
+              result.data?.status || result.data?.data?.status || "PENDING",
+            // Normalized fields for FE
+            paymentUrl:
+              result.data?.checkoutUrl ||
+              result.data?.data?.checkoutUrl ||
+              null,
+            paymentRef:
+              result.data?.paymentLinkId ||
+              result.data?.data?.paymentLinkId ||
+              String(orderCode),
           },
         },
         message: "PayOS payment link created successfully",
@@ -544,7 +613,9 @@ export const cancelPayOSPayment = async (req, res) => {
       booking.cancelledAt = new Date();
       await booking.save();
 
-      console.log("PayOS payment cancelled successfully");
+      console.log(
+        `PayOS payment cancelled successfully for booking ${booking._id}`
+      );
 
       return res.status(200).json({
         success: true,
@@ -559,12 +630,12 @@ export const cancelPayOSPayment = async (req, res) => {
         message: "PayOS payment cancelled successfully",
       });
     } else {
-      console.error("PayOS payment cancellation failed:", result.error);
-
+      // PayOS cancel failed, return error
+      console.error("PayOS cancel failed:", result.error || result);
       return res.status(400).json({
         success: false,
         message: "Failed to cancel PayOS payment",
-        error: result.error,
+        error: result.error || result.details || "PayOS cancel request failed",
       });
     }
   } catch (error) {
@@ -573,5 +644,378 @@ export const cancelPayOSPayment = async (req, res) => {
       success: false,
       message: error.message || "Internal server error",
     });
+  }
+};
+
+// @desc    Cleanup stuck pending bookings
+// @route   POST /api/payments/cleanup-pending
+// @access  Admin/Private
+export const cleanupPendingBookings = async (req, res) => {
+  try {
+    const { maxAgeHours = 24 } = req.body; // Default 24 hours
+
+    console.log(
+      `Starting cleanup of pending bookings older than ${maxAgeHours} hours`
+    );
+
+    // Find bookings that are pending for more than maxAgeHours
+    const cutoffTime = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
+
+    const stuckBookings = await Booking.find({
+      status: "pending",
+      paymentStatus: "pending",
+      createdAt: { $lt: cutoffTime },
+    });
+
+    console.log(`Found ${stuckBookings.length} stuck pending bookings`);
+
+    let cancelledCount = 0;
+
+    for (const booking of stuckBookings) {
+      // Check if there's a PayOS order code
+      if (booking.payosOrderCode) {
+        try {
+          // Try to get payment status from PayOS
+          const paymentResult = await payosService.getPaymentInfo(
+            booking.payosOrderCode
+          );
+
+          if (paymentResult.success) {
+            const paymentStatus = paymentResult.data?.status;
+
+            if (paymentStatus === "CANCELLED" || paymentStatus === "EXPIRED") {
+              // Payment was already cancelled/expired, update booking
+              booking.status = "cancelled";
+              booking.paymentStatus =
+                paymentStatus === "EXPIRED" ? "expired" : "cancelled";
+              booking.cancelledAt = new Date();
+              booking.cancellationReason = `Auto-cleanup: Payment ${paymentStatus.toLowerCase()}`;
+              await booking.save();
+              cancelledCount++;
+              console.log(
+                `Cancelled booking ${booking._id} - PayOS status: ${paymentStatus}`
+              );
+            } else if (paymentStatus === "PENDING") {
+              // Payment still pending, cancel it
+              const cancelResult = await payosService.cancelPaymentLink(
+                booking.payosOrderCode
+              );
+              if (cancelResult.success) {
+                booking.status = "cancelled";
+                booking.paymentStatus = "cancelled";
+                booking.cancelledAt = new Date();
+                booking.cancellationReason = "Auto-cleanup: Payment timeout";
+                await booking.save();
+                cancelledCount++;
+                console.log(
+                  `Cancelled booking ${booking._id} - Timeout cleanup`
+                );
+              }
+            }
+          } else {
+            // Cannot get PayOS info, assume cancelled
+            booking.status = "cancelled";
+            booking.paymentStatus = "cancelled";
+            booking.cancelledAt = new Date();
+            booking.cancellationReason = "Auto-cleanup: PayOS unreachable";
+            await booking.save();
+            cancelledCount++;
+            console.log(`Cancelled booking ${booking._id} - PayOS unreachable`);
+          }
+        } catch (error) {
+          console.error(`Error processing booking ${booking._id}:`, error);
+          // Cancel anyway to free up the time slot
+          booking.status = "cancelled";
+          booking.paymentStatus = "cancelled";
+          booking.cancelledAt = new Date();
+          booking.cancellationReason = "Auto-cleanup: Processing error";
+          await booking.save();
+          cancelledCount++;
+        }
+      } else {
+        // No PayOS order code, just cancel
+        booking.status = "cancelled";
+        booking.paymentStatus = "cancelled";
+        booking.cancelledAt = new Date();
+        booking.cancellationReason = "Auto-cleanup: No payment method";
+        await booking.save();
+        cancelledCount++;
+        console.log(`Cancelled booking ${booking._id} - No payment method`);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalStuckBookings: stuckBookings.length,
+        cancelledBookings: cancelledCount,
+        maxAgeHours,
+        cutoffTime,
+      },
+      message: `Cleanup completed: ${cancelledCount} bookings cancelled`,
+    });
+  } catch (error) {
+    console.error("Cleanup pending bookings error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+// @desc    Debug booking cancellation issues
+// @route   GET /api/payments/debug-bookings
+// @access  Admin
+export const debugBookingCancellation = async (req, res) => {
+  try {
+    const { debugBookingCancellation } = await import(
+      "../utils/bookingDebug.js"
+    );
+    const result = await debugBookingCancellation();
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: "Booking debug completed",
+    });
+  } catch (error) {
+    console.error("Debug booking cancellation error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+// @desc    Fix inconsistent booking statuses
+// @route   POST /api/payments/fix-bookings
+// @access  Admin
+export const fixInconsistentBookings = async (req, res) => {
+  try {
+    const { fixInconsistentBookings } = await import(
+      "../utils/bookingDebug.js"
+    );
+    const result = await fixInconsistentBookings();
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: `Fixed ${result.fixedCount} inconsistent bookings`,
+    });
+  } catch (error) {
+    console.error("Fix inconsistent bookings error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+// @desc    Handle PayOS return (success)
+// @route   GET /api/payments/payos/return
+// @access  Public
+export const payosReturn = async (req, res) => {
+  try {
+    const { orderCode, code, id, cancel, status } = req.query;
+
+    console.log("=== PAYOS RETURN ===");
+    console.log("Query params:", req.query);
+
+    if (!orderCode) {
+      return res.redirect(
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/error?message=Missing orderCode`
+      );
+    }
+
+    // Tìm booking theo orderCode
+    const booking = await Booking.findOne({ payosOrderCode: orderCode });
+
+    if (!booking) {
+      return res.redirect(
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/error?message=Booking not found`
+      );
+    }
+
+    // Check if this is a cancel request (cancel=true OR status=CANCELLED)
+    if (cancel === "true" || status === "CANCELLED") {
+      // Handle cancellation
+      booking.paymentStatus = "cancelled";
+      booking.status = "cancelled";
+      booking.cancelledAt = new Date();
+      booking.cancellationReason = "Payment cancelled by user";
+      await booking.save();
+
+      console.log(`Payment cancelled for booking ${booking._id}`);
+
+      // Redirect to frontend payos-return with cancel params (for FE to display properly)
+      const redirectUrl =
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/payos-return?` +
+        `code=${code || "00"}&` +
+        `id=${id || ""}&` +
+        `cancel=true&` +
+        `status=CANCELLED&` +
+        `orderCode=${orderCode}&` +
+        `bookingId=${booking._id}&` +
+        `bookingCode=${booking.bookingCode}`;
+
+      return res.redirect(redirectUrl);
+    }
+
+    try {
+      // Verify payment với PayOS
+      const paymentResult = await payosService.getPaymentInfo(orderCode);
+
+      if (paymentResult.success && paymentResult.data) {
+        const paymentStatus = paymentResult.data.status;
+
+        if (paymentStatus === "PAID") {
+          // Payment thành công
+          booking.paymentStatus = "paid";
+          booking.status = "confirmed";
+          booking.paidAt = new Date();
+          booking.payosTransactionId =
+            paymentResult.data.transactions?.[0]?.reference;
+          await booking.save();
+
+          console.log(`Payment successful for booking ${booking._id}`);
+
+          // Redirect đến trang success với thông tin booking
+          const redirectUrl =
+            `${
+              process.env.FRONTEND_URL || "http://localhost:5173"
+            }/booking/success?` +
+            `bookingId=${booking._id}&` +
+            `orderCode=${orderCode}&` +
+            `status=paid&` +
+            `amount=${paymentResult.data.amount || booking.totalPrice}&` +
+            `bookingCode=${booking.bookingCode}`;
+
+          return res.redirect(redirectUrl);
+        } else {
+          // Payment failed hoặc cancelled
+          booking.paymentStatus =
+            paymentStatus === "CANCELLED" ? "cancelled" : "failed";
+          booking.status = "cancelled";
+          booking.cancelledAt = new Date();
+          booking.cancellationReason = `Payment ${paymentStatus.toLowerCase()}`;
+          await booking.save();
+
+          console.log(`Payment ${paymentStatus} for booking ${booking._id}`);
+
+          // Redirect đến trang cancel/failed
+          const redirectUrl =
+            `${
+              process.env.FRONTEND_URL || "http://localhost:5173"
+            }/booking/cancel?` +
+            `bookingId=${booking._id}&` +
+            `orderCode=${orderCode}&` +
+            `status=${paymentStatus.toLowerCase()}&` +
+            `reason=${encodeURIComponent(
+              "Payment " + paymentStatus.toLowerCase()
+            )}&` +
+            `bookingCode=${booking.bookingCode}`;
+
+          return res.redirect(redirectUrl);
+        }
+      } else {
+        throw new Error(paymentResult.error || "Failed to verify payment");
+      }
+    } catch (payosError) {
+      console.error("PayOS verification error in return:", payosError);
+
+      // Fallback: redirect với error
+      const redirectUrl =
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/error?` +
+        `bookingId=${booking._id}&` +
+        `orderCode=${orderCode}&` +
+        `message=${encodeURIComponent("Payment verification failed")}&` +
+        `bookingCode=${booking.bookingCode}`;
+
+      return res.redirect(redirectUrl);
+    }
+  } catch (error) {
+    console.error("PayOS return error:", error);
+
+    const redirectUrl =
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/booking/error?` +
+      `message=${encodeURIComponent("Internal server error")}`;
+
+    return res.redirect(redirectUrl);
+  }
+};
+
+// @desc    Handle PayOS cancel
+// @route   GET /api/payments/payos/cancel
+// @access  Public
+export const payosCancel = async (req, res) => {
+  try {
+    const { orderCode, code, id, cancel, status } = req.query;
+
+    console.log("=== PAYOS CANCEL ===");
+    console.log("Query params:", req.query);
+
+    if (!orderCode) {
+      return res.redirect(
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/cancel?message=Payment cancelled`
+      );
+    }
+
+    // Tìm booking theo orderCode
+    const booking = await Booking.findOne({ payosOrderCode: orderCode });
+
+    if (booking) {
+      // Cập nhật booking status
+      booking.paymentStatus = "cancelled";
+      booking.status = "cancelled";
+      booking.cancelledAt = new Date();
+      booking.cancellationReason = "Payment cancelled by user";
+      await booking.save();
+
+      console.log(`Payment cancelled for booking ${booking._id}`);
+
+      // Redirect đến trang cancel với thông tin booking
+      const redirectUrl =
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/cancel?` +
+        `bookingId=${booking._id}&` +
+        `orderCode=${orderCode}&` +
+        `status=cancelled&` +
+        `reason=${encodeURIComponent("Payment cancelled by user")}&` +
+        `bookingCode=${booking.bookingCode}`;
+
+      return res.redirect(redirectUrl);
+    } else {
+      console.log(`Booking not found for cancelled orderCode: ${orderCode}`);
+
+      // Redirect đến trang cancel chung
+      const redirectUrl =
+        `${
+          process.env.FRONTEND_URL || "http://localhost:5173"
+        }/booking/cancel?` +
+        `orderCode=${orderCode}&` +
+        `status=cancelled&` +
+        `message=${encodeURIComponent("Payment cancelled")}`;
+
+      return res.redirect(redirectUrl);
+    }
+  } catch (error) {
+    console.error("PayOS cancel error:", error);
+
+    const redirectUrl =
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/booking/cancel?` +
+      `message=${encodeURIComponent("Payment cancelled")}`;
+
+    return res.redirect(redirectUrl);
   }
 };

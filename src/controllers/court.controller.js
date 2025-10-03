@@ -619,3 +619,504 @@ export const getCourtStats = async (req, res) => {
     });
   }
 };
+
+// Owner Court Management APIs
+export const getOwnerCourts = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { venueId } = req.query;
+
+    // First, find all venues owned by this user
+    const venueQuery = { ownerId, isActive: true };
+    if (venueId) {
+      venueQuery._id = venueId;
+    }
+
+    const ownerVenues = await Venue.find(venueQuery).select("_id");
+    const venueIds = ownerVenues.map((venue) => venue._id);
+
+    if (venueIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          courts: [],
+          message: venueId
+            ? "Venue not found or you don't own this venue"
+            : "No venues found",
+        },
+      });
+    }
+
+    // Then find all courts in those venues
+    const courts = await Court.find({
+      venueId: { $in: venueIds },
+      isActive: true,
+    })
+      .populate("venueId", "name address")
+      .sort({ createdAt: -1 });
+
+    // Group courts by venue for better organization
+    const courtsByVenue = {};
+    courts.forEach((court) => {
+      const vId = court.venueId._id.toString();
+      if (!courtsByVenue[vId]) {
+        courtsByVenue[vId] = {
+          venue: {
+            _id: court.venueId._id,
+            name: court.venueId.name,
+            address: court.venueId.address,
+          },
+          courts: [],
+        };
+      }
+      courtsByVenue[vId].courts.push(court);
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        courts,
+        courtsByVenue: Object.values(courtsByVenue),
+        totalCourts: courts.length,
+        venueFilter: venueId || null,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getOwnerCourtDetail = async (req, res) => {
+  try {
+    const { courtId } = req.params;
+    const ownerId = req.user.id;
+
+    const court = await Court.findById(courtId).populate("venueId");
+
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        message: "Court not found",
+      });
+    }
+
+    // Check if user is the venue owner
+    if (!court.venueId.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view this court",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        court,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const createOwnerCourt = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const {
+      venueId,
+      name,
+      sportType,
+      courtType,
+      capacity,
+      dimensions,
+      surface,
+      equipment,
+      pricing,
+      defaultAvailability,
+    } = req.body;
+
+    // Validate required fields
+    if (!venueId || !name || !sportType || !capacity) {
+      return res.status(400).json({
+        success: false,
+        message: "Venue ID, name, sport type, and capacity are required",
+      });
+    }
+
+    // Check if venue exists and user is the owner
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found",
+      });
+    }
+
+    if (!venue.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to add courts to this venue",
+      });
+    }
+
+    const court = await Court.create({
+      venueId,
+      name,
+      sportType,
+      courtType,
+      capacity,
+      dimensions,
+      surface,
+      equipment,
+      pricing,
+      defaultAvailability,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Court created successfully",
+      data: {
+        court,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateOwnerCourt = async (req, res) => {
+  try {
+    const { courtId } = req.params;
+    const ownerId = req.user.id;
+    const updateData = req.body;
+
+    const court = await Court.findById(courtId).populate("venueId");
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        message: "Court not found",
+      });
+    }
+
+    // Check if user is the venue owner
+    if (!court.venueId.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this court",
+      });
+    }
+
+    // Update court
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] !== undefined) {
+        court[key] = updateData[key];
+      }
+    });
+
+    await court.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Court updated successfully",
+      data: {
+        court,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteOwnerCourt = async (req, res) => {
+  try {
+    const { courtId } = req.params;
+    const ownerId = req.user.id;
+
+    const court = await Court.findById(courtId).populate("venueId");
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        message: "Court not found",
+      });
+    }
+
+    // Check if user is the venue owner
+    if (!court.venueId.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete this court",
+      });
+    }
+
+    court.isActive = false;
+    await court.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Court deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const uploadOwnerCourtImages = async (req, res) => {
+  try {
+    const { courtId } = req.params;
+    const ownerId = req.user.id;
+    const { images } = req.body;
+
+    if (!images || !Array.isArray(images)) {
+      return res.status(400).json({
+        success: false,
+        message: "Images array is required",
+      });
+    }
+
+    const court = await Court.findById(courtId).populate("venueId");
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        message: "Court not found",
+      });
+    }
+
+    // Check if user is the venue owner
+    if (!court.venueId.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this court",
+      });
+    }
+
+    court.images = [...(court.images || []), ...images];
+    await court.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Images uploaded successfully",
+      data: {
+        images: court.images,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Update Court Pricing Rules
+// @route   PUT /api/v1/owner/courts/:courtId/pricing
+// @access  Private (Owner)
+export const updateCourtPricing = async (req, res) => {
+  try {
+    const { courtId } = req.params;
+    const ownerId = req.user.id;
+    const { pricing } = req.body;
+
+    console.log("=== UPDATE COURT PRICING DEBUG ===");
+    console.log("Court ID:", courtId);
+    console.log("Owner ID:", ownerId);
+    console.log("New pricing rules:", JSON.stringify(pricing, null, 2));
+
+    // Validate pricing data
+    if (!pricing || !Array.isArray(pricing)) {
+      return res.status(400).json({
+        success: false,
+        message: "Pricing array is required",
+      });
+    }
+
+    // Validate each pricing rule
+    for (const rule of pricing) {
+      if (!rule.pricePerHour || rule.pricePerHour <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid pricePerHour is required for all pricing rules",
+        });
+      }
+
+      if (
+        rule.dayType &&
+        !["weekday", "weekend", "holiday"].includes(rule.dayType)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "dayType must be weekday, weekend, or holiday",
+        });
+      }
+
+      if (rule.timeSlot && (!rule.timeSlot.start || !rule.timeSlot.end)) {
+        return res.status(400).json({
+          success: false,
+          message: "timeSlot must have both start and end times",
+        });
+      }
+    }
+
+    const court = await Court.findById(courtId).populate("venueId");
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        message: "Court not found",
+      });
+    }
+
+    // Check if user is the venue owner
+    if (!court.venueId.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this court's pricing",
+      });
+    }
+
+    // Update pricing rules
+    court.pricing = pricing.map((rule) => ({
+      timeSlot: rule.timeSlot || null,
+      pricePerHour: rule.pricePerHour,
+      dayType: rule.dayType || "weekday",
+      isActive: rule.isActive !== undefined ? rule.isActive : true,
+    }));
+
+    await court.save();
+
+    console.log("✅ Court pricing updated successfully");
+
+    res.status(200).json({
+      success: true,
+      message: "Court pricing updated successfully",
+      data: {
+        courtId: court._id,
+        courtName: court.name,
+        pricing: court.pricing,
+      },
+    });
+  } catch (error) {
+    console.log("🔥 Update pricing error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Update Court Time Slots Availability
+// @route   PUT /api/v1/owner/courts/:courtId/availability
+// @access  Private (Owner)
+export const updateCourtAvailability = async (req, res) => {
+  try {
+    const { courtId } = req.params;
+    const ownerId = req.user.id;
+    const { defaultAvailability } = req.body;
+
+    console.log("=== UPDATE COURT AVAILABILITY DEBUG ===");
+    console.log("Court ID:", courtId);
+    console.log("Owner ID:", ownerId);
+    console.log(
+      "New availability rules:",
+      JSON.stringify(defaultAvailability, null, 2)
+    );
+
+    // Validate availability data
+    if (!defaultAvailability || !Array.isArray(defaultAvailability)) {
+      return res.status(400).json({
+        success: false,
+        message: "defaultAvailability array is required",
+      });
+    }
+
+    // Validate each availability rule
+    for (const dayRule of defaultAvailability) {
+      if (
+        typeof dayRule.dayOfWeek !== "number" ||
+        dayRule.dayOfWeek < 0 ||
+        dayRule.dayOfWeek > 6
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "dayOfWeek must be a number between 0-6 (Sunday=0, Saturday=6)",
+        });
+      }
+
+      if (!dayRule.timeSlots || !Array.isArray(dayRule.timeSlots)) {
+        return res.status(400).json({
+          success: false,
+          message: "timeSlots array is required for each day",
+        });
+      }
+
+      for (const timeSlot of dayRule.timeSlots) {
+        if (!timeSlot.start || !timeSlot.end) {
+          return res.status(400).json({
+            success: false,
+            message: "Each timeSlot must have start and end times",
+          });
+        }
+      }
+    }
+
+    const court = await Court.findById(courtId).populate("venueId");
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        message: "Court not found",
+      });
+    }
+
+    // Check if user is the venue owner
+    if (!court.venueId.ownerId.equals(ownerId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this court's availability",
+      });
+    }
+
+    // Update availability rules
+    court.defaultAvailability = defaultAvailability.map((dayRule) => ({
+      dayOfWeek: dayRule.dayOfWeek,
+      timeSlots: dayRule.timeSlots.map((slot) => ({
+        start: slot.start,
+        end: slot.end,
+        isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true,
+      })),
+    }));
+
+    await court.save();
+
+    console.log("✅ Court availability updated successfully");
+
+    res.status(200).json({
+      success: true,
+      message: "Court availability updated successfully",
+      data: {
+        courtId: court._id,
+        courtName: court.name,
+        defaultAvailability: court.defaultAvailability,
+      },
+    });
+  } catch (error) {
+    console.log("🔥 Update availability error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

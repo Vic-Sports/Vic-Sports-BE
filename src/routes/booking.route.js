@@ -11,6 +11,7 @@ import {
   getBookingsByUserId,
 } from "../controllers/booking.controller.js";
 import { protect, authorize } from "../middlewares/auth.middleware.js";
+import { autoCleanupBeforeAvailabilityCheck } from "../middlewares/cleanup.middleware.js";
 
 const router = express.Router();
 
@@ -33,10 +34,19 @@ const optionalAuth = (req, res, next) => {
 };
 
 // Public routes
-router.get("/search", searchAvailableCourts);
+router.get(
+  "/search",
+  autoCleanupBeforeAvailabilityCheck,
+  searchAvailableCourts
+);
 router.post("/test", testBookingCreation); // Test booking for debugging
 router.post("/simple", createSimpleBooking); // Simple booking for frontend testing
-router.post("/", optionalAuth, createBooking); // Allow guest bookings
+router.post(
+  "/",
+  autoCleanupBeforeAvailabilityCheck,
+  optionalAuth,
+  createBooking
+); // Allow guest bookings
 
 // Protected routes
 

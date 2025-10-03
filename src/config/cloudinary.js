@@ -13,10 +13,17 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "vic-sports/avatars",
-    allowed_formats: ["jpg", "jpeg", "png", "gif"],
-    transformation: [{ width: 500, height: 500, crop: "limit" }],
-    format: "jpg",
+    folder: "vic-sports/temp", // Temporary folder, will be moved in controller
+    allowed_formats: [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "webp",
+      "pdf",
+      "doc",
+      "docx",
+    ],
     resource_type: "auto",
     use_filename: true,
     unique_filename: true,
