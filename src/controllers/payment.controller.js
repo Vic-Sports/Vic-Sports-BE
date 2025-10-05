@@ -2,13 +2,7 @@ import Booking from "../models/booking.js";
 import PaymentTransaction from "../models/paymentTransaction.js";
 import payosService from "../services/payos.service.js";
 
-// Utility functions
-const generatePaymentRef = () => {
-  return `PAY_${Date.now()}_${Math.random()
-    .toString(36)
-    .substr(2, 6)
-    .toUpperCase()}`;
-};
+// ...existing code...
 
 // @desc    Get Payment Transaction
 // @route   GET /api/payments/:paymentRef
@@ -55,15 +49,7 @@ export const verifyPayOSPayment = async (req, res) => {
     console.log("=== PAYOS PAYMENT VERIFICATION ===");
     console.log("Request body:", JSON.stringify(req.body, null, 2));
 
-    const {
-      orderCode,
-      amount,
-      description,
-      accountNumber,
-      reference,
-      transactionDateTime,
-      currency,
-    } = req.body;
+    const { orderCode } = req.body;
 
     if (!orderCode) {
       return res.status(400).json({
@@ -107,8 +93,9 @@ export const verifyPayOSPayment = async (req, res) => {
         // Cập nhật booking thành công
         booking.paymentStatus = "paid";
         booking.status = "confirmed";
+        // Use transaction reference returned by PayOS (from paymentInfo)
         booking.payosTransactionId =
-          paymentResult.transactions?.[0]?.reference || reference;
+          paymentInfo.transactions?.[0]?.reference || paymentInfo.reference;
         booking.paidAt = new Date();
 
         await booking.save();
@@ -133,11 +120,11 @@ export const verifyPayOSPayment = async (req, res) => {
               paidAt: booking.paidAt,
             },
             paymentInfo: {
-              orderCode: paymentResult.orderCode,
-              amount: paymentResult.amount,
-              currency: paymentResult.currency,
-              status: paymentResult.status,
-              paidAt: paymentResult.paidAt,
+              orderCode: paymentInfo.orderCode,
+              amount: paymentInfo.amount,
+              currency: paymentInfo.currency,
+              status: paymentInfo.status,
+              paidAt: paymentInfo.paidAt,
             },
           },
           message: "Payment verified successfully",
@@ -202,12 +189,14 @@ export const payosWebhook = async (req, res) => {
     console.log("=== PAYOS WEBHOOK ===");
     console.log("Headers:", req.headers);
     console.log("Body:", JSON.stringify(req.body, null, 2));
-
-    // PayOS v2: signature trong header x-payos-signature
-    const signature = req.headers["x-payos-signature"];
+    // PayOS v2: signature thường nằm trong header `x-payos-signature`,
+    // nhưng some integrations may include it in body.signature. Support both.
+    const headerSignature = req.headers["x-payos-signature"];
+    const bodySignature = req.body && req.body.signature;
+    const signature = headerSignature || bodySignature;
 
     if (!signature) {
-      console.log("Missing PayOS signature in header");
+      console.log("Missing PayOS signature in header and body.signature");
       return res.status(400).json({
         success: false,
         message: "Missing signature",
@@ -216,8 +205,8 @@ export const payosWebhook = async (req, res) => {
 
     // Xác thực webhook signature với PayOS v2
     const isValidSignature = payosService.verifyWebhookSignature(
-      req.body, // Raw body object
-      signature // Signature từ header
+      req.body,
+      signature
     );
 
     if (!isValidSignature) {
