@@ -267,21 +267,21 @@ export default {
         return false;
       }
 
-      // PayOS v2: sử dụng SDK để verify
+      // PayOS v2: try SDK verify if available
       const sdkClient = getEnvSdkClient();
-      if (sdkClient) {
+      if (
+        sdkClient &&
+        typeof sdkClient.verifyPaymentWebhookData === "function"
+      ) {
         try {
-          // PayOS v2 SDK có method verifyPaymentWebhookData
-          // pass the resolved signature (header or body) to SDK
           const isValid = sdkClient.verifyPaymentWebhookData(
             webhookBody,
             signature
           );
-          // Intentionally not logging success to reduce noise
           return isValid;
         } catch (err) {
           console.error("PayOS SDK webhook verification error:", err);
-          return false;
+          // fall through to manual verification fallback
         }
       }
 
@@ -294,6 +294,18 @@ export default {
       // Ensure nested objects are consistently ordered when stringified for arrays/objects
       const sortedPayloadData = sortObjectForSignature(payloadData);
       const expectedSignature = createSignature(sortedPayloadData);
+
+      // Optional debug logging
+      if (process.env.ENABLE_REQUEST_LOGS === "true") {
+        console.log(
+          "[PAYOS SIG DEBUG] received:",
+          String(signature).toLowerCase()
+        );
+        console.log(
+          "[PAYOS SIG DEBUG] expected:",
+          String(expectedSignature).toLowerCase()
+        );
+      }
 
       return (
         String(expectedSignature).toLowerCase() ===
