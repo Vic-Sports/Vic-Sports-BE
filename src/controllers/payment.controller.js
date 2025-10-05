@@ -189,7 +189,6 @@ export const payosWebhook = async (req, res) => {
     console.log("=== PAYOS WEBHOOK ===");
     console.log("Headers:", req.headers);
     console.log("Body:", JSON.stringify(req.body, null, 2));
-
     // PayOS v2: signature thường nằm trong header `x-payos-signature`,
     // nhưng some integrations may include it in body.signature. Support both.
     const headerSignature = req.headers["x-payos-signature"];
