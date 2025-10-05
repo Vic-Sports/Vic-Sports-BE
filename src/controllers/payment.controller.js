@@ -245,39 +245,33 @@ export const payosWebhook = async (req, res) => {
     }
 
     console.log("Processing webhook for booking:", booking._id);
-    console.log("Payment status:", data.status);
+    // PayOS v2 uses top-level `code` to indicate result ("00" = success)
+    const orderCode = data.orderCode;
+    const webhookCode = String(req.body.code || "");
 
-    // Cập nhật trạng thái booking theo PayOS v2 status
-    switch (data.status) {
-      case "PAID": // Thành công
-        booking.paymentStatus = "paid";
-        booking.status = "confirmed";
-        booking.payosTransactionId =
-          data.transactions?.[0]?.reference || data.reference;
-        booking.paidAt = new Date();
-        console.log("Booking marked as PAID");
-        break;
+    console.log("Webhook code:", webhookCode);
+    console.log("Payment data:", JSON.stringify(data));
 
-      case "CANCELLED": // Hủy bởi user
-        booking.paymentStatus = "cancelled";
-        booking.status = "cancelled";
-        booking.cancelledAt = new Date();
-        booking.cancellationReason = "Payment cancelled by user";
-        console.log("Booking marked as CANCELLED via webhook");
-        break;
+    // Interpret webhook: code === "00" means success
+    const isSuccess = webhookCode === "00";
 
-      case "EXPIRED": // Hết hạn
-        booking.paymentStatus = "expired";
-        booking.status = "cancelled";
-        booking.cancelledAt = new Date();
-        booking.cancellationReason = "Payment expired";
-        console.log("Booking marked as EXPIRED via webhook");
-        break;
-
-      default:
-        console.log("Unknown payment status:", data.status);
-        // Không cập nhật gì, chỉ log
-        break;
+    if (isSuccess) {
+      // Mark booking as paid/confirmed
+      booking.paymentStatus = "paid";
+      booking.status = "confirmed";
+      booking.payosTransactionId =
+        data.transactions?.[0]?.reference || data.reference;
+      booking.paidAt = new Date();
+      console.log(`Payment successful for orderCode: ${orderCode}`);
+    } else {
+      // Non-00 codes mean failure/pending/other — treat as failed for now
+      booking.paymentStatus = "failed";
+      booking.status = "cancelled";
+      booking.cancelledAt = new Date();
+      booking.cancellationReason = `Payment not successful, code: ${webhookCode}`;
+      console.log(
+        `Payment failed or has other status for orderCode: ${orderCode}. Code: ${webhookCode}`
+      );
     }
 
     await booking.save();
