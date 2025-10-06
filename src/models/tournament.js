@@ -65,8 +65,10 @@ const tournamentSchema = new mongoose.Schema(
       type: String,
       enum: [
         "draft",
+        "upcoming",
         "registration_open",
         "registration_closed",
+        "about_to_start",
         "ongoing",
         "completed",
         "cancelled"
