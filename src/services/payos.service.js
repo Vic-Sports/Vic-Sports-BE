@@ -41,15 +41,27 @@ function objectToQueryString(obj, prefix = "") {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const fullKey = prefix ? `${prefix}[${key}]` : key;
       const value = obj[key];
+      // PayOS expects null/undefined values to be treated as empty strings
       if (value === null || value === undefined) {
+        result.push(`${fullKey}=`);
         continue;
       }
-      if (typeof value === "object" && !Array.isArray(value)) {
-        result.push(...objectToQueryString(value, fullKey));
-      } else if (Array.isArray(value)) {
+
+      if (Array.isArray(value)) {
+        // Preserve array order. For object elements, stringify them with sorted keys
         value.forEach((item, index) => {
-          result.push(...objectToQueryString(item, `${fullKey}[${index}]`));
+          if (item === null || item === undefined) {
+            result.push(`${fullKey}[${index}]=`);
+          } else if (typeof item === "object") {
+            const sorted = sortObjectForSignature(item);
+            result.push(`${fullKey}[${index}]=${JSON.stringify(sorted)}`);
+          } else {
+            result.push(`${fullKey}[${index}]=${String(item)}`);
+          }
         });
+      } else if (typeof value === "object") {
+        // Nested object -> flatten
+        result.push(...objectToQueryString(value, fullKey));
       } else {
         result.push(`${fullKey}=${String(value)}`);
       }
@@ -59,16 +71,34 @@ function objectToQueryString(obj, prefix = "") {
 }
 
 /**
+ * Return a new object with keys sorted recursively so JSON.stringify produces stable output.
+ * This follows PayOS examples which JSON-encode nested objects/arrays with stable key order.
+ */
+function sortObjectForSignature(obj) {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map((it) => sortObjectForSignature(it));
+  if (typeof obj !== "object") return obj;
+
+  const keys = Object.keys(obj).sort();
+  const out = {};
+  for (const k of keys) {
+    out[k] = sortObjectForSignature(obj[k]);
+  }
+  return out;
+}
+
+/**
  * Tạo chữ ký HMAC SHA256 cho dữ liệu theo đúng chuẩn của PayOS.
  * @param {object} data Dữ liệu cần tạo chữ ký.
  * @returns {string} Chữ ký đã được tạo.
  */
 function createSignature(data) {
   const PAYOS_CHECKSUM_KEY = process.env.PAYOS_CHECKSUM_KEY;
+  // Build canonical query array, sort globally and join by &
   const dataQueries = objectToQueryString(data);
   const sortedQueries = dataQueries.sort();
   const dataString = sortedQueries.join("&");
-  // Removed verbose debug logs to reduce noise in production
+  // Create HMAC SHA256 hex digest
   return crypto
     .createHmac("sha256", PAYOS_CHECKSUM_KEY)
     .update(dataString)
@@ -88,45 +118,8 @@ export default {
    * @returns {Promise<object>} Kết quả giả lập thanh toán thành công.
    */
   async createPaymentLink(paymentData) {
-    // --- CODE GỐC PAYOS ---
-    // try {
-    //   const payload = {
-    //     orderCode: paymentData.orderCode,
-    //     amount: paymentData.amount,
-    //     description: paymentData.description,
-    //     items: paymentData.items,
-    //     cancelUrl: paymentData.cancelUrl,
-    //     returnUrl: paymentData.returnUrl,
-    //     buyerName: paymentData.buyerName,
-    //     buyerEmail: paymentData.buyerEmail,
-    //     buyerPhone: paymentData.buyerPhone,
-    //     buyerAddress: paymentData.buyerAddress,
-    //     expiredAt: paymentData.expiredAt,
-    //   };
-    //   const cleanPayload = JSON.parse(JSON.stringify(payload));
-    //   const signature = createSignature(cleanPayload);
-    //   payload.signature = signature;
-    //   const res = await axios.post(PAYOS_API_BASE_URL, payload, {
-    //     headers: {
-    //       "x-client-id": PAYOS_CLIENT_ID,
-    //       "x-api-key": PAYOS_API_KEY,
-    //       "Content-Type": "application/json",
-    //     },
-    //   });
-    //   return { success: true, data: res.data };
-    // } catch (error) {
-    //   console.error("PayOS Create Link Error:", error.response?.data);
-    //   return {
-    //     success: false,
-    //     error: error.message,
-    //     details: error.response?.data,
-    //   };
-    // }
-    // --- KẾT THÚC CODE GỐC ---
-
-    // Tạm thời giả lập thanh toán thành công
-    // TODO: Save payment info to DB here
-    // Example: await PaymentModel.create({ ...paymentData, status: 'paid' });
+    // Note: original PayOS direct HTTP code removed for clarity; SDK usage is preferred.
+    // Currently this method returns a simulated successful payment response.
     return {
       success: true,
       data: {
@@ -216,43 +209,6 @@ export default {
       };
     }
   },
-
-  /**
-   * Test chữ ký PayOS với payload tối giản
-   * @returns {Promise<object>} Kết quả từ API PayOS
-   */
-  async testMinimalSignature() {
-    const payload = {
-      amount: 10000,
-      orderCode: Math.floor(Date.now() / 1000),
-      description: "Test signature only",
-      returnUrl: "http://localhost:5173/booking/payos-return",
-      cancelUrl: "http://localhost:5173/booking",
-    };
-    const cleanPayload = JSON.parse(JSON.stringify(payload));
-    const signature = createSignature(cleanPayload);
-    payload.signature = signature;
-    // Removed verbose payload log
-    try {
-      const res = await axios.post(PAYOS_API_BASE_URL, payload, {
-        headers: {
-          "x-client-id": PAYOS_CLIENT_ID,
-          "x-api-key": PAYOS_API_KEY,
-          "Content-Type": "application/json",
-          // Thêm checksum vào header để phục vụ kiểm tra
-          "x-checksum": signature,
-        },
-      });
-      return { success: true, data: res.data };
-    } catch (error) {
-      console.log("Lỗi trả về:", error.response?.data);
-      return {
-        success: false,
-        error: error.message,
-        details: error.response?.data,
-      };
-    }
-  },
   /**
    * Hủy một link thanh toán.
    * @param {number} orderCode Mã đơn hàng.
@@ -301,35 +257,60 @@ export default {
    */
   verifyWebhookSignature(webhookBody, receivedSignature) {
     try {
-      if (!receivedSignature) {
-        console.error("Webhook Error: Signature is missing from header.");
+      // Accept signature either from header (receivedSignature) or from payload body.signature
+      const signature =
+        receivedSignature || (webhookBody && webhookBody.signature);
+      if (!signature) {
+        console.error(
+          "Webhook Error: Signature is missing (header and body.signature are empty)."
+        );
         return false;
       }
 
-      // PayOS v2: sử dụng SDK để verify
+      // PayOS v2: try SDK verify if available
       const sdkClient = getEnvSdkClient();
-      if (sdkClient) {
+      if (
+        sdkClient &&
+        typeof sdkClient.verifyPaymentWebhookData === "function"
+      ) {
         try {
-          // PayOS v2 SDK có method verifyPaymentWebhookData
           const isValid = sdkClient.verifyPaymentWebhookData(
             webhookBody,
-            receivedSignature
+            signature
           );
-          // Intentionally not logging success to reduce noise
           return isValid;
         } catch (err) {
           console.error("PayOS SDK webhook verification error:", err);
-          return false;
+          // fall through to manual verification fallback
         }
       }
 
       // Fallback: manual verification (minimal logs)
-      const dataToSign = { ...webhookBody };
-      if (dataToSign.signature) delete dataToSign.signature;
+      // Per PayOS docs the signature is created over the `data` object inside the webhook payload.
+      // Example payload: { code, desc, success, data: { ... }, signature }
+      const payloadData =
+        webhookBody && webhookBody.data ? webhookBody.data : {};
 
-      const expectedSignature = createSignature(dataToSign);
+      // Ensure nested objects are consistently ordered when stringified for arrays/objects
+      const sortedPayloadData = sortObjectForSignature(payloadData);
+      const expectedSignature = createSignature(sortedPayloadData);
 
-      return expectedSignature === receivedSignature;
+      // Optional debug logging
+      if (process.env.ENABLE_REQUEST_LOGS === "true") {
+        console.log(
+          "[PAYOS SIG DEBUG] received:",
+          String(signature).toLowerCase()
+        );
+        console.log(
+          "[PAYOS SIG DEBUG] expected:",
+          String(expectedSignature).toLowerCase()
+        );
+      }
+
+      return (
+        String(expectedSignature).toLowerCase() ===
+        String(signature).toLowerCase()
+      );
     } catch (error) {
       console.error("Webhook signature verification failed:", error);
       return false;
