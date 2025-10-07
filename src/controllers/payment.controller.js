@@ -320,17 +320,27 @@ export const getPaymentStatus = async (req, res) => {
     try {
       const paymentResult = await payosService.getPaymentInfo(orderCode);
 
-      if (paymentResult.success) {
-        res.status(200).json({
-          success: true,
-          data: {
-            orderCode: paymentResult.orderCode,
-            status: paymentResult.status,
-          },
-        });
-      } else {
-        throw new Error(paymentResult.error);
+      if (!paymentResult || !paymentResult.success) {
+        throw new Error(paymentResult?.error || "Failed to fetch PayOS info");
       }
+
+      // payosService trả về { success, data: { orderCode, status, ... } }
+      const paymentInfo = paymentResult.data || paymentResult;
+      const respOrderCode =
+        paymentInfo.orderCode ||
+        paymentInfo.data?.orderCode ||
+        String(orderCode);
+      const respStatus = String(
+        paymentInfo.status || paymentInfo.data?.status || ""
+      ).toUpperCase();
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          orderCode: respOrderCode,
+          status: respStatus,
+        },
+      });
     } catch (payosError) {
       console.error("PayOS get payment info error:", payosError);
 
