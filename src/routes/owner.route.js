@@ -42,6 +42,23 @@ import {
   getOwnerPopularCourts,
   getOwnerCustomerBehavior,
 } from "../controllers/analytics.controller.js";
+import {
+  // Tournament Management
+  getOwnerTournaments,
+  getOwnerTournament,
+  createOwnerTournament,
+  updateOwnerTournament,
+  deleteOwnerTournament,
+  startOwnerTournament,
+  cancelOwnerTournament,
+  getOwnerTournamentParticipants,
+  getOwnerTournamentMatches,
+  updateOwnerMatchResult,
+  uploadOwnerTournamentImages,
+  getOwnerTournamentStats,
+  updateOwnerTournamentStatusesAPI,
+  updateSingleTournamentStatusAPI,
+} from "../controllers/tournament.controller.js";
 
 const router = express.Router();
 
@@ -85,5 +102,23 @@ router.get("/analytics/revenue", getOwnerRevenueAnalytics);
 router.get("/analytics/booking-insights", getOwnerBookingInsights);
 router.get("/analytics/popular-courts", getOwnerPopularCourts);
 router.get("/analytics/customer-behavior", getOwnerCustomerBehavior);
+
+// Tournament Management APIs
+router.get("/tournaments", getOwnerTournaments);
+router.get("/tournaments/stats", getOwnerTournamentStats);
+router.get("/tournaments/:id", getOwnerTournament);
+router.post("/tournaments", createOwnerTournament);
+router.put("/tournaments/:id", updateOwnerTournament);
+router.delete("/tournaments/:id", deleteOwnerTournament);
+router.put("/tournaments/:id/start", startOwnerTournament);
+router.put("/tournaments/:id/cancel", cancelOwnerTournament);
+router.get("/tournaments/:id/participants", getOwnerTournamentParticipants);
+router.get("/tournaments/:id/matches", getOwnerTournamentMatches);
+router.put("/tournaments/:id/matches/:matchId", updateOwnerMatchResult);
+router.post("/tournaments/:id/upload-images", uploadOwnerTournamentImages);
+
+// Tournament Status Update APIs
+router.post("/tournaments/update-statuses", updateOwnerTournamentStatusesAPI);
+router.post("/tournaments/:id/update-status", updateSingleTournamentStatusAPI);
 
 export default router;

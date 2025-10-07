@@ -115,3 +115,10 @@ export const requireRoles = (...roles) => {
  * @param {string} role - Exact role required to access the route
  */
 export const authorize = requireExactRole;
+
+/**
+ * Middleware to restrict access to specific roles (alias for requireRoles)
+ * @param {...string} roles - The roles that are allowed to access the route
+ * @returns {Function} Express middleware function
+ */
+export const restrictTo = requireRoles;

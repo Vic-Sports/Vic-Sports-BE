@@ -55,3 +55,445 @@
 {"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-29 21:48:28"}
 {"level":"info","message":"Socket.IO server is running","timestamp":"2025-09-29 21:48:28"}
 {"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-09-29 21:48:28"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-29 22:12:57"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-09-29 22:12:57"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-09-29 22:12:57"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-09-29 23:32:33"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-09-29 23:32:33"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-09-29 23:32:33"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:36:29"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:36:29"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:36:29"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:36:29"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:36:59"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:36:59"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:36:59.468Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:36:59","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:38:25"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:38:25"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:38:25"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:38:25"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:38:55"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:38:55"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:38:55.298Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:38:55","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:42:22"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:42:22"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:42:22"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:42:22"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:42:52"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:42:52"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:42:52.192Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:42:52","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:45:20"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:45:20"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:45:20"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:45:20"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:45:50"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:45:50"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:45:50.593Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:45:50","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:46:53"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:46:53"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:46:53"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:46:53"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:47:23"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:47:23"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:47:23.695Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:47:23","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:47:29"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:47:29"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:47:29"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:47:29"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:47:59"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:47:59"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:47:59.674Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:47:59","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:48:10"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:48:10"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:48:10"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:48:10"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:48:35"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:48:35"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:48:35"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:48:35"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:48:56"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:48:56"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:48:56"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:48:56"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:49:26"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:49:26"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:49:26.424Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:49:26","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:49:52"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:49:52"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:49:52"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:49:52"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:50:22"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:50:23"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:50:23.000Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:50:23","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:55:15"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:55:15"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:55:15"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:55:15"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:55:45"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:55:45"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:55:45.720Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:55:45","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:58:37"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:58:37"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:58:37"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:58:37"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-04 21:59:10"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-04 21:59:10"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-04 21:59:10"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-04 21:59:10"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-04 21:59:40"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-04 21:59:40"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-04T12:59:40.629Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-04 21:59:40","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 13:48:30"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 13:48:30"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 13:48:30"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 13:48:30"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 13:49:00"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 13:49:00"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T04:49:00.825Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 13:49:00","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 14:48:30"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 14:48:30"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T05:48:30.822Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 14:48:30","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 15:36:20"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 15:36:20"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 15:36:20"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 15:36:20"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 15:36:50"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 15:36:50"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T06:36:50.136Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 15:36:50","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 15:36:56"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 15:36:56"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 15:36:56"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 15:36:56"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 15:37:26"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 15:37:26"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T06:37:26.617Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 15:37:26","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 16:36:56"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 16:36:56"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T07:36:56.624Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 16:36:56","totalStuckBookings":0}
+{"body":{"description":"[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1","endDate":"2025-10-07","images":["https://res.cloudinary.com/dumuhtrwr/image/upload/v1759653449/vic-sports/tournament/wjakiuhf1q65cwrtinh1.jpg"],"isActive":true,"maxParticipants":14,"minParticipants":12,"name":"Luxury ","prizePool":1000000,"registrationEndDate":"2025-10-05","registrationFee":100000,"registrationStartDate":"2025-09-28","rules":["[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1"],"sportType":"football","startDate":"2025-10-06","tournamentType":"single_elimination","venueId":{"_id":"68e219b1d471292c5654abfc","address":{"city":"Đà Nẵng","coordinates":{"coordinates":[106.6297,10.8231],"type":"Point"},"district":"Sơn Trà","street":"06 Trần Đức Thông","ward":"Phước Mỹ"},"id":"68e219b1d471292c5654abfc","name":"Luxury "}},"error":"Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/owner/tournaments/68e22e4861c4e5c8495e6c86","query":{},"stack":"CastError: Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-05 17:00:49"}
+{"body":{"description":"[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1","endDate":"2025-10-10","images":["https://res.cloudinary.com/dumuhtrwr/image/upload/v1759653449/vic-sports/tournament/wjakiuhf1q65cwrtinh1.jpg"],"isActive":true,"maxParticipants":14,"minParticipants":12,"name":"Luxury ","prizePool":1000000,"registrationEndDate":"2025-10-07","registrationFee":100000,"registrationStartDate":"2025-09-28","rules":["[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1"],"sportType":"football","startDate":"2025-10-08","tournamentType":"single_elimination","venueId":{"_id":"68e219b1d471292c5654abfc","address":{"city":"Đà Nẵng","coordinates":{"coordinates":[106.6297,10.8231],"type":"Point"},"district":"Sơn Trà","street":"06 Trần Đức Thông","ward":"Phước Mỹ"},"id":"68e219b1d471292c5654abfc","name":"Luxury "}},"error":"Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/owner/tournaments/68e22e4861c4e5c8495e6c86","query":{},"stack":"CastError: Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-05 17:01:07"}
+{"body":{"description":"[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1","endDate":"2025-10-07","images":["https://res.cloudinary.com/dumuhtrwr/image/upload/v1759653449/vic-sports/tournament/wjakiuhf1q65cwrtinh1.jpg"],"isActive":true,"maxParticipants":14,"minParticipants":12,"name":"Luxury ","prizePool":1000000,"registrationEndDate":"2025-10-04","registrationFee":100000,"registrationStartDate":"2025-09-28","rules":["[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1"],"sportType":"football","startDate":"2025-10-06","tournamentType":"single_elimination","venueId":"68e219b1d471292c5654abfc"},"error":"Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/owner/tournaments/68e22e4861c4e5c8495e6c86","query":{},"stack":"CastError: Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-05 17:01:22"}
+{"body":{"description":"[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1","endDate":"2025-10-07","images":["https://res.cloudinary.com/dumuhtrwr/image/upload/v1759653449/vic-sports/tournament/wjakiuhf1q65cwrtinh1.jpg"],"isActive":true,"maxParticipants":14,"minParticipants":12,"name":"Luxury ","prizePool":1000000,"registrationEndDate":"2025-10-07","registrationFee":100000,"registrationStartDate":"2025-09-28","rules":["[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1"],"sportType":"football","startDate":"2025-10-06","tournamentType":"single_elimination","venueId":{"_id":"68e219b1d471292c5654abfc","address":{"city":"Đà Nẵng","coordinates":{"coordinates":[106.6297,10.8231],"type":"Point"},"district":"Sơn Trà","street":"06 Trần Đức Thông","ward":"Phước Mỹ"},"id":"68e219b1d471292c5654abfc","name":"Luxury "}},"error":"Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/owner/tournaments/68e22e4861c4e5c8495e6c86","query":{},"stack":"CastError: Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-05 17:02:34"}
+{"body":{"description":"[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1","endDate":"2025-10-07","images":["https://res.cloudinary.com/dumuhtrwr/image/upload/v1759653449/vic-sports/tournament/wjakiuhf1q65cwrtinh1.jpg"],"isActive":true,"maxParticipants":14,"minParticipants":12,"name":"Luxury ","prizePool":1000000,"registrationEndDate":"2025-10-07","registrationFee":100000,"registrationStartDate":"2025-09-28","rules":["[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1"],"sportType":"football","startDate":"2025-10-06","tournamentType":"single_elimination","venueId":{"_id":"68e219b1d471292c5654abfc","address":{"city":"Đà Nẵng","coordinates":{"coordinates":[106.6297,10.8231],"type":"Point"},"district":"Sơn Trà","street":"06 Trần Đức Thông","ward":"Phước Mỹ"},"id":"68e219b1d471292c5654abfc","name":"Luxury "}},"error":"Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/owner/tournaments/68e22e4861c4e5c8495e6c86","query":{},"stack":"CastError: Cast to [string] failed for value \"[\\n' +\n  '  [\\n' +\n  \"    '[nodemon] starting `node ./src/server.js`\\\\n' +\\n\" +\n  \"      '[nodemon] app crashed - waiting for file changes before starting...\\\\n' +\\n\" +\n  \"      'file:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\\\\n' +\\n\" +\n  \"      '  createTournament,\\\\n' +\\n\" +\n  \"      '  ^^^^^^^^^^^^^^^^\\\\n' +\\n\" +\n  `      \"SyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\\\\n\" +\\n` +\n  \"      '    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\\\\n' +\\n\" +\n  \"      '    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\\\\n' +\\n\" +\n  \"      '    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\\\\n' +\\n\" +\n  \"      '    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\\\\n' +\\n\" +\n  \"      '\\\\n' +\\n\" +\n  \"      'Node.js v22.15.1'\\n\" +\n  '  ]\\n' +\n  ']\" (type string) at path \"rules.0\" because of \"CastError\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-05 17:02:46"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:05:11"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:05:11"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:05:11"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:05:11"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:05:14"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:05:14"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:05:14"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:05:14"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:05:25"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:05:25"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:05:25"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:05:25"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 17:05:55"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 17:05:56"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T08:05:55.980Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 17:05:56","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:12"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:12"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:12"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:12"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:16"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:16"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:16"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:16"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:21"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:21"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:21"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:21"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:31"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:31"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:31"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:31"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:42"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:42"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:42"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:42"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:47"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:47"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:47"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:47"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:10:57"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:10:57"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:10:57"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:10:57"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:11:05"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:11:05"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:11:05"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:11:05"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:11:10"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:11:10"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:11:10"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:11:10"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:11:15"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:11:15"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:11:15"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:11:15"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:11:19"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:11:19"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:11:19"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:11:19"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:11:35"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:11:35"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:11:35"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:11:35"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 17:12:05"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 17:12:05"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T08:12:05.297Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 17:12:05","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:13:35"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:13:35"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:13:35"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:13:35"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:13:54"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:13:54"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:13:54"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:13:54"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:14:00"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:14:00"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:14:00"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:14:00"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 17:14:30"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 17:14:30"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T08:14:30.440Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 17:14:30","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:15:14"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:15:14"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:15:14"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:15:14"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 17:15:44"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 17:15:44"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T08:15:44.385Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 17:15:44","totalStuckBookings":0}
+{"body":{"description":"[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1","endDate":"2025-10-07","images":["https://res.cloudinary.com/dumuhtrwr/image/upload/v1759653449/vic-sports/tournament/wjakiuhf1q65cwrtinh1.jpg"],"isActive":true,"maxParticipants":14,"minParticipants":12,"name":"Luxury ","prizePool":1000000,"registrationEndDate":"2025-10-04","registrationFee":100000,"registrationStartDate":"2025-09-30","rules":["[nodemon] starting `node ./src/server.js`\n[nodemon] app crashed - waiting for file changes before starting...\nfile:///C:/Semester-7/Vic-Sports-BE/src/routes/tournament.route.js:3\n  createTournament,\n  ^^^^^^^^^^^^^^^^\nSyntaxError: The requested module '../controllers/tournament.controller.js' does not provide an export named 'createTournament'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:182:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:266:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.15.1"],"sportType":"football","startDate":"2025-10-06","tournamentType":"single_elimination","venueId":{"_id":"68e219b1d471292c5654abfc","address":{"city":"Đà Nẵng","coordinates":{"coordinates":[106.6297,10.8231],"type":"Point"},"district":"Sơn Trà","street":"06 Trần Đức Thông","ward":"Phước Mỹ"},"id":"68e219b1d471292c5654abfc","name":"Luxury "}},"error":"Tournament validation failed: status: `about_to_start` is not a valid enum value for path `status`.","level":"error","message":"Error occurred:","method":"PUT","params":{},"path":"/api/v1/owner/tournaments/68e22e4861c4e5c8495e6c86","query":{},"stack":"ValidationError: Tournament validation failed: status: `about_to_start` is not a valid enum value for path `status`.\n    at Document.invalidate (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\document.js:3097:32)\n    at C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\document.js:2885:17\n    at C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\schematype.js:1349:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)","timestamp":"2025-10-05 17:17:29"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:17:42"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:17:42"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:17:42"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:17:42"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:17:44"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:17:44"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:17:44"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:17:44"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:17:52"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:17:52"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:17:52"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:17:52"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 17:18:09"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 17:18:09"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 17:18:09"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 17:18:09"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 17:18:39"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 17:18:39"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T08:18:39.650Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 17:18:39","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 18:20:07"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 18:20:07"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T09:20:07.850Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 18:20:07","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 19:20:12"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 19:20:12"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T10:20:12.003Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 19:20:12","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:20:12"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:20:12"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:20:12.010Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:20:12","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:29:24"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:29:24"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:29:24"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:29:24"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:29:31"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:29:31"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:29:31"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:29:31"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:30:01"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:30:01"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:30:01.505Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:30:01","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:30:59"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:30:59"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:30:59"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:30:59"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:31:29"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:31:29"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:31:29.225Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:31:29","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:37:01"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:37:01"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:37:01"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:37:01"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:37:14"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:37:14"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:37:14"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:37:14"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:37:24"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:37:24"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:37:24"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:37:24"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:37:27"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:37:27"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:37:27"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:37:27"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:37:30"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:37:30"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:37:30"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:37:30"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:38:00"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:38:00"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:38:00.624Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:38:00","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:38:03"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:38:03"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:38:03"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:38:03"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:38:09"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:38:09"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:38:10"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:38:10"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:38:14"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:38:14"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:38:14"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:38:14"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:38:44"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:38:44"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:38:44.780Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:38:44","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:39:06"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:39:06"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:39:06"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:39:06"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:39:36"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:39:36"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:39:36.635Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:39:36","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:40:25"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:40:25"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:40:25"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:40:25"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:40:56"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:40:56"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:40:56.007Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:40:56","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:42:40"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:42:40"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:42:40"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:42:40"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:42:43"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:42:43"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:42:43"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:42:43"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:43:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:43:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:43:13.516Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:43:13","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:43:46"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:43:46"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:43:46"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:43:46"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:44:16"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:44:16"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:44:16.530Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:44:16","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:51:19"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:51:19"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:51:19"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:51:19"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:51:22"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:51:22"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:51:22"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:51:22"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:51:33"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:51:33"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:51:33"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:51:33"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:51:35"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:51:35"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:51:35"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:51:35"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:51:37"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:51:37"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:51:37"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:51:37"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:51:43"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:51:43"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:51:43"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:51:43"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:52:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:52:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:52:13.814Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:52:13","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:56:59"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:56:59"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:56:59"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:56:59"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:57:01"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:57:01"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:57:01"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:57:01"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:57:04"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:57:04"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:57:04"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:57:04"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:57:34"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:57:34"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:57:34.322Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:57:34","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:58:47"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:58:47"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:58:47"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:58:47"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:59:17"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:59:17"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:59:17.123Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:59:17","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 20:59:18"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 20:59:18"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 20:59:18"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 20:59:18"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 20:59:48"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 20:59:48"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T11:59:48.699Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 20:59:48","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:00:41"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:00:41"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:00:41"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:00:41"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 21:01:11"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 21:01:11"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T12:01:11.505Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 21:01:11","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:01:31"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:01:31"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:01:31"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:01:31"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:01:41"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:01:41"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:01:41"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:01:41"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 21:02:11"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 21:02:11"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T12:02:11.776Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 21:02:11","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:04:38"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:04:38"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:04:38"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:04:38"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:05:03"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:05:03"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:05:03"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:05:03"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 21:05:33"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 21:05:33"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T12:05:33.739Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 21:05:33","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:06:21"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:06:21"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:06:21"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:06:21"}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-05 21:07:27"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-05 21:07:27"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-05 21:07:27"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-05 21:07:27"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-05 21:07:57"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-05 21:07:57"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-05T12:07:57.481Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-05 21:07:57","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-06 20:03:38"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-06 20:03:38"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-06 20:03:38"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 minutes, max age 2 hours","timestamp":"2025-10-06 20:03:38"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 2 hours","timestamp":"2025-10-06 20:04:08"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-06 20:04:08"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-06T11:04:08.833Z","errorDetails":[],"errors":0,"level":"info","maxAgeHours":2,"message":"Cleanup completed:","timestamp":"2025-10-06 20:04:08","totalStuckBookings":0}
+{"body":{},"error":"Cast to ObjectId failed for value \"undefined\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/undefined","query":{},"stack":"CastError: Cast to ObjectId failed for value \"undefined\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:11:13"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:13:24"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:13:29"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:13:32"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:18:15"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:20:11"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:20:16"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:20:28"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:20:36"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:20:43"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:22:56"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury 2\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury%202","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury 2\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:23:00"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:23:05"}
+{"body":{},"error":"Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"","level":"error","message":"Error occurred:","method":"GET","params":{},"path":"/api/v1/tournaments/Luxury","query":{},"stack":"CastError: Cast to ObjectId failed for value \"Luxury\" (type string) at path \"_id\" for model \"Tournament\"\n    at model.Query.exec (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4891:21)\n    at Query.then (C:\\Semester-7\\Vic-Sports-BE\\node_modules\\mongoose\\lib\\query.js:4990:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-10-06 20:23:15"}
