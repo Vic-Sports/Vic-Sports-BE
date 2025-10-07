@@ -375,6 +375,7 @@ export const createBooking = async (req, res) => {
       const booking = await Booking.create(bookingData);
       bookings.push(booking);
 
+      // ...existing code...
       // Lưu payment link nếu có
       if (paymentLink) {
         paymentLinks.push({
@@ -739,6 +740,24 @@ const isTimeSlotOverlap = (start1, end1, start2, end2) => {
   return s1 < e2 && e1 > s2;
 };
 
+// Recompute totalBookings for a venue by counting bookings in Booking collection
+export const recomputeVenueTotalBookings = async (venueId) => {
+  try {
+    if (!venueId) return null;
+    // Count bookings for this venue excluding cancelled ones
+    const count = await Booking.countDocuments({
+      venue: venueId,
+      status: { $ne: "cancelled" },
+    });
+
+    await Venue.findByIdAndUpdate(venueId, { totalBookings: count });
+    return count;
+  } catch (err) {
+    console.warn("Failed to recompute venue totalBookings for:", venueId, err);
+    return null;
+  }
+};
+
 // @desc    Test Booking Creation (For Backend Testing)
 // @route   POST /api/bookings/test
 // @access  Public
@@ -772,6 +791,9 @@ export const testBookingCreation = async (req, res) => {
 
     const booking = await Booking.create(testData);
     console.log("Test booking created successfully:", booking._id);
+
+    // Recompute venue totalBookings from Booking collection
+    await recomputeVenueTotalBookings(testData.venue || booking.venue);
 
     res.status(201).json({
       success: true,
@@ -855,6 +877,8 @@ export const createSimpleBooking = async (req, res) => {
     const booking = await Booking.create(bookingData);
     console.log("Booking created successfully:", booking._id);
 
+    // Recompute venue totalBookings from Booking collection
+    await recomputeVenueTotalBookings(bookingData.venue || booking.venue);
     // Trả về response đơn giản
     res.status(201).json({
       success: true,

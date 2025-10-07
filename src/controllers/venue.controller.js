@@ -1,6 +1,7 @@
 import Venue from "../models/venue.js";
 import Court from "../models/court.js";
 import Location from "../models/location.js";
+import { recomputeVenueTotalBookings } from "../controllers/booking.controller.js";
 
 // Sport type mapping for bilingual support
 const sportTypeMapping = {
@@ -107,6 +108,18 @@ export const searchVenues = async (req, res) => {
 
     const total = await Venue.countDocuments(query);
 
+    // Recompute totalBookings for the venues returned on home/load
+    try {
+      if (venues && venues.length > 0) {
+        // Run recompute in parallel but don't let failures block the response
+        await Promise.allSettled(
+          venues.map((v) => recomputeVenueTotalBookings(v._id))
+        );
+      }
+    } catch (err) {
+      console.warn("Error recomputing venue totalBookings on home load:", err);
+    }
+
     const response = {
       venues,
       total,
@@ -170,7 +183,22 @@ export const createVenue = async (req, res) => {
       contactInfo,
       amenities,
       operatingHours,
-      parking,
+      // Normalize parking object if provided
+      parking: parking
+        ? {
+            available:
+              parking.available === true ||
+              String(parking.available) === "true",
+            capacity:
+              parking.capacity !== undefined && parking.capacity !== null
+                ? Number(parking.capacity)
+                : undefined,
+            fee:
+              parking.fee !== undefined && parking.fee !== null
+                ? Number(parking.fee)
+                : undefined,
+          }
+        : undefined,
     });
 
     res.status(201).json({
