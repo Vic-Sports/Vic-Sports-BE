@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Full name is required!"],
       trim: true,
-      maxlength: [50, "Full name cannot exceed 50 characters!"]
+      maxlength: [50, "Full name cannot exceed 50 characters!"],
     },
     email: {
       type: String,
@@ -20,80 +20,80 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        "Email không đúng định dạng!"
-      ]
+        "Email không đúng định dạng!",
+      ],
     },
     phone: {
       type: String,
-      unique: true,
       trim: true,
       match: [
         /^0((3[2-9])|(5[6|8|9])|(7[0|6-9])|(8[1-5|8|9])|(9[0-9]))\d{7}$/,
-        "Số điện thoại không hợp lệ!"
-      ]
+        "Số điện thoại không hợp lệ!",
+      ],
     },
     password: {
       type: String,
       minlength: [6, "Password must be at least 6 characters long!"],
-      select: false
+      select: false,
     },
     avatar: {
       type: String,
-      default: "https://res.cloudinary.com/demo/image/upload/v1/samples/people/boy-snow-hoodie.jpg"
+      default:
+        "https://res.cloudinary.com/demo/image/upload/v1/samples/people/boy-snow-hoodie.jpg",
     },
     dateOfBirth: {
-      type: Date
+      type: Date,
     },
     gender: {
       type: String,
       enum: {
         values: ["male", "female", "other"],
-        message: "{VALUE} is not a valid gender"
-      }
+        message: "{VALUE} is not a valid gender",
+      },
     },
     address: {
       city: {
         type: String,
-        trim: true
+        trim: true,
       },
       district: {
         type: String,
-        trim: true
+        trim: true,
       },
       ward: {
         type: String,
-        trim: true
+        trim: true,
       },
       street: {
         type: String,
-        trim: true
+        trim: true,
       },
       coordinates: {
         lat: Number,
-        lng: Number
-      }
+        lng: Number,
+      },
     },
 
     // --- Authentication & Security ---
     isEmailVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     emailVerificationToken: {
       type: String,
-      select: false
+      select: false,
     },
     emailVerificationExpires: {
       type: Date,
-      select: false
+      select: false,
     },
     passwordResetToken: {
       type: String,
-      select: false
+      select: false,
     },
     passwordResetExpires: {
       type: Date,
-      select: false
+      select: false,
     },
 
     // --- Social Login ---
@@ -102,14 +102,14 @@ const userSchema = new mongoose.Schema(
         id: String,
         email: String,
         name: String,
-        picture: String
+        picture: String,
       },
       facebook: {
         id: String,
         email: String,
         name: String,
-        picture: String
-      }
+        picture: String,
+      },
     },
 
     // --- Role System (Simplified) ---
@@ -117,7 +117,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["customer", "owner", "admin", "coach"],
       required: [true, "Role is required"],
-      default: "customer"
+      default: "customer",
     },
 
     // --- Account Status ---
@@ -125,143 +125,150 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: {
         values: ["ACTIVE", "INACTIVE", "BANNED"],
-        message: "{VALUE} is not a valid status"
+        message: "{VALUE} is not a valid status",
       },
       required: [true, "Status is required"],
-      default: "INACTIVE"
+      default: "INACTIVE",
     },
     isBlocked: {
       type: Boolean,
-      default: false
+      default: false,
     },
     blockedReason: String,
     blockedUntil: Date,
     blockedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: "User",
     },
 
     // --- Simple Loyalty Program ---
     rewardPoints: {
       type: Number,
       default: 0,
-      min: [0, "Reward points cannot be negative!"]
+      min: [0, "Reward points cannot be negative!"],
     },
     loyaltyTier: {
       type: String,
-      enum: ['Bronze', 'Silver', 'Gold', 'Diamond'],
-      default: 'Bronze'
+      enum: ["Bronze", "Silver", "Gold", "Diamond"],
+      default: "Bronze",
     },
 
     // --- Referral System (Basic) ---
     referralCode: {
       type: String,
       unique: true,
-      sparse: true
+      sparse: true,
     },
     referredBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      ref: "User",
     },
     referralCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
 
     // --- Birthday Program (Basic) ---
     birthdayVoucherClaimed: {
       type: Boolean,
-      default: false
+      default: false,
     },
     lastBirthdayVoucherYear: Number,
 
     // --- Business Statistics ---
     totalBookings: {
       type: Number,
-      default: 0
+      default: 0,
     },
     totalSpent: {
       type: Number,
-      default: 0
+      default: 0,
     },
 
     // --- User Preferences ---
-    favoriteVenues: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Venue'
-    }],
+    favoriteVenues: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Venue",
+      },
+    ],
     favoriteSports: [String],
 
     // --- Online Status & Communication ---
     isOnline: {
       type: Boolean,
-      default: false
+      default: false,
     },
     lastSeen: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
-    friends: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
-    blockedUsers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
 
     // --- Basic Notification Settings ---
     notificationSettings: {
       email: {
         type: Boolean,
-        default: true
+        default: true,
       },
       push: {
         type: Boolean,
-        default: true
+        default: true,
       },
       booking: {
         type: Boolean,
-        default: true
+        default: true,
       },
       promotion: {
         type: Boolean,
-        default: true
-      }
+        default: true,
+      },
     },
 
     // --- Device & Session ---
     lastLoginDevice: {
       userAgent: String,
       ip: String,
-      location: String
-    }
+      location: String,
+    },
   },
   {
     timestamps: true,
-    toJSON: { 
+    toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: function (doc, ret) {
         delete ret.password;
         delete ret.emailVerificationToken;
         delete ret.passwordResetToken;
         return ret;
-      }
+      },
     },
-    toObject: { virtuals: true }
+    toObject: { virtuals: true },
   }
 );
 
 // --- INDEXES ---
 userSchema.index({ email: 1 });
-userSchema.index({ phone: 1 });
+// Unique sparse index for phone to allow multiple docs without a phone (null)
+userSchema.index({ phone: 1 }, { unique: true, sparse: true });
 userSchema.index({ role: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ isEmailVerified: 1 });
 userSchema.index({ referralCode: 1 });
 userSchema.index({ "socialLogin.google.id": 1 });
 userSchema.index({ "socialLogin.facebook.id": 1 });
-userSchema.index({ 'address.city': 1, 'address.district': 1 });
+userSchema.index({ "address.city": 1, "address.district": 1 });
 userSchema.index({ loyaltyTier: 1 });
 userSchema.index({ isOnline: 1 });
 userSchema.index({ createdAt: -1 });
@@ -275,8 +282,8 @@ userSchema.virtual("fullInfo").get(function () {
 userSchema.virtual("calculatedTier").get(function () {
   const spent = this.totalSpent || 0;
   if (spent >= 10000000) return "Diamond"; // 10M VND
-  if (spent >= 5000000) return "Gold";     // 5M VND
-  if (spent >= 1000000) return "Silver";   // 1M VND
+  if (spent >= 5000000) return "Gold"; // 5M VND
+  if (spent >= 1000000) return "Silver"; // 1M VND
   return "Bronze";
 });
 
@@ -287,30 +294,30 @@ userSchema.virtual("hasSocialLogin").get(function () {
 // Get discount percentage based on tier
 userSchema.virtual("tierDiscount").get(function () {
   const discounts = {
-    'Bronze': 0,
-    'Silver': 5,
-    'Gold': 10,
-    'Diamond': 15
+    Bronze: 0,
+    Silver: 5,
+    Gold: 10,
+    Diamond: 15,
   };
   return discounts[this.loyaltyTier] || 0;
 });
 
 // --- STATIC METHODS ---
-userSchema.statics.calculateRewardPoints = function (price, tier = 'Bronze') {
+userSchema.statics.calculateRewardPoints = function (price, tier = "Bronze") {
   const basePoints = Math.floor(price / 10000) * 10; // 10k VND = 1 point
-  
+
   const multipliers = {
-    'Bronze': 1,
-    'Silver': 1.1,
-    'Gold': 1.2,
-    'Diamond': 1.3
+    Bronze: 1,
+    Silver: 1.1,
+    Gold: 1.2,
+    Diamond: 1.3,
   };
-  
+
   return Math.floor(basePoints * (multipliers[tier] || 1));
 };
 
 userSchema.statics.generateReferralCode = function () {
-  return crypto.randomBytes(4).toString('hex').toUpperCase();
+  return crypto.randomBytes(4).toString("hex").toUpperCase();
 };
 
 // --- INSTANCE METHODS ---
@@ -321,12 +328,12 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 userSchema.methods.blockUser = function (userId) {
   if (!this.blockedUsers.includes(userId)) {
     this.blockedUsers.push(userId);
-    this.friends = this.friends.filter(id => !id.equals(userId));
+    this.friends = this.friends.filter((id) => !id.equals(userId));
   }
 };
 
 userSchema.methods.unblockUser = function (userId) {
-  this.blockedUsers = this.blockedUsers.filter(id => !id.equals(userId));
+  this.blockedUsers = this.blockedUsers.filter((id) => !id.equals(userId));
 };
 
 userSchema.methods.addFriend = function (userId) {
@@ -336,13 +343,13 @@ userSchema.methods.addFriend = function (userId) {
 };
 
 userSchema.methods.removeFriend = function (userId) {
-  this.friends = this.friends.filter(id => !id.equals(userId));
+  this.friends = this.friends.filter((id) => !id.equals(userId));
 };
 
 userSchema.methods.updateTier = function () {
   const oldTier = this.loyaltyTier;
   const newTier = this.calculatedTier; // Using virtual tier
-  
+
   if (oldTier !== newTier) {
     this.loyaltyTier = newTier;
     return { upgraded: true, oldTier, newTier };
@@ -350,16 +357,16 @@ userSchema.methods.updateTier = function () {
   return { upgraded: false };
 };
 
-userSchema.methods.addPoints = function (points, source = 'booking') {
+userSchema.methods.addPoints = function (points, source = "booking") {
   this.rewardPoints += points;
-  
+
   // Update tier if necessary
   const tierUpdate = this.updateTier();
-  
+
   return {
     pointsAdded: points,
     totalPoints: this.rewardPoints,
-    ...tierUpdate
+    ...tierUpdate,
   };
 };
 
@@ -368,19 +375,25 @@ userSchema.methods.usePoints = function (points) {
     this.rewardPoints -= points;
     return { success: true, remainingPoints: this.rewardPoints };
   }
-  return { success: false, error: 'Insufficient points' };
+  return { success: false, error: "Insufficient points" };
 };
 
 userSchema.methods.generatePasswordResetToken = function () {
-  const resetToken = crypto.randomBytes(20).toString('hex');
-  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
   return resetToken;
 };
 
 userSchema.methods.generateEmailVerificationToken = function () {
-  const verificationToken = crypto.randomBytes(20).toString('hex');
-  this.emailVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+  const verificationToken = crypto.randomBytes(20).toString("hex");
+  this.emailVerificationToken = crypto
+    .createHash("sha256")
+    .update(verificationToken)
+    .digest("hex");
   this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
   return verificationToken;
 };
@@ -392,7 +405,7 @@ userSchema.pre("save", async function (next) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   }
-  
+
   // Generate referral code if new user and doesn't have one
   if (this.isNew && !this.referralCode) {
     let code;
@@ -403,7 +416,7 @@ userSchema.pre("save", async function (next) {
     }
     this.referralCode = code;
   }
-  
+
   next();
 });
 
@@ -415,10 +428,10 @@ userSchema.pre(/^find/, function (next) {
   next();
 });
 
-userSchema.plugin(mongoose_delete, { 
+userSchema.plugin(mongoose_delete, {
   overrideMethods: "all",
   deletedAt: true,
-  deletedBy: true
+  deletedBy: true,
 });
 
 const User = mongoose.model("User", userSchema);
