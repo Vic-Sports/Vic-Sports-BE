@@ -48,13 +48,19 @@ export const register = async (req, res) => {
     }
 
     // Create user
-    const user = await User.create({
+    const userData = {
       fullName,
       email,
       password,
-      phone,
       role: userRole,
-    });
+    };
+
+    // Only add phone if it's not null/undefined/empty
+    if (phone && phone.trim() !== "") {
+      userData.phone = phone;
+    }
+
+    const user = await User.create(userData);
 
     // Generate email verification token
     const verificationToken = user.generateEmailVerificationToken();
@@ -237,12 +243,12 @@ export const socialLogin = async (req, res) => {
         });
       }
     } else {
-      user = new User({
+      // Prepare user data, only include phone if it has a valid value
+      const userData = {
         fullName: userFullName,
         email: emailString,
         password: null,
         avatar: picture,
-        phone,
         role,
         dateOfBirth,
         gender,
@@ -262,7 +268,14 @@ export const socialLogin = async (req, res) => {
         lastLoginDevice,
         status: "ACTIVE",
         isEmailVerified: true,
-      });
+      };
+
+      // Only add phone if it's not null/undefined/empty
+      if (phone && phone.trim() !== "") {
+        userData.phone = phone;
+      }
+
+      user = new User(userData);
       await user.save();
     }
 
@@ -323,19 +336,9 @@ export const verifyEmail = async (req, res) => {
     }).select("+emailVerificationToken +emailVerificationExpires");
 
     if (!user) {
-      console.error("[VerifyEmail] Token not found or expired", {
-        token,
-        hashedToken,
-        query: req.query,
-        params: req.params,
-      });
       return res.status(400).json({
         success: false,
         message: "Invalid or expired verification token",
-        debug: {
-          token,
-          hashedToken,
-        },
       });
     }
 
@@ -365,11 +368,9 @@ export const verifyEmail = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("[VerifyEmail] Internal error:", error);
     res.status(500).json({
       success: false,
       message: error.message,
-      debug: error.stack,
     });
   }
   // Tắt cache cho response xác thực email
@@ -550,10 +551,6 @@ export const logout = async (req, res) => {
         } catch (jwtError) {
           expiresAt = new Date(Date.now() + 60 * 60 * 1000);
           blacklistUserId = userId || null;
-          console.log(
-            "Token verification failed during logout:",
-            jwtError.message
-          );
         }
         TokenBlacklist.create({
           token,
@@ -561,7 +558,9 @@ export const logout = async (req, res) => {
           tokenType: "ACCESS_TOKEN",
           reason: "LOGOUT",
           expiresAt,
-        }).catch((err) => console.log("Blacklist access token error:", err));
+        }).catch((err) => {
+          // Silent error handling for blacklist operations
+        });
       }
 
       // Blacklist refresh token if exists
@@ -574,10 +573,6 @@ export const logout = async (req, res) => {
         } catch (jwtError) {
           expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days fallback
           blacklistUserId = userId || null;
-          console.log(
-            "Refresh token verification failed during logout:",
-            jwtError.message
-          );
         }
         TokenBlacklist.create({
           token: refreshToken,
@@ -585,7 +580,9 @@ export const logout = async (req, res) => {
           tokenType: "REFRESH_TOKEN",
           reason: "LOGOUT",
           expiresAt,
-        }).catch((err) => console.log("Blacklist refresh token error:", err));
+        }).catch((err) => {
+          // Silent error handling for blacklist operations
+        });
       }
 
       // Update user online status if userId found
@@ -597,7 +594,7 @@ export const logout = async (req, res) => {
             await user.save();
           }
         } catch (userError) {
-          console.log("User update failed during logout:", userError.message);
+          // Silent error handling for user update operations
         }
       }
     })();
@@ -620,7 +617,6 @@ export const logout = async (req, res) => {
         message: "Logged out successfully",
       });
   } catch (error) {
-    console.error("Logout error:", error);
     res
       .status(200)
       .clearCookie("token", {
