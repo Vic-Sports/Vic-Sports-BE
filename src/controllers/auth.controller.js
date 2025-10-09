@@ -160,12 +160,22 @@ export const login = async (req, res) => {
     }
     await user.save();
 
+    // Persist hashed refresh token on user record for session validation
+    try {
+      const hashed = crypto.createHash("sha256").update(refreshToken).digest("hex");
+      user.refreshToken = hashed;
+      await user.save();
+    } catch (e) {
+      // non-fatal
+      console.warn("Failed to persist refresh token hash", e.message);
+    }
+
     // Set cookie options
     const options = {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
     };
 
     res
@@ -286,7 +296,7 @@ export const socialLogin = async (req, res) => {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
     };
 
     res
@@ -311,6 +321,14 @@ export const socialLogin = async (req, res) => {
           refreshToken,
         },
       });
+      // Persist hashed refresh token
+      try {
+        const hashed = crypto.createHash("sha256").update(refreshToken).digest("hex");
+        user.refreshToken = hashed;
+        await user.save();
+      } catch (e) {
+        console.warn("Failed to persist refresh token hash (socialLogin)", e.message);
+      }
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -585,6 +603,13 @@ export const logout = async (req, res) => {
         });
       }
 
+      // Clear stored refresh token for this user (best-effort)
+      if (userId) {
+        try {
+          await User.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
+        } catch (_) {}
+      }
+
       // Update user online status if userId found
       if (userId) {
         try {
@@ -659,6 +684,11 @@ export const logoutAll = async (req, res) => {
       await user.save();
     }
 
+    // Clear stored refresh token(s) for this user
+    try {
+      await User.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
+    } catch (_) {}
+
     res.status(200).clearCookie("token").clearCookie("refreshToken").json({
       success: true,
       message: "Logged out from all devices successfully",
@@ -687,13 +717,21 @@ export const refreshToken = async (req, res) => {
 
     // Verify refresh token
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded.userId).select('+refreshToken');
 
     if (!user) {
       return res.status(401).json({
         success: false,
         message: "Invalid refresh token",
       });
+    }
+
+    // Validate provided refresh token against stored hashed token (if present)
+    if (user.refreshToken) {
+      const hashed = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      if (hashed !== user.refreshToken) {
+        return res.status(401).json({ success: false, message: 'Invalid refresh token' });
+      }
     }
 
     // Generate new tokens
@@ -704,7 +742,7 @@ export const refreshToken = async (req, res) => {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
     };
 
     res
@@ -755,6 +793,10 @@ export const getMe = async (req, res) => {
           totalSpent: user.totalSpent,
           referralCode: user.referralCode,
           referralCount: user.referralCount,
+          // include googleGroupStatus only for owners
+          ...(user.role === "owner"
+            ? { googleGroupStatus: user.googleGroupStatus || "pending" }
+            : {}),
           isOnline: user.isOnline,
           lastSeen: user.lastSeen,
           favoriteVenues: user.favoriteVenues,

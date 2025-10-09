@@ -13,6 +13,7 @@ import {
   verifyEmail,
 } from "../controllers/auth.controller.js";
 import { protect } from "../middlewares/auth.middleware.js";
+import { getGoogleAuthUrl, oAuth2Client } from "../config/googleAuth.js";
 
 const router = express.Router();
 

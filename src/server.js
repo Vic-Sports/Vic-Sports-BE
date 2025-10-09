@@ -57,6 +57,7 @@ app.get("/", (req, res) => {
 // Routes
 import adminRoutes from "./routes/admin.route.js";
 import authRoutes from "./routes/auth.route.js";
+import googleAuthRoutes from "./routes/googleAuth.routes.js";
 import bookingRoutes from "./routes/booking.route.js";
 import chatRoutes from "./routes/chat.route.js";
 import coachRoutes from "./routes/coach.route.js";
@@ -73,6 +74,10 @@ import tournamentRoutes from "./routes/tournament.route.js";
 import userRoutes from "./routes/user.route.js";
 import venueRoutes from "./routes/venue.route.js";
 import webhookRoutes from "./routes/webhook.route.js";
+import formRoutes from "./routes/form.routes.js";
+// Google OAuth 2.0 flow for booking forms (must be before general auth)
+app.use("/api/v1/auth/google", googleAuthRoutes);
+// General auth routes (register, login, etc.)
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/admin", adminRoutes);
@@ -91,6 +96,8 @@ app.use("/api/v1/tournaments", tournamentRoutes);
 app.use("/api/v1/players", playerRoutes);
 app.use("/api/v1/community", communityRoutes);
 app.use("/api/v1/sports-matching", sportsMatchingRoutes);
+// Google Forms creation routes
+app.use("/api/v1/forms", formRoutes);
 
 // Error handler
 app.use(errorHandler);

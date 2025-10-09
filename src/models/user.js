@@ -95,6 +95,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    // --- Google OAuth Token ---
+    googleRefreshToken: {
+      type: String,
+      select: false,
+    },
+    // --- Refresh Token for session management ---
+    // Store hashed refresh token for the most recent session (or device)
+    // Note: for multi-device support, consider storing an array of hashed tokens.
+    refreshToken: {
+      type: String,
+      select: false,
+    },
 
     // --- Social Login ---
     socialLogin: {
@@ -118,6 +130,16 @@ const userSchema = new mongoose.Schema(
       enum: ["customer", "owner", "admin", "coach"],
       required: [true, "Role is required"],
       default: "customer",
+    },
+
+    // --- Owner Google Group Status ---
+    // This field tracks whether an admin has manually added the owner to the required Google Group
+    // Allowed values: 'pending' | 'active'
+    // No global default; it should be set programmatically when a user is promoted to owner.
+    googleGroupStatus: {
+      type: String,
+      enum: ["pending", "active"],
+      // note: intentionally no default here; set when promoting to owner
     },
 
     // --- Account Status ---
