@@ -37,6 +37,11 @@ const tournamentRegistrationSchema = new mongoose.Schema(
     },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     approvedAt: Date,
+    rejectionReason: String,
+    notes: String,
+    withdrawnBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    withdrawnAt: Date,
+    withdrawalReason: String,
 
     emergencyContact: {
       name: String,

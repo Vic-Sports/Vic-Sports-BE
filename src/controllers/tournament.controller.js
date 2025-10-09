@@ -194,10 +194,10 @@ export const getTournamentById = asyncHandler(async (req, res) => {
   // Get tournament participants count and basic info
   const participants = await TournamentRegistration.find({ 
     tournamentId: req.params.id,
-    status: "confirmed"
+    status: "approved"
   })
-    .populate("user", "fullName avatar")
-    .sort({ registrationDate: -1 });
+    .populate("participantId", "fullName avatar")
+    .sort({ registeredAt: -1 });
 
   // Get tournament matches if any
   const matches = await TournamentMatch.find({ tournamentId: req.params.id })
@@ -227,7 +227,7 @@ export const getTournamentById = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Join tournament (User)
+// @desc    Join tournament (User) - Simple registration
 // @route   POST /api/v1/tournaments/:id/join
 // @access  Private (User)
 export const joinTournament = asyncHandler(async (req, res) => {
@@ -257,7 +257,7 @@ export const joinTournament = asyncHandler(async (req, res) => {
   // Check if user already joined
   const existingRegistration = await TournamentRegistration.findOne({
     tournamentId: req.params.id,
-    user: req.user.id,
+    participantId: req.user.id,
   });
 
   if (existingRegistration) {
@@ -270,9 +270,9 @@ export const joinTournament = asyncHandler(async (req, res) => {
   // Create registration
   const registration = await TournamentRegistration.create({
     tournamentId: req.params.id,
-    user: req.user.id,
-    registrationDate: new Date(),
-    status: "confirmed",
+    participantId: req.user.id,
+    registeredAt: new Date(),
+    status: "approved",
   });
 
   // Update tournament participant count
@@ -286,12 +286,160 @@ export const joinTournament = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Register for tournament (User) - Detailed registration
+// @route   POST /api/v1/tournaments/:id/register
+// @access  Private (User)
+export const registerForTournament = asyncHandler(async (req, res) => {
+  const {
+    registrationType,
+    teamName,
+    teamMembers,
+    emergencyContact,
+    medicalConditions,
+    notes
+  } = req.body;
+
+  const tournament = await Tournament.findById(req.params.id);
+
+  if (!tournament) {
+    return res.status(404).json({
+      success: false,
+      message: "Tournament not found",
+    });
+  }
+
+  if (tournament.status !== "registration_open") {
+    return res.status(400).json({
+      success: false,
+      message: "Tournament registration is not open",
+    });
+  }
+
+  if (tournament.currentParticipants >= tournament.maxParticipants) {
+    return res.status(400).json({
+      success: false,
+      message: "Tournament is full",
+    });
+  }
+
+  // Check if user already registered
+  const existingRegistration = await TournamentRegistration.findOne({
+    tournamentId: req.params.id,
+    participantId: req.user.id,
+  });
+
+  if (existingRegistration) {
+    return res.status(400).json({
+      success: false,
+      message: "You have already registered for this tournament",
+    });
+  }
+
+  // Enforce registration type based on teamSize configuration
+  const teamSize = Number(tournament.teamSize) || 1;
+  if (teamSize === 1 && registrationType === 'team') {
+    return res.status(400).json({
+      success: false,
+      message: "This tournament only allows individual registration",
+    });
+  }
+  if (teamSize > 1 && registrationType !== 'team') {
+    return res.status(400).json({
+      success: false,
+      message: "This tournament requires team registration",
+    });
+  }
+
+  // Validate team registration
+  if (registrationType === 'team') {
+    if (!teamName) {
+      return res.status(400).json({
+        success: false,
+        message: "Team name is required for team registration",
+      });
+    }
+
+    if (!teamMembers || teamMembers.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Team must have at least 2 members",
+      });
+    }
+
+    // Respect tournament team size upper bound if configured (>1)
+    if (teamSize > 1 && teamMembers.length > teamSize) {
+      return res.status(400).json({
+        success: false,
+        message: `Team cannot exceed ${teamSize} members`,
+      });
+    }
+
+    // Check if current user is in team members
+    const currentUserInTeam = teamMembers.find(member => member.userId === req.user.id);
+    if (!currentUserInTeam) {
+      return res.status(400).json({
+        success: false,
+        message: "You must be included in the team members",
+      });
+    }
+
+    // Check if current user is captain
+    const captain = teamMembers.find(member => member.role === 'captain');
+    if (!captain || captain.userId !== req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "You must be the team captain to register",
+      });
+    }
+  }
+
+  // Create registration
+  const registration = await TournamentRegistration.create({
+    tournamentId: req.params.id,
+    participantId: req.user.id,
+    teamName: registrationType === 'team' ? teamName : null,
+    teamMembers: registrationType === 'team' ? teamMembers.map(member => ({
+      userId: member.userId,
+      role: member.role,
+      isConfirmed: member.isConfirmed
+    })) : [{
+      userId: req.user.id,
+      role: 'captain',
+      isConfirmed: true
+    }],
+    registeredAt: new Date(),
+    paymentStatus: "pending",
+    status: "pending",
+    emergencyContact: {
+      name: emergencyContact.name,
+      phone: emergencyContact.phone,
+      relationship: emergencyContact.relationship
+    },
+    medicalConditions: medicalConditions || "Không có",
+    notes: notes || ""
+  });
+
+  // Generate payment URL (you can integrate with PayOS, VNPay, etc.)
+  const paymentUrl = tournament.registrationFee > 0 ? 
+    `/payment/tournament/${registration._id}` : null;
+
+  res.status(201).json({
+    success: true,
+    message: "Registration successful",
+    data: {
+      registration,
+      paymentUrl
+    },
+  });
+});
+
+
 // @desc    Get tournament participants (Public)
 // @route   GET /api/v1/tournaments/:id/participants
 // @access  Public
 export const getTournamentParticipants = asyncHandler(async (req, res) => {
   const participants = await TournamentRegistration.find({ tournamentId: req.params.id })
-    .populate("user", "name email")
+    .populate("participantId", "fullName email")
     .sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -641,8 +789,7 @@ export const getOwnerTournament = asyncHandler(async (req, res) => {
     _id: req.params.id,
     organizerId: req.user.id,
   })
-    .populate("venueId", "name address")
-    .populate("participants.user", "name email");
+    .populate("venueId", "name address");
 
   if (!tournament) {
     return res.status(404).json({
@@ -718,7 +865,7 @@ export const createOwnerTournament = asyncHandler(async (req, res) => {
     tournamentType: format || "single_elimination",
     maxParticipants,
     minParticipants,
-    teamSize: 1,
+    teamSize: req.body.teamSize || 1,
     currentParticipants: 0,
     registrationStartDate: new Date(registrationStartDate),
     registrationEndDate: new Date(registrationEndDate),
@@ -807,6 +954,7 @@ export const updateOwnerTournament = asyncHandler(async (req, res) => {
   if (entryFee !== undefined) updateData.registrationFee = entryFee;
   if (prizePool !== undefined) updateData.prizePool = prizePool;
   if (format) updateData.tournamentType = format;
+  if (req.body.teamSize !== undefined) updateData.teamSize = req.body.teamSize;
   if (rules) {
     // Handle rules as string or array
     if (typeof rules === 'string') {
@@ -960,7 +1108,7 @@ export const getOwnerTournamentParticipants = asyncHandler(async (req, res) => {
   }
 
   const participants = await TournamentRegistration.find({ tournamentId: req.params.id })
-    .populate("user", "name email phone")
+    .populate("participantId", "fullName email phone")
     .sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -1243,21 +1391,13 @@ export const updateSingleTournamentStatusAPI = asyncHandler(async (req, res) => 
 // @route   GET /api/v1/tournaments/latest-active
 // @access  Public
 export const getLatestActiveTournaments = asyncHandler(async (req, res) => {
-  console.log("Getting latest active tournaments...");
-  
-  // First, let's check total tournaments in database
-  const totalTournaments = await Tournament.countDocuments();
-  console.log(`Total tournaments in database: ${totalTournaments}`);
-  
   const tournaments = await Tournament.find({
-    status: { $nin: ["completed", "cancelled"] }, // Loại trừ các giải đấu đã hoàn thành hoặc đã hủy
+    status: { $nin: ["completed", "cancelled"] },
   })
-    .sort({ createdAt: -1 }) // Sắp xếp theo thời gian tạo giảm dần (mới nhất trước)
-    .limit(3) // Giới hạn 3 giải đấu
-    .populate("venueId", "name address images") // Populate thông tin venue
-    .select("-__v -updatedAt"); // Loại bỏ các trường không cần thiết
-
-  console.log(`Found ${tournaments.length} active tournaments:`, tournaments.map(t => ({ name: t.name, status: t.status })));
+    .sort({ createdAt: -1 })
+    .limit(3)
+    .populate("venueId", "name address images")
+    .select("-__v -updatedAt");
 
   res.status(200).json({
     success: true,
@@ -1265,55 +1405,301 @@ export const getLatestActiveTournaments = asyncHandler(async (req, res) => {
   });
 });
 
-// Test API to get all tournaments (for debugging)
-export const getAllTournamentsForDebug = asyncHandler(async (req, res) => {
-  console.log("Getting ALL tournaments for debug...");
-  
-  const allTournaments = await Tournament.find({})
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .select("name status createdAt");
 
-  console.log(`Found ${allTournaments.length} total tournaments:`, allTournaments);
+
+// @desc    Get tournament registrations (Owner)
+// @route   GET /api/v1/owner/tournaments/:id/registrations
+// @access  Private (Owner)
+export const getOwnerTournamentRegistrations = asyncHandler(async (req, res) => {
+  const {
+    page = 1,
+    limit = 10,
+    status,
+    search,
+    sortBy = "registeredAt",
+    sortOrder = "desc",
+  } = req.query;
+
+  // Check if tournament exists and belongs to owner
+  const tournament = await Tournament.findOne({
+    _id: req.params.id,
+    organizerId: req.user.id,
+  });
+
+  if (!tournament) {
+    return res.status(404).json({
+      success: false,
+      message: "Tournament not found or not authorized",
+    });
+  }
+
+  // Build query
+  const query = { tournamentId: req.params.id };
+  
+  if (status) query.status = status;
+  
+  if (search) {
+    query.$or = [
+      { teamName: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  // Build sort
+  const sort = {};
+  sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+  // Execute query
+  const registrations = await TournamentRegistration.find(query)
+    .populate("participantId", "fullName email phone avatar")
+    .populate("approvedBy", "fullName")
+    .sort(sort)
+    .limit(limit * 1)
+    .skip((page - 1) * limit);
+
+  const total = await TournamentRegistration.countDocuments(query);
 
   res.status(200).json({
     success: true,
-    data: allTournaments,
+    data: {
+      registrations,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        hasNext: page < Math.ceil(total / limit),
+      },
+    },
   });
 });
 
-// Create a test tournament for debugging
-export const createTestTournament = asyncHandler(async (req, res) => {
-  console.log("Creating test tournament...");
-  
-  const testTournament = await Tournament.create({
-    organizerId: new mongoose.Types.ObjectId("507f1f77bcf86cd799439011"), // Fake ObjectId
-    venueId: new mongoose.Types.ObjectId("507f1f77bcf86cd799439012"), // Fake ObjectId
-    name: "Test Tournament",
-    description: "This is a test tournament",
-    sportType: "football",
-    tournamentType: "single_elimination",
-    maxParticipants: 16,
-    minParticipants: 8,
-    teamSize: 1,
-    registrationStartDate: new Date(),
-    registrationEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-    registrationFee: 100000,
-    startDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-    endDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), // 15 days from now
-    prizePool: 1000000,
-    status: "registration_open",
-    isPublic: true,
-    allowSpectators: true,
-    spectatorFee: 0,
-    requireApproval: false,
-    allowSubstitutes: false,
+// @desc    Get tournament registration by ID (Owner)
+// @route   GET /api/v1/owner/tournaments/:id/registrations/:registrationId
+// @access  Private (Owner)
+export const getOwnerTournamentRegistration = asyncHandler(async (req, res) => {
+  // Check if tournament exists and belongs to owner
+  const tournament = await Tournament.findOne({
+    _id: req.params.id,
+    organizerId: req.user.id,
   });
 
-  console.log("Test tournament created:", testTournament);
+  if (!tournament) {
+    return res.status(404).json({
+      success: false,
+      message: "Tournament not found or not authorized",
+    });
+  }
 
-  res.status(201).json({
+  const registration = await TournamentRegistration.findOne({
+    _id: req.params.registrationId,
+    tournamentId: req.params.id,
+  })
+    .populate("participantId", "fullName email phone avatar")
+    .populate("approvedBy", "fullName")
+    .populate("teamMembers.userId", "fullName email phone avatar");
+
+  if (!registration) {
+    return res.status(404).json({
+      success: false,
+      message: "Registration not found",
+    });
+  }
+
+  res.status(200).json({
     success: true,
-    data: testTournament,
+    data: registration,
+  });
+});
+
+// @desc    Approve tournament registration (Owner)
+// @route   PUT /api/v1/owner/tournaments/:id/registrations/:registrationId/approve
+// @access  Private (Owner)
+export const approveOwnerTournamentRegistration = asyncHandler(async (req, res) => {
+  const { notes } = req.body;
+
+  // Check if tournament exists and belongs to owner
+  const tournament = await Tournament.findOne({
+    _id: req.params.id,
+    organizerId: req.user.id,
+  });
+
+  if (!tournament) {
+    return res.status(404).json({
+      success: false,
+      message: "Tournament not found or not authorized",
+    });
+  }
+
+  const registration = await TournamentRegistration.findOne({
+    _id: req.params.registrationId,
+    tournamentId: req.params.id,
+  });
+
+  if (!registration) {
+    return res.status(404).json({
+      success: false,
+      message: "Registration not found",
+    });
+  }
+
+  if (registration.status !== "pending") {
+    return res.status(400).json({
+      success: false,
+      message: "Only pending registrations can be approved",
+    });
+  }
+
+  if (registration.paymentStatus !== "paid") {
+    return res.status(400).json({
+      success: false,
+      message: "Only paid registrations can be approved",
+    });
+  }
+
+  // Check if tournament is full
+  if (tournament.currentParticipants >= tournament.maxParticipants) {
+    return res.status(400).json({
+      success: false,
+      message: "Tournament is full",
+    });
+  }
+
+  // Update registration
+  registration.status = "approved";
+  registration.approvedBy = req.user.id;
+  registration.approvedAt = new Date();
+  if (notes) registration.notes = notes;
+  await registration.save();
+
+  // Update tournament participant count
+  tournament.currentParticipants += 1;
+  await tournament.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Registration approved successfully",
+    data: registration,
+  });
+});
+
+// @desc    Reject tournament registration (Owner)
+// @route   PUT /api/v1/owner/tournaments/:id/registrations/:registrationId/reject
+// @access  Private (Owner)
+export const rejectOwnerTournamentRegistration = asyncHandler(async (req, res) => {
+  const { reason, notes } = req.body;
+
+  if (!reason) {
+    return res.status(400).json({
+      success: false,
+      message: "Reason is required for rejection",
+    });
+  }
+
+  // Check if tournament exists and belongs to owner
+  const tournament = await Tournament.findOne({
+    _id: req.params.id,
+    organizerId: req.user.id,
+  });
+
+  if (!tournament) {
+    return res.status(404).json({
+      success: false,
+      message: "Tournament not found or not authorized",
+    });
+  }
+
+  const registration = await TournamentRegistration.findOne({
+    _id: req.params.registrationId,
+    tournamentId: req.params.id,
+  });
+
+  if (!registration) {
+    return res.status(404).json({
+      success: false,
+      message: "Registration not found",
+    });
+  }
+
+  if (registration.status !== "pending") {
+    return res.status(400).json({
+      success: false,
+      message: "Only pending registrations can be rejected",
+    });
+  }
+
+  // Update registration
+  registration.status = "rejected";
+  registration.approvedBy = req.user.id;
+  registration.approvedAt = new Date();
+  registration.rejectionReason = reason;
+  if (notes) registration.notes = notes;
+  await registration.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Registration rejected successfully",
+    data: registration,
+  });
+});
+
+// @desc    Withdraw tournament registration (Owner)
+// @route   PUT /api/v1/owner/tournaments/:id/registrations/:registrationId/withdraw
+// @access  Private (Owner)
+export const withdrawOwnerTournamentRegistration = asyncHandler(async (req, res) => {
+  const { reason } = req.body;
+
+  if (!reason) {
+    return res.status(400).json({
+      success: false,
+      message: "Reason is required for withdrawal",
+    });
+  }
+
+  // Check if tournament exists and belongs to owner
+  const tournament = await Tournament.findOne({
+    _id: req.params.id,
+    organizerId: req.user.id,
+  });
+
+  if (!tournament) {
+    return res.status(404).json({
+      success: false,
+      message: "Tournament not found or not authorized",
+    });
+  }
+
+  const registration = await TournamentRegistration.findOne({
+    _id: req.params.registrationId,
+    tournamentId: req.params.id,
+  });
+
+  if (!registration) {
+    return res.status(404).json({
+      success: false,
+      message: "Registration not found",
+    });
+  }
+
+  if (registration.status !== "approved") {
+    return res.status(400).json({
+      success: false,
+      message: "Only approved registrations can be withdrawn",
+    });
+  }
+
+  // Update registration
+  registration.status = "withdrawn";
+  registration.withdrawnBy = req.user.id;
+  registration.withdrawnAt = new Date();
+  registration.withdrawalReason = reason;
+  await registration.save();
+
+  // Update tournament participant count
+  tournament.currentParticipants = Math.max(0, tournament.currentParticipants - 1);
+  await tournament.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Registration withdrawn successfully",
+    data: registration,
   });
 });
