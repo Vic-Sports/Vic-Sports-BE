@@ -1,66 +1,73 @@
 import express from "express";
-import { protect, authorize } from "../middlewares/auth.middleware.js";
 import {
-  // Dashboard
-  getDashboardStats,
-  getRevenueChart,
-  getBookingStats,
-  getRecentActivities,
-} from "../controllers/dashboard.controller.js";
-import {
-  // Venue
-  getOwnerVenues,
-  getOwnerVenueDetail,
-  createOwnerVenue,
-  updateOwnerVenue,
-  deleteOwnerVenue,
-  uploadOwnerVenueImages,
-} from "../controllers/venue.controller.js";
-import {
-  // Court
-  getOwnerCourts,
-  getOwnerCourtDetail,
-  createOwnerCourt,
-  updateOwnerCourt,
-  deleteOwnerCourt,
-  uploadOwnerCourtImages,
-  updateCourtPricing,
-  updateCourtAvailability,
-} from "../controllers/court.controller.js";
-import {
-  // Booking
-  getOwnerBookings,
-  getOwnerBookingDetail,
-  approveOwnerBooking,
-  rejectOwnerBooking,
-  checkinOwnerBooking,
-} from "../controllers/booking.controller.js";
-import {
-  // Analytics
-  getOwnerRevenueAnalytics,
-  getOwnerBookingInsights,
-  getOwnerPopularCourts,
-  getOwnerCustomerBehavior,
+    getOwnerBookingInsights,
+    getOwnerCustomerBehavior,
+    getOwnerPopularCourts,
+    // Analytics
+    getOwnerRevenueAnalytics,
 } from "../controllers/analytics.controller.js";
 import {
-  // Tournament Management
-  getOwnerTournaments,
-  getOwnerTournament,
-  createOwnerTournament,
-  updateOwnerTournament,
-  deleteOwnerTournament,
-  startOwnerTournament,
-  cancelOwnerTournament,
-  getOwnerTournamentParticipants,
-  getOwnerTournamentMatches,
-  updateOwnerMatchResult,
-  uploadOwnerTournamentImages,
-  getOwnerTournamentStats,
-  updateOwnerTournamentStatusesAPI,
-  updateSingleTournamentStatusAPI,
+    approveOwnerBooking,
+    checkinOwnerBooking,
+    getOwnerBookingDetail,
+    // Booking
+    getOwnerBookings,
+    rejectOwnerBooking,
+} from "../controllers/booking.controller.js";
+import {
+    createOwnerCourt,
+    deleteOwnerCourt,
+    getOwnerCourtDetail,
+    // Court
+    getOwnerCourts,
+    updateCourtAvailability,
+    updateCourtPricing,
+    updateOwnerCourt,
+    uploadOwnerCourtImages,
+} from "../controllers/court.controller.js";
+import {
+    getBookingStats,
+    // Dashboard
+    getDashboardStats,
+    getRecentActivities,
+    getRevenueChart,
+} from "../controllers/dashboard.controller.js";
+import {
+    approveOwnerTournamentRegistration,
+    cancelOwnerTournament,
+    createOwnerTournament,
+    deleteOwnerTournament,
+    getOwnerTournament,
+    getOwnerTournamentMatches,
+    getOwnerTournamentParticipants,
+    getOwnerTournamentRegistration,
+    // Tournament Registration Management
+    getOwnerTournamentRegistrations,
+    // Tournament Management
+    getOwnerTournaments,
+    getOwnerTournamentStats,
+    rejectOwnerTournamentRegistration,
+    startOwnerTournament,
+    updateOwnerMatchResult,
+    updateOwnerTournament,
+    updateOwnerTournamentStatusesAPI,
+    updateSingleTournamentStatusAPI,
+    uploadOwnerTournamentImages,
+    withdrawOwnerTournamentRegistration
 } from "../controllers/tournament.controller.js";
+import {
+    createOwnerVenue,
+    deleteOwnerVenue,
+    getOwnerVenueDetail,
+    // Venue
+    getOwnerVenues,
+    updateOwnerVenue,
+    uploadOwnerVenueImages,
+} from "../controllers/venue.controller.js";
+import { authorize, protect } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
+
 
 // Owner authentication & authorization
 router.use(protect);
@@ -120,5 +127,13 @@ router.post("/tournaments/:id/upload-images", uploadOwnerTournamentImages);
 // Tournament Status Update APIs
 router.post("/tournaments/update-statuses", updateOwnerTournamentStatusesAPI);
 router.post("/tournaments/:id/update-status", updateSingleTournamentStatusAPI);
+
+// Tournament Registration Management APIs
+router.get("/tournaments/:id/registrations", getOwnerTournamentRegistrations);
+router.get("/tournaments/:id/registrations/:registrationId", getOwnerTournamentRegistration);
+router.put("/tournaments/:id/registrations/:registrationId/approve", approveOwnerTournamentRegistration);
+router.put("/tournaments/:id/registrations/:registrationId/reject", rejectOwnerTournamentRegistration);
+router.put("/tournaments/:id/registrations/:registrationId/withdraw", withdrawOwnerTournamentRegistration);
+
 
 export default router;
