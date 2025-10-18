@@ -7,14 +7,19 @@ import logger from "./logger.js";
  * @param {number} maxAgeHours - Maximum age in hours for pending bookings
  * @returns {Object} Cleanup results
  */
-export const cleanupStuckBookings = async (maxAgeHours = 2) => {
+/**
+ * Cleanup pending bookings that exceeded hold period to free up time slots
+ * @param {number} maxAgeMinutes - Maximum age in minutes for pending bookings
+ * @returns {Object} Cleanup results
+ */
+export const cleanupStuckBookings = async (maxAgeMinutes = 5) => {
   try {
     logger.info(
-      `Starting cleanup of pending bookings older than ${maxAgeHours} hours`
+      `Starting cleanup of pending bookings older than ${maxAgeMinutes} minutes`
     );
 
     // Find bookings that are pending for more than maxAgeHours
-    const cutoffTime = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
+    const cutoffTime = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
 
     const stuckBookings = await Booking.find({
       status: "pending",
@@ -121,7 +126,7 @@ export const cleanupStuckBookings = async (maxAgeHours = 2) => {
       totalStuckBookings: stuckBookings.length,
       cancelledBookings: cancelledCount,
       errors: errors.length,
-      maxAgeHours,
+      maxAgeMinutes,
       cutoffTime,
       errorDetails: errors,
     };
@@ -136,31 +141,31 @@ export const cleanupStuckBookings = async (maxAgeHours = 2) => {
 
 /**
  * Schedule automatic cleanup job
- * Runs every hour to clean up bookings older than 2 hours
+ * Runs periodically to cancel bookings older than hold period
  */
 export const scheduleBookingCleanup = () => {
-  // Run cleanup every hour
-  const intervalMs = 60 * 60 * 1000; // 1 hour
-  const maxAgeHours = 2; // Cancel bookings older than 2 hours
+  // Run cleanup every minute
+  const intervalMs = 60 * 1000; // 1 minute
+  const maxAgeMinutes = 5; // Cancel bookings older than 5 minutes
 
   logger.info(
     `Scheduling booking cleanup job: every ${
-      intervalMs / 1000 / 60
-    } minutes, max age ${maxAgeHours} hours`
+      intervalMs / 1000
+    } seconds, max age ${maxAgeMinutes} minutes`
   );
 
   setInterval(async () => {
     try {
-      await cleanupStuckBookings(maxAgeHours);
+      await cleanupStuckBookings(maxAgeMinutes);
     } catch (error) {
       logger.error("Scheduled booking cleanup failed:", error);
     }
   }, intervalMs);
 
-  // Run once immediately
+  // Run once shortly after server start
   setTimeout(async () => {
     try {
-      await cleanupStuckBookings(maxAgeHours);
+      await cleanupStuckBookings(maxAgeMinutes);
     } catch (error) {
       logger.error("Initial booking cleanup failed:", error);
     }

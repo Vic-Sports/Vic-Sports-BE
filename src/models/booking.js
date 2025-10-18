@@ -78,6 +78,8 @@ const bookingSchema = new mongoose.Schema(
     confirmedAt: { type: Date },
     cancelledAt: { type: Date },
     cancellationReason: { type: String },
+    // Hold expiration time for pending bookings
+    holdUntil: { type: Date },
   },
   { timestamps: true }
 );
