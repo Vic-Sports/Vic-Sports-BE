@@ -1,6 +1,7 @@
 import Booking from "../models/booking.js";
 import Court from "../models/court.js";
 import Venue from "../models/venue.js";
+import { cleanupStuckBookings } from "../utils/bookingCleanup.js";
 import User from "../models/user.js";
 import Coach from "../models/coach.js";
 import payosService from "../services/payos.service.js";
@@ -271,6 +272,8 @@ export const createBooking = async (req, res) => {
         paymentStatus: "pending", // Use lowercase enum value
         paymentMethod: paymentMethod?.toLowerCase() || "vnpay", // Ensure lowercase
         notes,
+        // Expiration time for hold (5 minutes)
+        holdUntil: new Date(Date.now() + 5 * 60 * 1000),
         groupBookingCode: courts.length > 1 ? groupBookingCode : undefined,
       };
 
@@ -658,25 +661,44 @@ export const searchAvailableCourts = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    // Filter by availability
-    const availableCourts = [];
+    const now = new Date();
+    const responseCourts = [];
     for (const court of courts) {
+      // Determine availability
       const isAvailable = await checkCourtAvailabilityForSlot(
         court._id,
         date,
         startTime,
         endTime
       );
-
-      if (isAvailable) {
-        availableCourts.push(court);
-      }
+      // Identify held slots (pending bookings within hold period)
+      const heldBookings = await Booking.find({
+        $or: [{ court: court._id }, { courtIds: court._id }],
+        date: date,
+        status: "pending",
+        holdUntil: { $gt: now },
+      });
+      // Format held slots with metadata
+      const heldSlots = heldBookings.flatMap((b) =>
+        (b.timeSlots || []).map((ts) => ({
+          start: ts.start,
+          end: ts.end,
+          holdUntil: b.holdUntil,
+          bookingId: b._id,
+          courtId: b.court || null,
+          ownerId: b.user || null,
+        }))
+      );
+      responseCourts.push({
+        ...court.toObject(),
+        isAvailable,
+        heldSlots,
+      });
     }
-
     res.status(200).json({
       success: true,
       data: {
-        courts: availableCourts,
+        courts: responseCourts,
         searchParams: {
           sportType,
           venueId,
@@ -787,6 +809,8 @@ export const testBookingCreation = async (req, res) => {
       isGroupBooking: false,
       courtQuantity: 1,
       notes: "Test booking from backend",
+      // Expiration time for hold (5 minutes)
+      holdUntil: new Date(Date.now() + 5 * 60 * 1000),
     };
 
     const booking = await Booking.create(testData);
@@ -856,6 +880,8 @@ export const createSimpleBooking = async (req, res) => {
       status: "confirmed",
       courtQuantity: courtIds?.length || 1,
       notes,
+      // Expiration time for hold (5 minutes)
+      holdUntil: new Date(Date.now() + 5 * 60 * 1000),
     };
 
     // Handle courts without validation
@@ -1397,5 +1423,115 @@ export const checkinOwnerBooking = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// @desc    Hold booking slots for 5 minutes
+// @route   POST /api/v1/bookings/hold
+// @access  Public or authenticated
+export const holdBooking = async (req, res) => {
+  try {
+    const { venueId, courtIds, date, timeSlots } = req.body;
+    if (
+      !venueId ||
+      !date ||
+      !timeSlots ||
+      !Array.isArray(timeSlots) ||
+      timeSlots.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "venueId, date and timeSlots are required",
+      });
+    }
+    console.log("Hold booking incoming timeSlots:", timeSlots);
+    const courtIdsArray =
+      Array.isArray(courtIds) && courtIds.length > 0 ? courtIds : [];
+    const bookingCode = `HB${Date.now()}`;
+    const bookingData = {
+      bookingCode,
+      venue: venueId,
+      // Associate single court if only one
+      ...(courtIdsArray.length === 1 ? { court: courtIdsArray[0] } : {}),
+      // Save courtIds for multi-court
+      ...(courtIdsArray.length > 1 ? { courtIds: courtIdsArray } : {}),
+      courtQuantity: courtIdsArray.length || 1,
+      date,
+      // Hold slots with placeholder price, normalize keys
+      timeSlots: timeSlots.map((slot) => ({
+        start: slot.start || slot.startTime,
+        end: slot.end || slot.endTime,
+        price: 0,
+      })),
+      totalPrice: 0,
+      // Default customer info for hold
+      customerInfo: {
+        fullName: "Guest",
+        phone: "0000000000",
+        email: "guest@example.com",
+        notes: "",
+      },
+      status: "pending",
+      paymentStatus: "pending",
+      holdUntil: new Date(Date.now() + 5 * 60 * 1000),
+    };
+    if (req.user && req.user.id) bookingData.user = req.user.id;
+    const booking = await Booking.create(bookingData);
+    return res
+      .status(201)
+      .json({ success: true, data: { bookingId: booking._id } });
+  } catch (error) {
+    console.error("Hold booking error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Release held booking when user leaves screen
+// @route   POST /api/v1/bookings/:bookingId/release
+// @access  Authenticated user
+export const releaseHoldBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const userId = req.user?.id;
+    const booking = await Booking.findById(bookingId);
+    if (!booking || booking.status !== "pending") {
+      return res
+        .status(400)
+        .json({ success: false, message: "No pending hold found" });
+    }
+    // Only owner can release
+    if (booking.user && booking.user.toString() !== userId) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Not authorized to release this hold",
+        });
+    }
+    booking.status = "cancelled";
+    booking.paymentStatus = "cancelled";
+    booking.cancelledAt = new Date();
+    booking.cancellationReason = "Hold released by user";
+    await booking.save();
+    return res.status(200).json({ success: true, message: "Hold released" });
+  } catch (error) {
+    console.error("Release hold error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Cleanup expired pending bookings (manual trigger)
+// @route   POST /api/v1/bookings/cleanup
+// @access  Admin
+export const cleanupBookings = async (req, res) => {
+  try {
+    const { maxAgeMinutes } = req.body;
+    // default to 5 minutes
+    const age = Number(maxAgeMinutes) || 5;
+    const result = await cleanupStuckBookings(age);
+    return res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error("Cleanup bookings error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
