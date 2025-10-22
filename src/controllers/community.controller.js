@@ -264,6 +264,9 @@ export const createCommunityPost = asyncHandler(async (req, res) => {
     images,
     media,
     user: req.user.id,
+    // Ensure the post creator is included as a participant
+    participants: [req.user.id],
+    currentParticipants: 1,
   });
 
   res.status(201).json({
@@ -336,6 +339,21 @@ export const joinCommunityPost = asyncHandler(async (req, res) => {
   }
 
   communityPost.participants.push(userId);
+  // Ensure owner remains a participant
+  if (!communityPost.participants.includes(communityPost.user.toString())) {
+    communityPost.participants.push(communityPost.user.toString());
+  }
+  // Sync currentParticipants with participants.length if it's larger
+  communityPost.currentParticipants = Math.max(
+    communityPost.currentParticipants || 0,
+    communityPost.participants.length
+  );
+
+  // Auto-close when full
+  if (communityPost.currentParticipants >= communityPost.maxParticipants) {
+    communityPost.status = "closed";
+  }
+
   await communityPost.save();
 
   res.status(200).json({
@@ -378,7 +396,7 @@ export const cancelCommunityPost = asyncHandler(async (req, res) => {
 // @access  Private
 export const closeCommunityPost = asyncHandler(async (req, res) => {
   const communityPost = await Community.findById(req.params.id);
-
+  console.log("Request Params:", req.params.id);
   if (!communityPost) {
     return res
       .status(404)
@@ -417,6 +435,66 @@ export const getSingleCommunityPost = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
+    data: communityPost,
+  });
+});
+
+// @desc    Update Community Post (owner only)
+// @route   PUT /api/v1/community/:id
+// @access  Private
+export const updateCommunityPost = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { title, description, status } = req.body;
+
+  // Allowed fields: title, description, status
+  const communityPost = await Community.findById(id);
+
+  if (!communityPost) {
+    return res
+      .status(404)
+      .json({ success: false, message: "Community post not found" });
+  }
+
+  if (communityPost.user.toString() !== req.user.id) {
+    return res
+      .status(403)
+      .json({ success: false, message: "Not authorized to update this post" });
+  }
+
+  if (typeof title !== "undefined") communityPost.title = title;
+  if (typeof description !== "undefined")
+    communityPost.description = description;
+  if (typeof status !== "undefined") communityPost.status = status;
+
+  // Validate currentParticipants if provided in update body
+  if (typeof req.body.currentParticipants !== "undefined") {
+    const provided = req.body.currentParticipants;
+    const registeredCount = communityPost.participants.length;
+    if (provided < registeredCount) {
+      return res.status(400).json({
+        success: false,
+        message: `currentParticipants cannot be less than ${registeredCount} registered participants`,
+      });
+    }
+    communityPost.currentParticipants = provided;
+  }
+
+  // Ensure currentParticipants is at least participants.length
+  communityPost.currentParticipants = Math.max(
+    communityPost.currentParticipants || 0,
+    communityPost.participants.length
+  );
+
+  // Auto-close when full
+  if (communityPost.currentParticipants >= communityPost.maxParticipants) {
+    communityPost.status = "closed";
+  }
+
+  await communityPost.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Post updated successfully",
     data: communityPost,
   });
 });
@@ -500,6 +578,10 @@ export const acceptCommunityPost = asyncHandler(async (req, res) => {
 
   // Add the user to the participants array
   communityPost.participants.push(userId);
+  // Ensure owner remains a participant
+  if (!communityPost.participants.includes(communityPost.user.toString())) {
+    communityPost.participants.push(communityPost.user.toString());
+  }
   await communityPost.save();
 
   res.status(200).json({
@@ -545,6 +627,10 @@ export const rejectCommunityPost = asyncHandler(async (req, res) => {
   // Add user to rejectedUsers array if not already present
   if (!communityPost.rejectedUsers.includes(userId)) {
     communityPost.rejectedUsers.push(userId);
+    // Ensure owner remains a participant before saving
+    if (!communityPost.participants.includes(communityPost.user.toString())) {
+      communityPost.participants.push(communityPost.user.toString());
+    }
     await communityPost.save();
   }
 
