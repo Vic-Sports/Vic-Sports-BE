@@ -9,6 +9,7 @@ import {
   joinCommunityPost,
   cancelCommunityPost,
   closeCommunityPost,
+  updateCommunityPost,
   getSingleCommunityPost,
   toggleLikeCommunityPost,
   acceptCommunityPost,
@@ -29,8 +30,9 @@ router.get("/recent-activity", getRecentActivity);
 router.post("/posts", protect, createCommunityPost); // Alias route for creating a community post
 router.get("/", getAllCommunityPosts);
 router.post("/:id/join", joinCommunityPost);
-router.patch("/:id/cancel", cancelCommunityPost);
-router.patch("/:id/close", closeCommunityPost);
+router.patch("/:id/cancel", protect, cancelCommunityPost);
+router.patch("/:id/close", protect, closeCommunityPost);
+router.put("/:id", protect, updateCommunityPost);
 router.get("/:id", getSingleCommunityPost);
 router.post("/:id/like", protect, toggleLikeCommunityPost);
 router.patch("/:id/accept", protect, acceptCommunityPost);

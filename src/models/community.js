@@ -60,6 +60,16 @@ const communitySchema = new mongoose.Schema(
       required: [true, "Maximum participants is required!"],
       min: [1, "At least 1 participant is required!"],
     },
+    currentParticipants: {
+      type: Number,
+      default: 0,
+      validate: {
+        validator: function (value) {
+          return value <= this.maxParticipants;
+        },
+        message: "currentParticipants cannot be greater than maxParticipants",
+      },
+    },
     status: {
       type: String,
       enum: ["open", "closed", "cancelled"],
