@@ -70,6 +70,10 @@ const bookingSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    // Email tracking
+    emailSent: { type: Boolean, default: false }, // Track if confirmation email sent
+    emailSentAt: { type: Date }, // When email was sent
+
     // Multi-Court Booking Support
     groupBookingId: { type: String }, // For linking multiple court bookings
     isGroupBooking: { type: Boolean, default: false },
@@ -92,6 +96,28 @@ bookingSchema.index({ venue: 1, date: 1 });
 bookingSchema.index({ status: 1, paymentStatus: 1 });
 bookingSchema.index({ groupBookingId: 1 });
 bookingSchema.index({ court: 1, date: 1, status: 1 }); // For availability checks
+
+// Middleware to log paymentStatus changes
+bookingSchema.pre("save", function (next) {
+  if (this.isModified("paymentStatus")) {
+    console.log(
+      `💳 [BOOKING MODEL] Payment status changed for booking ${this._id}:`,
+      {
+        old: this._original?.paymentStatus,
+        new: this.paymentStatus,
+      }
+    );
+  }
+  next();
+});
+
+// Store original values before save
+bookingSchema.pre("save", function (next) {
+  if (!this.isNew) {
+    this._original = this._doc;
+  }
+  next();
+});
 
 const Booking = mongoose.model("Booking", bookingSchema);
 

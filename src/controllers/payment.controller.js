@@ -1,6 +1,9 @@
 import Booking from "../models/booking.js";
 import PaymentTransaction from "../models/paymentTransaction.js";
 import payosService from "../services/payos.service.js";
+import { sendTemplatedEmail } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
+import User from "../models/user.js";
 
 // ...existing code...
 
@@ -46,8 +49,7 @@ export const getPaymentTransaction = async (req, res) => {
 // Xác thực thanh toán PayOS
 export const verifyPayOSPayment = async (req, res) => {
   try {
-    console.log("=== PAYOS PAYMENT VERIFICATION ===");
-    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    // Removed verbose debug logs
 
     const { orderCode } = req.body;
 
@@ -71,12 +73,11 @@ export const verifyPayOSPayment = async (req, res) => {
       });
     }
 
-    console.log("Found booking:", booking._id);
+    // Booking found (debug log removed)
 
     // Lấy thông tin thanh toán từ PayOS
     try {
       const paymentResult = await payosService.getPaymentInfo(orderCode);
-      console.log("PayOS payment result:", paymentResult);
 
       if (!paymentResult.success) {
         return res.status(400).json({
@@ -90,6 +91,9 @@ export const verifyPayOSPayment = async (req, res) => {
 
       // Kiểm tra trạng thái thanh toán theo docs PayOS mới
       if (paymentInfo.status === "PAID") {
+        // Check if this is the first time marking as paid
+        const wasNotPaid = booking.paymentStatus !== "paid";
+
         // Cập nhật booking thành công
         booking.paymentStatus = "paid";
         booking.status = "confirmed";
@@ -100,24 +104,120 @@ export const verifyPayOSPayment = async (req, res) => {
 
         await booking.save();
 
-        console.log("Payment verified successfully");
+        // Payment verified successfully (reduced logging)
+
+        // Send confirmation emails if not sent yet (check both wasNotPaid and emailSent flag)
+        if (!booking.emailSent) {
+          // Sending confirmation emails (debug log removed)
+
+          try {
+            // Ensure booking has populated user and venue info
+            const populated = await Booking.findById(booking._id)
+              .populate("venue", "name ownerId")
+              .populate("user", "fullName email phone");
+
+            const customerName =
+              populated.user?.fullName ||
+              populated.customerInfo?.fullName ||
+              "Khách hàng";
+            const customerEmail =
+              populated.user?.email || populated.customerInfo?.email || null;
+            const customerPhone =
+              populated.user?.phone || populated.customerInfo?.phone || null;
+
+            if (customerEmail) {
+              await sendTemplatedEmail({
+                email: customerEmail,
+                templateType: "BOOKING_CONFIRMATION",
+                templateData: {
+                  name: customerName,
+                  bookingCode: populated.bookingCode,
+                  venueName: populated.venue?.name || "",
+                  date: populated.date,
+                  timeSlots: populated.timeSlots || [],
+                  totalPrice: populated.totalPrice || 0,
+                  customerEmail: customerEmail,
+                },
+              });
+              logger.info(
+                "✅ [KHÁCH HÀNG] Email đặt sân (verify) đã được gửi",
+                {
+                  bookingId: populated._id,
+                  customerEmail,
+                }
+              );
+            }
+
+            // Send email to owner
+            if (populated.venue && populated.venue.ownerId) {
+              const owner = await User.findById(populated.venue.ownerId);
+              if (owner && owner.email) {
+                await sendTemplatedEmail({
+                  email: owner.email,
+                  templateType: "BOOKING_CONFIRMATION_OWNER",
+                  templateData: {
+                    name: owner.fullName || "Chủ sân",
+                    bookingCode: populated.bookingCode,
+                    venueName: populated.venue?.name || "",
+                    date: populated.date,
+                    timeSlots: populated.timeSlots || [],
+                    totalPrice: populated.totalPrice || 0,
+                    customerName: customerName,
+                    customerEmail: customerEmail || "Chưa xác định",
+                    customerPhone: customerPhone || "Chưa xác định",
+                  },
+                });
+                logger.info(
+                  "✅ [CHỦ SÂN] Email đơn đặt sân (verify) đã được gửi",
+                  {
+                    bookingId: populated._id,
+                    ownerEmail: owner.email,
+                  }
+                );
+              }
+            }
+
+            // Mark email as sent
+            booking.emailSent = true;
+            booking.emailSentAt = new Date();
+            await booking.save();
+            // Marked email as sent (log removed)
+          } catch (emailErr) {
+            logger.error("❌ Lỗi khi gửi email sau khi xác thực thanh toán", {
+              bookingId: booking._id,
+              error: emailErr.message,
+            });
+          }
+        } else {
+          // Email already sent - skipping (log removed)
+        }
+
+        // Lấy booking mới từ DB để trả về response với dữ liệu updated
+        // Use .lean() to get plain object and avoid Mongoose getters/virtuals issues
+        const updatedBooking = await Booking.findById(booking._id)
+          .populate("venue", "name address")
+          .populate("court", "name type")
+          .populate("user", "fullName email phone")
+          .lean();
+
+        // Fetched updated booking from DB (log removed)
 
         return res.status(200).json({
           success: true,
           data: {
             booking: {
-              id: booking._id,
-              bookingCode: booking.bookingCode,
-              status: booking.status,
-              paymentStatus: booking.paymentStatus,
-              payosOrderCode: booking.payosOrderCode,
-              payosTransactionId: booking.payosTransactionId,
-              venue: booking.venue,
-              court: booking.court,
-              date: booking.date,
-              timeSlots: booking.timeSlots,
-              totalPrice: booking.totalPrice,
-              paidAt: booking.paidAt,
+              id: updatedBooking._id,
+              bookingCode: updatedBooking.bookingCode,
+              status: updatedBooking.status,
+              paymentStatus: updatedBooking.paymentStatus, // This should be "paid" now
+              payosOrderCode: updatedBooking.payosOrderCode,
+              payosTransactionId: updatedBooking.payosTransactionId,
+              venue: updatedBooking.venue,
+              court: updatedBooking.court,
+              date: updatedBooking.date,
+              timeSlots: updatedBooking.timeSlots,
+              totalPrice: updatedBooking.totalPrice,
+              paidAt: updatedBooking.paidAt,
             },
             paymentInfo: {
               orderCode: paymentInfo.orderCode,
@@ -137,9 +237,7 @@ export const verifyPayOSPayment = async (req, res) => {
         booking.cancellationReason = "Payment cancelled by user or expired";
         await booking.save();
 
-        console.log(
-          `Booking ${booking._id} marked as cancelled due to payment cancellation`
-        );
+        // Booking marked as cancelled due to payment cancellation (log removed)
 
         return res.status(200).json({
           success: false,
@@ -186,9 +284,7 @@ export const verifyPayOSPayment = async (req, res) => {
 // Webhook để nhận thông báo từ PayOS
 export const payosWebhook = async (req, res) => {
   try {
-    console.log("=== PAYOS WEBHOOK ===");
-    console.log("Headers:", req.headers);
-    console.log("Body:", JSON.stringify(req.body, null, 2));
+    // PayOS webhook received (verbose headers/body logs removed)
     // PayOS v2: signature thường nằm trong header `x-payos-signature`,
     // nhưng some integrations may include it in body.signature. Support both.
     const headerSignature = req.headers["x-payos-signature"];
@@ -196,7 +292,7 @@ export const payosWebhook = async (req, res) => {
     const signature = headerSignature || bodySignature;
 
     if (!signature) {
-      console.log("Missing PayOS signature in header and body.signature");
+      // Missing signature (debug log removed)
       return res.status(400).json({
         success: false,
         message: "Missing signature",
@@ -210,20 +306,18 @@ export const payosWebhook = async (req, res) => {
     );
 
     if (!isValidSignature) {
-      console.log("Invalid PayOS signature");
+      // Invalid signature (debug log removed)
       return res.status(400).json({
         success: false,
         message: "Invalid signature",
       });
     }
 
-    console.log("Webhook signature verified successfully");
-
     // PayOS v2 webhook format
     const { data } = req.body;
 
     if (!data || !data.orderCode) {
-      console.log("Invalid webhook data format");
+      // Invalid webhook data format (log removed)
       return res.status(400).json({
         success: false,
         message: "Invalid webhook data",
@@ -236,24 +330,24 @@ export const payosWebhook = async (req, res) => {
     });
 
     if (!booking) {
-      console.log("Booking not found for orderCode:", data.orderCode);
+      // Booking not found for orderCode (log removed)
       // Vẫn trả về 200 để PayOS không gửi lại
       return res.status(200).json({
         success: true,
         message: "Booking not found, but webhook acknowledged",
       });
     }
-
-    console.log("Processing webhook for booking:", booking._id);
     // PayOS v2 uses top-level `code` to indicate result ("00" = success)
     const orderCode = data.orderCode;
     const webhookCode = String(req.body.code || "");
 
-    console.log("Webhook code:", webhookCode);
-    console.log("Payment data:", JSON.stringify(data));
+    // Webhook code and payment data logs removed
 
     // Interpret webhook: code === "00" means success
     const isSuccess = webhookCode === "00";
+
+    // Check if this is first time marking as paid
+    const wasNotPaid = booking.paymentStatus !== "paid";
 
     if (isSuccess) {
       // Mark booking as paid/confirmed
@@ -262,20 +356,101 @@ export const payosWebhook = async (req, res) => {
       booking.payosTransactionId =
         data.transactions?.[0]?.reference || data.reference;
       booking.paidAt = new Date();
-      console.log(`Payment successful for orderCode: ${orderCode}`);
+      // Payment successful (log removed)
     } else {
       // Non-00 codes mean failure/pending/other — treat as failed for now
       booking.paymentStatus = "failed";
       booking.status = "cancelled";
       booking.cancelledAt = new Date();
       booking.cancellationReason = `Payment not successful, code: ${webhookCode}`;
-      console.log(
-        `Payment failed or has other status for orderCode: ${orderCode}. Code: ${webhookCode}`
-      );
+      // Payment failed or other status (log removed)
     }
 
     await booking.save();
-    console.log("Booking updated successfully");
+
+    // After updating booking status from webhook, if payment succeeded send emails
+    // Check emailSent flag to avoid duplicates
+    if (isSuccess && !booking.emailSent) {
+      // Sending confirmation emails (debug log removed)
+
+      try {
+        // Populate necessary fields
+        const populated = await Booking.findById(booking._id)
+          .populate("venue", "name ownerId")
+          .populate("user", "fullName email phone");
+
+        const customerName =
+          populated.user?.fullName ||
+          populated.customerInfo?.fullName ||
+          "Khách hàng";
+        const customerEmail =
+          populated.user?.email || populated.customerInfo?.email || null;
+        const customerPhone =
+          populated.user?.phone || populated.customerInfo?.phone || null;
+
+        if (customerEmail) {
+          await sendTemplatedEmail({
+            email: customerEmail,
+            templateType: "BOOKING_CONFIRMATION",
+            templateData: {
+              name: customerName,
+              bookingCode: populated.bookingCode,
+              venueName: populated.venue?.name || "",
+              date: populated.date,
+              timeSlots: populated.timeSlots || [],
+              totalPrice: populated.totalPrice || 0,
+              customerEmail: customerEmail,
+            },
+          });
+          logger.info("✅ [KHÁCH HÀNG] Email đặt sân (webhook) đã được gửi", {
+            bookingId: populated._id,
+            customerEmail,
+          });
+        }
+
+        if (populated.venue && populated.venue.ownerId) {
+          const owner = await User.findById(populated.venue.ownerId);
+          if (owner && owner.email) {
+            await sendTemplatedEmail({
+              email: owner.email,
+              templateType: "BOOKING_CONFIRMATION_OWNER",
+              templateData: {
+                name: owner.fullName || "Chủ sân",
+                bookingCode: populated.bookingCode,
+                venueName: populated.venue?.name || "",
+                date: populated.date,
+                timeSlots: populated.timeSlots || [],
+                totalPrice: populated.totalPrice || 0,
+                customerName: customerName,
+                customerEmail: customerEmail || "Chưa xác định",
+                customerPhone: customerPhone || "Chưa xác định",
+              },
+            });
+            logger.info(
+              "✅ [CHỦ SÂN] Email đơn đặt sân (webhook) đã được gửi",
+              {
+                bookingId: populated._id,
+                ownerEmail: owner.email,
+              }
+            );
+          }
+        }
+
+        // Mark email as sent
+        booking.emailSent = true;
+        booking.emailSentAt = new Date();
+        await booking.save();
+      } catch (emailErr) {
+        logger.error("❌ Lỗi khi gửi email trong webhook PayOS", {
+          bookingId: booking._id,
+          error: emailErr.message,
+        });
+      }
+    } else if (isSuccess && booking.emailSent) {
+      // Email already sent - skipping (log removed)
+    }
+
+    // Booking update complete (log removed)
 
     // Trả về 200 để PayOS biết webhook đã được xử lý thành công
     res.status(200).json({
@@ -306,8 +481,9 @@ export const getPaymentStatus = async (req, res) => {
 
     // Tìm booking
     const booking = await Booking.findOne({ payosOrderCode: orderCode })
-      .populate("venue", "name")
-      .populate("court", "name");
+      .populate("venue", "name ownerId")
+      .populate("court", "name")
+      .populate("user", "fullName email phone");
 
     if (!booking) {
       return res.status(404).json({
@@ -315,6 +491,8 @@ export const getPaymentStatus = async (req, res) => {
         message: "Booking not found",
       });
     }
+
+    // getPaymentStatus: reduced initial debug logs
 
     // Lấy thông tin từ PayOS
     try {
@@ -334,11 +512,139 @@ export const getPaymentStatus = async (req, res) => {
         paymentInfo.status || paymentInfo.data?.status || ""
       ).toUpperCase();
 
+      // PayOS returned status (log removed)
+
+      // ✅ If PayOS reports PAID, check if we need to update and send emails
+      if (respStatus === "PAID") {
+        const wasNotPaid = booking.paymentStatus !== "paid";
+
+        // Booking status check (debug log removed)
+
+        // Update booking if not yet marked as paid
+        if (wasNotPaid) {
+          // Detected PAID status - updating booking (log removed)
+
+          booking.paymentStatus = "paid";
+          booking.status = "confirmed";
+          booking.payosTransactionId =
+            paymentInfo.transactions?.[0]?.reference || paymentInfo.reference;
+          booking.paidAt = new Date();
+
+          await booking.save();
+
+          // Updated booking to PAID (log removed)
+        }
+
+        // Send confirmation emails if not sent yet (regardless of wasNotPaid)
+        if (!booking.emailSent) {
+          // Sending confirmation emails (debug log removed)
+
+          try {
+            const populated = await Booking.findById(booking._id)
+              .populate("venue", "name ownerId")
+              .populate("user", "fullName email phone");
+
+            const customerName =
+              populated.user?.fullName ||
+              populated.customerInfo?.fullName ||
+              "Khách hàng";
+            const customerEmail =
+              populated.user?.email || populated.customerInfo?.email || null;
+            const customerPhone =
+              populated.user?.phone || populated.customerInfo?.phone || null;
+
+            if (customerEmail) {
+              await sendTemplatedEmail({
+                email: customerEmail,
+                templateType: "BOOKING_CONFIRMATION",
+                templateData: {
+                  name: customerName,
+                  bookingCode: populated.bookingCode,
+                  venueName: populated.venue?.name || "",
+                  date: populated.date,
+                  timeSlots: populated.timeSlots || [],
+                  totalPrice: populated.totalPrice || 0,
+                  customerEmail: customerEmail,
+                },
+              });
+              logger.info(
+                "✅ [KHÁCH HÀNG] Email đặt sân (getPaymentStatus) đã được gửi",
+                {
+                  bookingId: populated._id,
+                  customerEmail,
+                }
+              );
+            }
+
+            if (populated.venue && populated.venue.ownerId) {
+              const owner = await User.findById(populated.venue.ownerId);
+              if (owner && owner.email) {
+                await sendTemplatedEmail({
+                  email: owner.email,
+                  templateType: "BOOKING_CONFIRMATION_OWNER",
+                  templateData: {
+                    name: owner.fullName || "Chủ sân",
+                    bookingCode: populated.bookingCode,
+                    venueName: populated.venue?.name || "",
+                    date: populated.date,
+                    timeSlots: populated.timeSlots || [],
+                    totalPrice: populated.totalPrice || 0,
+                    customerName: customerName,
+                    customerEmail: customerEmail || "Chưa xác định",
+                    customerPhone: customerPhone || "Chưa xác định",
+                  },
+                });
+                logger.info(
+                  "✅ [CHỦ SÂN] Email đơn đặt sân (getPaymentStatus) đã được gửi",
+                  {
+                    bookingId: populated._id,
+                    ownerEmail: owner.email,
+                  }
+                );
+              }
+            }
+
+            // Mark email as sent (log removed)
+          } catch (emailErr) {
+            logger.error("❌ Lỗi khi gửi email trong getPaymentStatus", {
+              bookingId: booking._id,
+              error: emailErr.message,
+            });
+          }
+        } else {
+          // Email already sent - skipping (log removed)
+        }
+      }
+
+      // Lấy booking updated để trả response
+      // Use .lean() to get plain object and avoid Mongoose getters/virtuals issues
+      const updatedBooking = await Booking.findById(booking._id)
+        .populate("venue", "name")
+        .populate("court", "name")
+        .populate("user", "fullName email phone")
+        .lean();
+
+      // Fetched updated booking from DB (debug log removed)
+
       return res.status(200).json({
         success: true,
         data: {
           orderCode: respOrderCode,
           status: respStatus,
+          booking: {
+            id: updatedBooking._id,
+            bookingCode: updatedBooking.bookingCode,
+            status: updatedBooking.status,
+            paymentStatus: updatedBooking.paymentStatus, // This should be "paid" if updated
+            venue: updatedBooking.venue,
+            court: updatedBooking.court,
+            date: updatedBooking.date,
+            timeSlots: updatedBooking.timeSlots,
+            totalPrice: updatedBooking.totalPrice,
+            payosOrderCode: updatedBooking.payosOrderCode,
+            payosTransactionId: updatedBooking.payosTransactionId,
+            paidAt: updatedBooking.paidAt,
+          },
         },
       });
     } catch (payosError) {
@@ -380,8 +686,7 @@ export const getPaymentStatus = async (req, res) => {
 // @access  Private
 export const createPayOSPayment = async (req, res) => {
   try {
-    console.log("=== CREATE PAYOS PAYMENT ===");
-    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    // Removed verbose createPayOSPayment request logs
 
     const {
       bookingId,
@@ -503,7 +808,7 @@ export const createPayOSPayment = async (req, res) => {
       expiredAt,
     };
 
-    console.log("Creating PayOS payment with data:", paymentData);
+    // Creating PayOS payment (debug payload removed)
 
     // Gọi PayOS bằng SDK
     const result = await payosService.createPaymentLinkSDK(paymentData);
@@ -514,7 +819,7 @@ export const createPayOSPayment = async (req, res) => {
       booking.paymentMethod = "payos";
       await booking.save();
 
-      console.log("PayOS payment created successfully");
+      // PayOS payment created (log removed)
 
       return res.status(201).json({
         success: true,
@@ -583,7 +888,7 @@ export const cancelPayOSPayment = async (req, res) => {
       });
     }
 
-    console.log(`Cancelling PayOS payment: ${orderCode}`);
+    // Cancelling PayOS payment (log removed)
 
     // Tìm booking
     const booking = await Booking.findOne({ payosOrderCode: orderCode });
@@ -606,9 +911,7 @@ export const cancelPayOSPayment = async (req, res) => {
       booking.cancelledAt = new Date();
       await booking.save();
 
-      console.log(
-        `PayOS payment cancelled successfully for booking ${booking._id}`
-      );
+      // PayOS payment cancelled (log removed)
 
       return res.status(200).json({
         success: true,
@@ -647,9 +950,7 @@ export const cleanupPendingBookings = async (req, res) => {
   try {
     const { maxAgeHours = 24 } = req.body; // Default 24 hours
 
-    console.log(
-      `Starting cleanup of pending bookings older than ${maxAgeHours} hours`
-    );
+    // Starting cleanup of pending bookings (log removed)
 
     // Find bookings that are pending for more than maxAgeHours
     const cutoffTime = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
@@ -660,7 +961,7 @@ export const cleanupPendingBookings = async (req, res) => {
       createdAt: { $lt: cutoffTime },
     });
 
-    console.log(`Found ${stuckBookings.length} stuck pending bookings`);
+    // Found stuck pending bookings (log removed)
 
     let cancelledCount = 0;
 
@@ -685,9 +986,6 @@ export const cleanupPendingBookings = async (req, res) => {
               booking.cancellationReason = `Auto-cleanup: Payment ${paymentStatus.toLowerCase()}`;
               await booking.save();
               cancelledCount++;
-              console.log(
-                `Cancelled booking ${booking._id} - PayOS status: ${paymentStatus}`
-              );
             } else if (paymentStatus === "PENDING") {
               // Payment still pending, cancel it
               const cancelResult = await payosService.cancelPaymentLink(
@@ -700,9 +998,6 @@ export const cleanupPendingBookings = async (req, res) => {
                 booking.cancellationReason = "Auto-cleanup: Payment timeout";
                 await booking.save();
                 cancelledCount++;
-                console.log(
-                  `Cancelled booking ${booking._id} - Timeout cleanup`
-                );
               }
             }
           } else {
@@ -713,7 +1008,6 @@ export const cleanupPendingBookings = async (req, res) => {
             booking.cancellationReason = "Auto-cleanup: PayOS unreachable";
             await booking.save();
             cancelledCount++;
-            console.log(`Cancelled booking ${booking._id} - PayOS unreachable`);
           }
         } catch (error) {
           console.error(`Error processing booking ${booking._id}:`, error);
@@ -733,7 +1027,6 @@ export const cleanupPendingBookings = async (req, res) => {
         booking.cancellationReason = "Auto-cleanup: No payment method";
         await booking.save();
         cancelledCount++;
-        console.log(`Cancelled booking ${booking._id} - No payment method`);
       }
     }
 
@@ -811,8 +1104,7 @@ export const payosReturn = async (req, res) => {
   try {
     const { orderCode, code, id, cancel, status } = req.query;
 
-    console.log("=== PAYOS RETURN ===");
-    console.log("Query params:", req.query);
+    // PayOS return received (debug logs removed)
 
     if (!orderCode) {
       return res.redirect(
@@ -842,7 +1134,7 @@ export const payosReturn = async (req, res) => {
       booking.cancellationReason = "Payment cancelled by user";
       await booking.save();
 
-      console.log(`Payment cancelled for booking ${booking._id}`);
+      // Payment cancelled (log removed)
 
       // Redirect to frontend payos-return with cancel params (for FE to display properly)
       const redirectUrl =
@@ -876,7 +1168,7 @@ export const payosReturn = async (req, res) => {
             paymentResult.data.transactions?.[0]?.reference;
           await booking.save();
 
-          console.log(`Payment successful for booking ${booking._id}`);
+          // Payment successful (log removed)
 
           // Redirect đến trang success với thông tin booking
           const redirectUrl =
@@ -899,7 +1191,7 @@ export const payosReturn = async (req, res) => {
           booking.cancellationReason = `Payment ${paymentStatus.toLowerCase()}`;
           await booking.save();
 
-          console.log(`Payment ${paymentStatus} for booking ${booking._id}`);
+          // Payment failed/cancelled (log removed)
 
           // Redirect đến trang cancel/failed
           const redirectUrl =
@@ -952,8 +1244,7 @@ export const payosCancel = async (req, res) => {
   try {
     const { orderCode, code, id, cancel, status } = req.query;
 
-    console.log("=== PAYOS CANCEL ===");
-    console.log("Query params:", req.query);
+    // PayOS cancel received (debug logs removed)
 
     if (!orderCode) {
       return res.redirect(
@@ -974,7 +1265,7 @@ export const payosCancel = async (req, res) => {
       booking.cancellationReason = "Payment cancelled by user";
       await booking.save();
 
-      console.log(`Payment cancelled for booking ${booking._id}`);
+      // Payment cancelled (log removed)
 
       // Redirect đến trang cancel với thông tin booking
       const redirectUrl =
@@ -989,7 +1280,7 @@ export const payosCancel = async (req, res) => {
 
       return res.redirect(redirectUrl);
     } else {
-      console.log(`Booking not found for cancelled orderCode: ${orderCode}`);
+      // Booking not found for cancelled orderCode (log removed)
 
       // Redirect đến trang cancel chung
       const redirectUrl =

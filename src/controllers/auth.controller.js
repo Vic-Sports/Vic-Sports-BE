@@ -2,7 +2,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import TokenBlacklist from "../models/tokenBlacklist.js";
 import User from "../models/user.js";
-import { sendEmail } from "../utils/sendEmail.js";
+import { sendTemplatedEmail } from "../utils/sendEmail.js";
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -70,10 +70,13 @@ export const register = async (req, res) => {
     const verificationUrl = `${process.env.FRONTEND_URL}/auth/email-verification?token=${verificationToken}`;
 
     try {
-      await sendEmail({
+      await sendTemplatedEmail({
         email: user.email,
-        subject: "Email Verification - VIC Sports",
-        message: `Please click the link to verify your email: ${verificationUrl}`,
+        templateType: "REGISTRATION",
+        templateData: {
+          name: user.fullName,
+          verificationLink: verificationUrl,
+        },
       });
 
       res.status(201).json({
@@ -397,13 +400,16 @@ export const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Send reset email
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     try {
-      await sendEmail({
+      await sendTemplatedEmail({
         email: user.email,
-        subject: "Password Reset - VIC Sports",
-        message: `Please click the link to reset your password: ${resetUrl}`,
+        templateType: "PASSWORD_RESET",
+        templateData: {
+          name: user.fullName,
+          resetLink: resetUrl,
+        },
       });
 
       res.status(200).json({
@@ -429,11 +435,11 @@ export const forgotPassword = async (req, res) => {
 };
 
 // @desc    Reset Password
-// @route   PUT /api/auth/reset-password/:token
+// @route   POST /api/v1/auth/reset-password?token=...
 // @access Public
 export const resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { token } = req.query;
     const { password } = req.body;
 
     // Hash the token

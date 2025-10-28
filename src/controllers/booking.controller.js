@@ -5,6 +5,90 @@ import { cleanupStuckBookings } from "../utils/bookingCleanup.js";
 import User from "../models/user.js";
 import Coach from "../models/coach.js";
 import payosService from "../services/payos.service.js";
+import { sendTemplatedEmail } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
+
+// Helper function to send booking confirmation emails
+const sendBookingConfirmationEmails = async (booking, venue, user) => {
+  try {
+    // Get customer info - từ user object hoặc từ customerInfo field
+    const customerName =
+      user?.fullName || booking.customerInfo?.fullName || "Khách hàng";
+    const customerEmail =
+      user?.email || booking.customerInfo?.email || "Chưa xác định";
+    const customerPhone =
+      user?.phone || booking.customerInfo?.phone || "Chưa xác định";
+
+    // Debug log removed: sendBookingConfirmationEmails called
+
+    // Send email to customer
+    if (customerEmail && customerEmail !== "Chưa xác định") {
+      const timeSlots = booking.timeSlots || [];
+
+      await sendTemplatedEmail({
+        email: customerEmail,
+        templateType: "BOOKING_CONFIRMATION",
+        templateData: {
+          name: customerName,
+          bookingCode: booking.bookingCode,
+          venueName: venue.name,
+          date: booking.date,
+          timeSlots: timeSlots,
+          totalPrice: booking.totalPrice || 0,
+          customerEmail: customerEmail,
+        },
+      });
+      logger.info("✅ [KHÁCH HÀNG] Email đặt sân đã được gửi", {
+        bookingId: booking._id,
+        customerEmail: customerEmail,
+      });
+    } else {
+      logger.warn("⚠️ [KHÁCH HÀNG] Không có email để gửi", {
+        bookingId: booking._id,
+        customerEmail: customerEmail,
+      });
+    }
+
+    // Send email to venue owner
+    if (venue && venue.ownerId) {
+      const owner = await User.findById(venue.ownerId);
+      if (owner && owner.email) {
+        const timeSlots = booking.timeSlots || [];
+        const templateData = {
+          name: owner.fullName || "Chủ sân",
+          bookingCode: booking.bookingCode,
+          venueName: venue.name,
+          date: booking.date,
+          timeSlots: timeSlots,
+          totalPrice: booking.totalPrice || 0,
+          customerName: customerName,
+          customerEmail: customerEmail,
+          customerPhone: customerPhone,
+        };
+
+        // Debug log removed: sending owner confirmation
+
+        await sendTemplatedEmail({
+          email: owner.email,
+          templateType: "BOOKING_CONFIRMATION_OWNER",
+          templateData: templateData,
+        });
+        logger.info("✅ [CHỦ SÂN] Email đơn đặt sân mới đã được gửi", {
+          bookingId: booking._id,
+          ownerEmail: owner.email,
+          customerName: customerName,
+          customerEmail: customerEmail,
+        });
+      }
+    }
+  } catch (emailError) {
+    logger.error("❌ Lỗi khi gửi email xác nhận đặt sân", {
+      bookingId: booking._id,
+      error: emailError.message,
+    });
+    // Don't throw error - booking should succeed even if email fails
+  }
+};
 
 // @desc    Admin get bookings by userId
 // @route   GET /api/bookings/user/:userId
@@ -64,8 +148,7 @@ export const getBookingsByUserId = async (req, res) => {
 // @access Private
 export const createBooking = async (req, res) => {
   try {
-    console.log("=== CREATE BOOKING REQUEST ===");
-    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    // Verbose request logs removed for createBooking
 
     const {
       venueId,
@@ -78,15 +161,7 @@ export const createBooking = async (req, res) => {
     } = req.body;
     const userId = req.user?.id;
 
-    console.log("Extracted data:", {
-      venueId,
-      courtIds,
-      date,
-      timeSlots,
-      paymentMethod,
-      paymentInfo,
-      userId,
-    });
+    // Extracted data (debug log removed)
 
     // Validation
     if (!venueId) {
@@ -132,25 +207,14 @@ export const createBooking = async (req, res) => {
     }
 
     // Verify all courts exist and belong to venue
-    console.log("Looking for courts:", { courtIdsArray, venueId });
     const courts = await Court.find({
       _id: { $in: courtIdsArray },
       venueId: venueId,
     });
-    console.log(
-      "Found courts:",
-      courts.length,
-      "Expected:",
-      courtIdsArray.length
-    );
+    // Court lookup complete (debug logs removed)
 
     if (courts.length !== courtIdsArray.length) {
-      console.log("Court validation failed:");
-      console.log("- Requested court IDs:", courtIdsArray);
-      console.log(
-        "- Found courts:",
-        courts.map((c) => ({ id: c._id, name: c.name, venueId: c.venueId }))
-      );
+      // Court validation failed (debug details removed)
 
       return res.status(404).json({
         success: false,
@@ -213,8 +277,7 @@ export const createBooking = async (req, res) => {
       price: slot.price || 0,
     }));
 
-    console.log("Original timeSlots:", timeSlots);
-    console.log("Transformed timeSlots:", transformedTimeSlots);
+    // Transformed timeSlots computed (debug logs removed)
 
     // Calculate total amount from timeSlots instead of court pricePerHour
     let totalAmount = 0;
@@ -236,8 +299,7 @@ export const createBooking = async (req, res) => {
       });
     }
 
-    console.log("Customer info:", customerInfo);
-    console.log("Total amount calculated:", totalAmount);
+    // Customer info and total amount calculated (logs removed)
 
     // Create bookings for each court
     const bookings = [];
@@ -280,7 +342,7 @@ export const createBooking = async (req, res) => {
       // Nếu sử dụng PayOS, tạo payment link
       let paymentLink = null;
       if (paymentMethod?.toLowerCase() === "payos" && paymentInfo) {
-        console.log("Creating PayOS payment link for court:", court.name);
+        // Creating PayOS payment link for court (debug log removed)
 
         try {
           // PayOS yêu cầu description <= 25 ký tự
@@ -313,12 +375,9 @@ export const createBooking = async (req, res) => {
             buyerPhone: customerInfo?.phone,
           };
 
-          console.log("PayOS payment data:", paymentData);
-
           const paymentResult = await payosService.createPaymentLinkSDK(
             paymentData
           );
-          console.log("PayOS payment result:", paymentResult);
 
           if (paymentResult.success && paymentResult.data) {
             // Kiểm tra PayOS response code
@@ -330,9 +389,7 @@ export const createBooking = async (req, res) => {
               );
 
               // Nếu là lỗi PayOS, vẫn tạo booking nhưng không có payment link
-              console.log(
-                "Creating booking without payment link due to PayOS error"
-              );
+              // Creating booking without payment link due to PayOS error (log removed)
               bookingData.payosOrderCode = paymentData.orderCode;
               bookingData.payosError = {
                 code: paymentResult.data.code,
@@ -357,8 +414,7 @@ export const createBooking = async (req, res) => {
               "PayOS service error:",
               paymentResult.error || paymentResult
             );
-            // Vẫn tạo booking nhưng không có PayOS info
-            console.log("Creating booking without PayOS due to service error");
+            // Creating booking without PayOS due to service error (debug log removed)
           }
         } catch (payosError) {
           console.error("PayOS payment creation error:", payosError);
@@ -370,10 +426,7 @@ export const createBooking = async (req, res) => {
         }
       }
 
-      console.log(
-        "Creating booking with data:",
-        JSON.stringify(bookingData, null, 2)
-      );
+      // Creating booking (debug data removed)
 
       const booking = await Booking.create(bookingData);
       bookings.push(booking);
@@ -391,9 +444,40 @@ export const createBooking = async (req, res) => {
     const populatedBookings = await Booking.find({
       _id: { $in: bookings.map((b) => b._id) },
     })
-      .populate("venue", "name address phone email")
+      .populate("venue", "name address phone email ownerId")
       .populate("court", "name type pricePerHour")
       .populate("user", "fullName email phone");
+
+    // Send confirmation emails for each booking
+    // NOTE: For PayOS flow we should NOT send payment-success confirmation
+    // immediately after creating the payment link because the customer
+    // hasn't completed the payment yet. Wait until paymentStatus === 'paid'
+    // (via webhook or verify endpoint) before sending the paid confirmation.
+    for (let i = 0; i < populatedBookings.length; i++) {
+      const booking = populatedBookings[i];
+      const user = booking.user;
+      const venue = booking.venue;
+
+      // If payment method is PayOS and booking is not yet paid, skip sending
+      // the payment-success confirmation. Frontend will poll/verify or
+      // webhook will notify to trigger the final confirmation.
+      if (
+        String(booking.paymentMethod).toLowerCase() === "payos" &&
+        String(booking.paymentStatus || "").toLowerCase() !== "paid"
+      ) {
+        logger.info(
+          "Payment pending - skipping confirmation emails for PayOS booking",
+          {
+            bookingId: booking._id,
+            paymentStatus: booking.paymentStatus,
+          }
+        );
+        continue;
+      }
+
+      // For non-PayOS methods or already-paid bookings, send confirmation emails
+      await sendBookingConfirmationEmails(booking, venue, user);
+    }
 
     // Return format compatible with single booking
     if (courts.length === 1) {
@@ -454,7 +538,7 @@ export const createBooking = async (req, res) => {
 // @access Private
 export const getUserBookings = async (req, res) => {
   try {
-    console.log("[getUserBookings] req.user:", req.user);
+    // Reduced logging: getUserBookings request info removed
     const userId = req.user.id;
     const {
       page = 1,
@@ -785,8 +869,7 @@ export const recomputeVenueTotalBookings = async (venueId) => {
 // @access  Public
 export const testBookingCreation = async (req, res) => {
   try {
-    console.log("=== TEST BOOKING CREATION ===");
-    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    // Test booking creation logs removed
 
     // Test data with realistic values
     const testData = {
@@ -800,7 +883,7 @@ export const testBookingCreation = async (req, res) => {
       customerInfo: {
         fullName: "Test Customer",
         phone: "0123456789",
-        email: "test@example.com",
+        email: "ringhost42@gmail.com",
       },
       paymentMethod: "vnpay",
       paymentStatus: "pending",
@@ -814,7 +897,6 @@ export const testBookingCreation = async (req, res) => {
     };
 
     const booking = await Booking.create(testData);
-    console.log("Test booking created successfully:", booking._id);
 
     // Recompute venue totalBookings from Booking collection
     await recomputeVenueTotalBookings(testData.venue || booking.venue);
@@ -854,8 +936,7 @@ export const testBookingCreation = async (req, res) => {
 // @access  Public
 export const createSimpleBooking = async (req, res) => {
   try {
-    console.log("=== CREATE SIMPLE BOOKING ===");
-    console.log("Request body:", JSON.stringify(req.body, null, 2));
+    // Debug logs removed for createSimpleBooking
 
     const {
       courtIds,
@@ -901,7 +982,6 @@ export const createSimpleBooking = async (req, res) => {
     }
 
     const booking = await Booking.create(bookingData);
-    console.log("Booking created successfully:", booking._id);
 
     // Recompute venue totalBookings from Booking collection
     await recomputeVenueTotalBookings(bookingData.venue || booking.venue);
@@ -1265,8 +1345,38 @@ export const approveOwnerBooking = async (req, res) => {
 
     await booking.save();
 
-    // TODO: Send notification email to customer
-    // await sendBookingConfirmationEmail(booking.user.email, booking);
+    // Send confirmation email to customer when owner approves
+    if (booking.user && booking.user.email) {
+      try {
+        const timeSlots = booking.timeSlots || [];
+        await sendTemplatedEmail({
+          email: booking.user.email,
+          templateType: "BOOKING_CONFIRMATION",
+          templateData: {
+            name: booking.user.fullName || "Khách hàng",
+            bookingCode: booking.bookingCode,
+            venueName: booking.venue.name,
+            date: booking.date,
+            timeSlots: timeSlots,
+            totalPrice: booking.totalPrice || 0,
+            customerEmail: booking.user.email,
+          },
+        });
+        logger.info(
+          "✅ [KHÁCH HÀNG] Email xác nhận duyệt đặt sân đã được gửi",
+          {
+            bookingId: booking._id,
+            customerEmail: booking.user.email,
+          }
+        );
+      } catch (emailError) {
+        logger.error("❌ Lỗi khi gửi email xác nhận duyệt", {
+          bookingId: booking._id,
+          error: emailError.message,
+        });
+        // Don't throw error - approval should succeed even if email fails
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -1336,13 +1446,31 @@ export const rejectOwnerBooking = async (req, res) => {
 
     await booking.save();
 
-    // TODO: Process refund if payment was made
-    // if (booking.paymentStatus === "paid") {
-    //   await processRefund(booking.paymentId, booking.finalPrice);
-    // }
-
-    // TODO: Send notification email to customer
-    // await sendBookingRejectionEmail(booking.user.email, booking, reason);
+    // Send rejection notification email to customer
+    if (booking.user && booking.user.email) {
+      try {
+        await sendTemplatedEmail({
+          email: booking.user.email,
+          templateType: "BOOKING_REJECTION",
+          templateData: {
+            name: booking.user.fullName || "Khách hàng",
+            bookingCode: booking.bookingCode,
+            venueName: booking.venue.name,
+            reason: reason,
+          },
+        });
+        logger.info("✅ [KHÁCH HÀNG] Email từ chối đặt sân đã được gửi", {
+          bookingId: booking._id,
+          customerEmail: booking.user.email,
+        });
+      } catch (emailError) {
+        logger.error("❌ Lỗi khi gửi email từ chối đặt sân", {
+          bookingId: booking._id,
+          error: emailError.message,
+        });
+        // Don't throw error - rejection should succeed even if email fails
+      }
+    }
 
     res.status(200).json({
       success: true,
@@ -1411,6 +1539,31 @@ export const checkinOwnerBooking = async (req, res) => {
       $inc: { totalBookings: 1 },
     });
 
+    // Send check-in notification email to customer
+    if (booking.user && booking.user.email) {
+      try {
+        await sendTemplatedEmail({
+          email: booking.user.email,
+          templateType: "BOOKING_CHECKIN",
+          templateData: {
+            name: booking.user.fullName || "Khách hàng",
+            bookingCode: booking.bookingCode,
+            venueName: booking.venue.name,
+          },
+        });
+        logger.info("✅ [KHÁCH HÀNG] Email check-in đã được gửi", {
+          bookingId: booking._id,
+          customerEmail: booking.user.email,
+        });
+      } catch (emailError) {
+        logger.error("❌ Lỗi khi gửi email check-in", {
+          bookingId: booking._id,
+          error: emailError.message,
+        });
+        // Don't throw error - check-in should succeed even if email fails
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Customer checked in successfully",
@@ -1444,7 +1597,7 @@ export const holdBooking = async (req, res) => {
         message: "venueId, date and timeSlots are required",
       });
     }
-    console.log("Hold booking incoming timeSlots:", timeSlots);
+    // Hold booking incoming timeSlots (debug log removed)
     const courtIdsArray =
       Array.isArray(courtIds) && courtIds.length > 0 ? courtIds : [];
     const bookingCode = `HB${Date.now()}`;
@@ -1501,12 +1654,10 @@ export const releaseHoldBooking = async (req, res) => {
     }
     // Only owner can release
     if (booking.user && booking.user.toString() !== userId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Not authorized to release this hold",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to release this hold",
+      });
     }
     booking.status = "cancelled";
     booking.paymentStatus = "cancelled";
@@ -1533,5 +1684,195 @@ export const cleanupBookings = async (req, res) => {
   } catch (error) {
     console.error("Cleanup bookings error:", error);
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Create Dummy Booking (For Testing Without Real Payment)
+// @route   POST /api/v1/bookings/dummy/create
+// @access  Public
+export const createDummyBooking = async (req, res) => {
+  try {
+    // Verbose debug logs removed for createDummyBooking
+
+    const { venueId, courtIds, date, timeSlots, notes } = req.body;
+    const userId = req.user?.id;
+
+    // Validation
+    if (!venueId) {
+      return res.status(400).json({
+        success: false,
+        message: "Venue ID is required",
+      });
+    }
+
+    // Support both single court (courtId) and multiple courts (courtIds)
+    let courtIdsArray = [];
+    if (req.body.courtId) {
+      courtIdsArray = [req.body.courtId];
+    } else if (courtIds && Array.isArray(courtIds) && courtIds.length > 0) {
+      courtIdsArray = courtIds;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Court ID(s) are required",
+      });
+    }
+
+    if (
+      !date ||
+      !timeSlots ||
+      !Array.isArray(timeSlots) ||
+      timeSlots.length === 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Date and time slots are required",
+      });
+    }
+
+    // Verify venue exists
+    const venue = await Venue.findById(venueId);
+    if (!venue) {
+      return res.status(404).json({
+        success: false,
+        message: "Venue not found",
+      });
+    }
+
+    // Verify all courts exist and belong to venue
+    const courts = await Court.find({
+      _id: { $in: courtIdsArray },
+      venueId: venueId,
+    });
+    // Court lookup complete (debug logs removed)
+
+    if (courts.length !== courtIdsArray.length) {
+      return res.status(404).json({
+        success: false,
+        message: "One or more courts not found or do not belong to this venue",
+      });
+    }
+
+    // Transform timeSlots data format (startTime/endTime -> start/end)
+    const transformedTimeSlots = timeSlots.map((slot) => ({
+      start: slot.startTime || slot.start,
+      end: slot.endTime || slot.end,
+      price: slot.price || 200000,
+    }));
+
+    // Transformed timeSlots computed (debug log removed)
+
+    // Calculate total amount
+    let totalAmount = 0;
+    transformedTimeSlots.forEach((slot) => {
+      if (slot.price) {
+        totalAmount += slot.price * courtIdsArray.length;
+      }
+    });
+
+    // Get customer info from authenticated user or create fallback
+    let customerInfo;
+    if (userId) {
+      const user = await User.findById(userId);
+      customerInfo = {
+        fullName: user?.fullName || "Guest User",
+        phone: user?.phone || "0000000000",
+        email: user?.email || "guest@example.com",
+        notes: notes || "",
+      };
+    } else {
+      customerInfo = {
+        fullName: "Test Customer",
+        phone: "0123456789",
+        email: "hoangk5fc9@gmail.com",
+        notes: notes || "",
+      };
+    }
+
+    // Customer info and total amount computed (logs removed)
+
+    // Create bookings for each court - DUMMY (NO PAYMENT VALIDATION)
+    const bookings = [];
+    const groupBookingCode = `DUMMY${Date.now()}`;
+
+    for (let i = 0; i < courts.length; i++) {
+      const court = courts[i];
+
+      let individualAmount = 0;
+      transformedTimeSlots.forEach((slot) => {
+        individualAmount += slot.price || 200000;
+      });
+
+      const bookingData = {
+        bookingCode:
+          courts.length === 1
+            ? groupBookingCode
+            : `${groupBookingCode}-${i + 1}`,
+        user: userId || undefined,
+        venue: venueId,
+        court: court._id,
+        courtIds: courtIdsArray,
+        date: date,
+        timeSlots: transformedTimeSlots,
+        courtQuantity: courts.length,
+        totalPrice: totalAmount,
+        customerInfo,
+        duration: transformedTimeSlots.length,
+        status: "confirmed", // DUMMY: set to confirmed without payment
+        paymentStatus: "paid", // DUMMY: mark as paid without actual payment
+        paymentMethod: "payos",
+        notes,
+        groupBookingCode: courts.length > 1 ? groupBookingCode : undefined,
+      };
+
+      // Creating dummy booking (debug payload removed)
+
+      const booking = await Booking.create(bookingData);
+      bookings.push(booking);
+    }
+
+    // Populate booking data
+    const populatedBookings = await Booking.find({
+      _id: { $in: bookings.map((b) => b._id) },
+    })
+      .populate("venue", "name address phone email ownerId")
+      .populate("court", "name type pricePerHour")
+      .populate("user", "fullName email phone");
+
+    // Send confirmation emails for each booking
+    for (let i = 0; i < populatedBookings.length; i++) {
+      const booking = populatedBookings[i];
+      const user = booking.user;
+      const venueData = booking.venue;
+      await sendBookingConfirmationEmails(booking, venueData, user);
+    }
+
+    // Return response
+    if (courts.length === 1) {
+      res.status(201).json({
+        success: true,
+        data: {
+          booking: populatedBookings[0],
+        },
+        message: "✅ DUMMY Booking created successfully (No real payment)",
+      });
+    } else {
+      res.status(201).json({
+        success: true,
+        data: {
+          bookings: populatedBookings,
+          totalAmount,
+          groupBookingCode,
+          bookingCount: bookings.length,
+        },
+        message: `✅ Successfully created ${bookings.length} DUMMY bookings (No real payment)`,
+      });
+    }
+  } catch (error) {
+    console.error("Create dummy booking error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
   }
 };
