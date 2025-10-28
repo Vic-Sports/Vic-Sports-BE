@@ -22,7 +22,7 @@ router.post("/login", login);
 router.post("/social-login", socialLogin);
 router.get("/verify-email", verifyEmail);
 router.post("/forgot-password", forgotPassword);
-router.put("/reset-password/:token", resetPassword);
+router.post("/reset-password", resetPassword);
 router.post("/refresh-token", refreshToken);
 
 // Protected routes
