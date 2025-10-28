@@ -12,6 +12,7 @@ import {
   holdBooking,
   cleanupBookings,
   releaseHoldBooking,
+  createDummyBooking,
 } from "../controllers/booking.controller.js";
 import { protect, authorize } from "../middlewares/auth.middleware.js";
 import { autoCleanupBeforeAvailabilityCheck } from "../middlewares/cleanup.middleware.js";
@@ -44,6 +45,7 @@ router.get(
 );
 router.post("/test", testBookingCreation); // Test booking for debugging
 router.post("/simple", createSimpleBooking); // Simple booking for frontend testing
+router.post("/dummy/create", createDummyBooking); // Dummy booking for testing (no real payment)
 router.post("/hold", holdBooking); // Hold booking slots for FE
 // Release held booking when user leaves booking screen
 router.post("/:bookingId/release", protect, releaseHoldBooking);
