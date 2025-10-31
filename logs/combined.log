@@ -1,0 +1,384 @@
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-27 13:30:17"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-27 13:30:17"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-27 13:30:17"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 seconds, max age 5 minutes","timestamp":"2025-10-27 13:30:17"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-27 13:30:47"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-27 13:30:47"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-27T06:25:47.431Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-27 13:30:47","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-27 13:31:17"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-27 13:31:17"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-27T06:26:17.428Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-27 13:31:17","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-27 13:32:17"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-27 13:32:17"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-27T06:27:17.442Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-27 13:32:17","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-27 13:33:37"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-27 13:33:37"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-27 13:33:37"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 seconds, max age 5 minutes","timestamp":"2025-10-27 13:33:37"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-27 13:34:07"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-27 13:34:08"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-27T06:29:07.958Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-27 13:34:08","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-27 13:34:37"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-27 13:34:38"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-27T06:29:37.964Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-27 13:34:38","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-27 13:35:37"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-27 13:35:38"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-27T06:30:37.971Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-27 13:35:38","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-30 20:25:03"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-30 20:25:03"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-30 20:25:03"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 seconds, max age 5 minutes","timestamp":"2025-10-30 20:25:03"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:25:33"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:25:33"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:20:33.181Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:25:33","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:26:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:26:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:21:03.187Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:26:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:27:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:27:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:22:03.196Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:27:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:28:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:28:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:23:03.198Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:28:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:29:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:29:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:24:03.206Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:29:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:30:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:30:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:25:03.214Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:30:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:31:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:31:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:26:03.216Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:31:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:32:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:32:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:27:03.225Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:32:03","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:33:03"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:33:03"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:28:03.235Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:33:03","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-30 20:34:02"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-30 20:34:02"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-30 20:34:02"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 seconds, max age 5 minutes","timestamp":"2025-10-30 20:34:02"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:34:32"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:34:32"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:29:32.393Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:34:32","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:35:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:35:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:30:02.384Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:35:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:36:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:36:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:31:02.385Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:36:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:37:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:37:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:32:02.395Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:37:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:38:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:38:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:33:02.401Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:38:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:39:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:39:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:34:02.401Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:39:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:40:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:40:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:35:02.411Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:40:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:41:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:41:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:36:02.414Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:41:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:42:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:42:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:37:02.425Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:42:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:43:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:43:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:38:02.435Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:43:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:44:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:44:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:39:02.441Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:44:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:45:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:45:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:40:02.451Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:45:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:46:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:46:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:41:02.459Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:46:02","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 20:47:02"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 20:47:02"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T13:42:02.469Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 20:47:02","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-30 21:24:49"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-30 21:24:49"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-30 21:24:49"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 seconds, max age 5 minutes","timestamp":"2025-10-30 21:24:49"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:25:19"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:25:19"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:20:19.536Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:25:19","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:25:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:25:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:20:49.537Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:25:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:26:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:26:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:21:49.538Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:26:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:27:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:27:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:22:49.551Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:27:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:28:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:28:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:23:49.551Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:28:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:29:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:29:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:24:49.555Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:29:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:30:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:30:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:25:49.563Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:30:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:31:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:31:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:26:49.576Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:31:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:32:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:32:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:27:49.583Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:32:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:33:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:33:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:28:49.586Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:33:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:34:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:34:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:29:49.596Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:34:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:35:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:35:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:30:49.599Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:35:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:36:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:36:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:31:49.606Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:36:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:37:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:37:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:32:49.621Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:37:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:38:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:38:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:33:49.635Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:38:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:39:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:39:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:34:49.642Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:39:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:40:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:40:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:35:49.647Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:40:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:41:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:41:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:36:49.656Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:41:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:42:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:42:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:37:49.662Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:42:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:43:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:43:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:38:49.665Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:43:49","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:44:49"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:44:49"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:39:49.666Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:44:49","totalStuckBookings":0}
+{"level":"info","message":"Server is running on port 3000","timestamp":"2025-10-30 21:45:13"}
+{"level":"info","message":"Socket.IO server is running","timestamp":"2025-10-30 21:45:13"}
+{"level":"info","message":"Cleanup jobs initialized","timestamp":"2025-10-30 21:45:13"}
+{"level":"info","message":"Scheduling booking cleanup job: every 60 seconds, max age 5 minutes","timestamp":"2025-10-30 21:45:13"}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:45:43"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:45:43"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:40:43.859Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:45:43","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:46:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:46:17"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:41:13.859Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:46:17","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:47:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:47:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:42:13.864Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:47:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:48:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:48:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:43:13.878Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:48:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:49:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:49:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:44:13.881Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:49:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:50:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:50:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:45:13.886Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:50:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:51:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:51:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:46:13.892Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:51:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:52:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:52:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:47:13.896Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:52:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:53:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:53:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:48:13.897Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:53:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:54:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:54:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:49:13.897Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:54:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:55:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:55:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:50:13.918Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:55:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:56:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:56:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:51:13.922Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:56:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:57:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:57:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:52:13.937Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:57:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:58:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:58:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:53:13.942Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:58:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 21:59:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 21:59:13"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:54:13.954Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 21:59:13","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:00:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:00:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:55:13.960Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:00:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:01:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:01:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:56:13.968Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:01:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:02:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:02:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:57:13.977Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:02:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:03:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:03:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:58:13.982Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:03:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:04:13"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:04:17"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T14:59:13.988Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:04:17","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:05:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:05:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:00:14.002Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:05:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:06:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:06:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:01:14.004Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:06:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:07:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:07:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:02:14.017Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:07:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:08:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:08:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:03:14.033Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:08:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:09:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:09:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:04:14.042Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:09:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:10:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:10:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:05:14.052Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:10:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:11:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:11:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:06:14.061Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:11:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:12:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:12:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:07:14.064Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:12:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:13:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:13:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:08:14.076Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:13:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:14:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:14:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:09:14.090Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:14:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:15:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:15:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:10:14.102Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:15:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:16:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:16:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:11:14.104Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:16:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:17:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:17:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:12:14.115Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:17:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:18:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:18:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:13:14.125Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:18:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:19:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:19:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:14:14.134Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:19:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:20:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:20:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:15:14.135Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:20:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:21:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:21:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:16:14.149Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:21:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:22:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:22:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:17:14.151Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:22:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:23:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:23:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:18:14.158Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:23:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:24:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:24:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:19:14.170Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:24:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:25:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:25:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:20:14.181Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:25:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:26:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:26:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:21:14.185Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:26:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:27:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:27:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:22:14.195Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:27:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:28:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:28:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:23:14.207Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:28:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:29:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:29:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:24:14.211Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:29:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:30:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:30:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:25:14.222Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:30:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:31:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:31:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:26:14.234Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:31:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:32:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:32:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:27:14.240Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:32:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:33:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:33:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:28:14.251Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:33:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:34:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:34:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:29:14.250Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:34:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:35:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:35:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:30:14.266Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:35:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:36:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:36:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:31:14.275Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:36:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:37:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:37:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:32:14.280Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:37:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:38:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:38:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:33:14.283Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:38:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:39:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:39:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:34:14.286Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:39:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:40:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:40:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:35:14.293Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:40:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:41:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:41:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:36:14.300Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:41:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:42:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:42:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:37:14.309Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:42:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:43:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:43:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:38:14.325Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:43:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:44:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:44:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:39:14.328Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:44:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:45:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:45:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:40:14.341Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:45:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:46:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:46:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:41:14.353Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:46:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:47:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:47:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:42:14.360Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:47:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:48:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:48:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:43:14.360Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:48:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:49:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:49:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:44:14.369Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:49:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:50:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:50:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:45:14.376Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:50:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:51:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:51:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:46:14.376Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:51:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:52:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:52:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:47:14.383Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:52:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:53:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:53:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:48:14.388Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:53:14","totalStuckBookings":0}
+{"level":"info","message":"Starting cleanup of pending bookings older than 5 minutes","timestamp":"2025-10-30 22:54:14"}
+{"level":"info","message":"Found 0 stuck pending bookings","timestamp":"2025-10-30 22:54:14"}
+{"cancelledBookings":0,"cutoffTime":"2025-10-30T15:49:14.393Z","errorDetails":[],"errors":0,"level":"info","maxAgeMinutes":5,"message":"Cleanup completed:","timestamp":"2025-10-30 22:54:14","totalStuckBookings":0}
