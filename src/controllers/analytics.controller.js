@@ -7,6 +7,9 @@ import Coach from "../models/coach.js";
 import Owner from "../models/owner.js";
 import mongoose from "mongoose";
 
+// Admin commission rate: 5% of total revenue
+const ADMIN_COMMISSION_RATE = 0.05;
+
 // @desc    Get Revenue Reports
 // @route   GET /api/analytics/revenue
 // @access Private (Admin/Owner)
@@ -515,8 +518,8 @@ export const getDashboardOverview = async (req, res) => {
       Venue.countDocuments({ isActive: true }),
       Booking.countDocuments({ status: "completed" }),
       Booking.aggregate([
-        { $match: { status: "completed" } },
-        { $group: { _id: null, total: { $sum: "$finalPrice" } } },
+        { $match: { status: "completed", paymentStatus: "paid" } },
+        { $group: { _id: null, total: { $sum: "$totalPrice" } } },
       ]),
       User.countDocuments({ createdAt: { $gte: startDate } }),
       Venue.countDocuments({ createdAt: { $gte: startDate } }),
@@ -525,7 +528,8 @@ export const getDashboardOverview = async (req, res) => {
         Owner.countDocuments({ isVerified: false }),
     ]);
 
-    const revenue = totalRevenue.length > 0 ? totalRevenue[0].total : 0;
+    const grossRevenue = totalRevenue.length > 0 ? totalRevenue[0].total : 0;
+    const revenue = grossRevenue * ADMIN_COMMISSION_RATE; // Admin commission: 5%
 
     res.status(200).json({
       success: true,
@@ -534,7 +538,8 @@ export const getDashboardOverview = async (req, res) => {
           totalUsers,
           totalVenues,
           totalBookings,
-          totalRevenue: revenue,
+          totalRevenue: revenue, // Admin commission (5%)
+          grossRevenue: grossRevenue, // Total gross revenue for reference
           newUsers,
           newVenues,
           pendingApprovals,
