@@ -12,6 +12,10 @@ import Review from "../models/review.js";
 import Tournament from "../models/tournament.js";
 import { sendTemplatedEmail } from "../utils/sendEmail.js";
 
+// ==================== CONSTANTS ====================
+// Admin commission rate: 5% of total revenue
+const ADMIN_COMMISSION_RATE = 0.05;
+
 // ==================== UTILITY FUNCTIONS ====================
 
 // Convert FE pattern like "/text/i" to RegExp
@@ -48,12 +52,13 @@ export const getAdminStats = async (req, res, next) => {
     const completedBookings = await Booking.countDocuments({ status: "completed" });
     const pendingBookings = await Booking.countDocuments({ status: "pending" });
 
-    // Get total revenue from completed bookings
+    // Get total revenue from completed bookings (Admin gets 5% commission)
     const revenueData = await Booking.aggregate([
       { $match: { status: "completed", paymentStatus: "paid" } },
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
-    const totalRevenue = revenueData.length > 0 ? revenueData[0].total : 0;
+    const totalGrossRevenue = revenueData.length > 0 ? revenueData[0].total : 0;
+    const totalRevenue = totalGrossRevenue * ADMIN_COMMISSION_RATE; // Admin commission: 5%
 
     // Calculate revenue comparison with previous month
     const currentDate = new Date();
@@ -88,10 +93,14 @@ export const getAdminStats = async (req, res, next) => {
       { $group: { _id: null, total: { $sum: "$totalPrice" } } },
     ]);
 
-    const currentMonthTotal =
+    const currentMonthGross =
       currentMonthRevenue.length > 0 ? currentMonthRevenue[0].total : 0;
-    const previousMonthTotal =
+    const previousMonthGross =
       previousMonthRevenue.length > 0 ? previousMonthRevenue[0].total : 0;
+    
+    // Calculate admin commission for each month
+    const currentMonthTotal = currentMonthGross * ADMIN_COMMISSION_RATE;
+    const previousMonthTotal = previousMonthGross * ADMIN_COMMISSION_RATE;
 
     const revenueChange =
       previousMonthTotal > 0
@@ -937,6 +946,13 @@ export const getAdminRevenueData = async (req, res, next) => {
           bookingCount: { $sum: 1 },
         },
       },
+      {
+        $addFields: {
+          // Admin commission: 5% of total revenue
+          adminRevenue: { $multiply: ["$totalRevenue", ADMIN_COMMISSION_RATE] },
+          totalRevenue: "$totalRevenue", // Keep gross revenue for reference
+        },
+      },
       { $sort: { _id: 1 } },
     ]);
 
@@ -1069,7 +1085,8 @@ export const getTopVenues = async (req, res, next) => {
         $project: {
           _id: 0,
           venueName: "$venueInfo.name",
-          revenue: 1,
+          revenue: { $multiply: ["$revenue", ADMIN_COMMISSION_RATE] }, // Admin commission: 5%
+          grossRevenue: "$revenue", // Keep gross revenue for reference
           bookings: 1,
         },
       },
